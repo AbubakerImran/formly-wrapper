@@ -1,155 +1,109 @@
-<div class="container mt-3 d-flex justify-content-center">
-  <div class="d-flex flex-column gap-3 p-4 mt-5 bg-white rounded-5 rounded-bottom-0 w-75">
-    <div class="d-flex justify-content-between">
-      <h1>Angular Form</h1>
-      <div class="d-flex">
-        <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#formModal">
-          Add Field
-        </button>
-        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editFieldModal">
-          Edit Fields
-        </button>
+<div class="container-fluid d-flex bg-white shadow align-items-center justify-content-between rounded-bottom-2">
+  <h1 class="ms-4">Angular Forms</h1>
+  <div class="d-flex p-3 justify-content-end">
+    <button type="button" class="btn btn-dark me-5 p-3" hidden>Saved Forms</button>
+    <button type="button" class="btn btn-primary me-5 p-3" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</button>
+    <button type="button" class="btn btn-warning p-3" *ngIf="fields.length > 0" (click)="onEditFieldsClick()">Edit Fields</button>
+  </div>
+</div>
+
+<div class="d-flex gap-5">
+  <div class="position-absolute start-0 bottom-0 bg-white shadow w-25 rounded-end-5 rounded-bottom-0" style="flex: 1; height: 70vh; max-height: 70vh; overflow-y: auto; scrollbar-width: none;">
+    <div *ngIf="showSideDiv">
+      <button type="button" class="btn border-0" *ngIf="modalStep() === 'select' && fields.length > 0" (click)="closeSideDiv()"><b>&#x2715;</b></button>
+      <button type="button" class="btn border-0" *ngIf="modalStep() === 'configure'" (click)="backSideDiv()"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/></svg></button>
+      <div class="mt-3 d-flex gap-2 justify-content-center" *ngIf="modalStep() === 'configure'">
+        <button type="button" class="btn btn-secondary" (click)="modalStep.set('select')">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="saveFieldEdit()">Save Changes</button>
       </div>
+      <div *ngIf="modalStep() === 'select' && fields.length > 0" class="container p-3">
+        <ul class="list-group">
+          <li *ngFor="let f of fields; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
+            {{ f.props?.label || f.key }}
+            <div class="d-flex">
+              <button class="btn btn-sm btn-primary me-2" (click)="openEditFieldModal(i)">Edit</button>
+              <button class="btn btn-sm btn-danger" (click)="deleteField(i)">Delete</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <form [formGroup]="modalForm" *ngIf="modalStep() === 'configure'" class="p-4 container">
+        <formly-form [model]="modalModel" [fields]="modalFields" [form]="modalForm"></formly-form>
+      </form>
     </div>
-    <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
+  </div>
+  <div class="container position-absolute end-0 bottom-0 w-75">
+    <div class="d-flex flex-column gap-2 p-4 bg-white rounded-top-5 shadow" style="flex: 1; height: 70vh; max-height: 70vh; overflow-y: auto; scrollbar-width: none;">
+      <div class="d-flex justify-content-between">
+        <h1>Angular Form</h1>
+        <button type="button" class="btn btn-success" hidden>Save Form</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
       <formly-form [model]="model" [fields]="fields" [form]="form"></formly-form>
-
-      <!-- Submit buttons -->
-      <div class="d-flex justify-content-center" *ngIf="!isEdit()">
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="d-flex justify-content-center" *ngIf="!isEdit()">
+          <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0">Submit</button>
+          <p *ngIf="fields.length === 0"><em>Start adding fields...</em></p>
+        </div>
+        <div class="d-flex justify-content-center gap-3" *ngIf="isEdit()">
+          <button type="button" class="btn btn-warning" (click)="update(model)" [disabled]="!form.valid">Update</button>
+          <button type="button" class="btn border" (click)="cancel()">Cancel</button>
+        </div>
+      </form>
+      <div class="table mt-3">
+        <table class="table table-bordered">
+          <thead *ngIf="users.length != 0">
+            <tr>
+              <th>UID</th>
+              <th *ngFor="let f of fields">{{ f.props?.label || f.key }}</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="users.length === 0">
+              <td [attr.colspan]="fields.length + 2" class="text-center">No users found.</td>
+            </tr>
+            <tr *ngFor="let user of users">
+              <td>{{ user.id }}</td>
+              <td *ngFor="let f of fields">
+                {{ getValue(user, f.key) }}
+              </td>
+              <td>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-warning" (click)="editUser(user.id)">Edit</button>
+                  <button class="btn btn-danger" (click)="deleteUser(user.id)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
-      <div class="d-flex justify-content-center gap-3" *ngIf="isEdit()">
-        <button type="button" class="btn btn-warning" (click)="update(model)" [disabled]="!form.valid">Update</button>
-        <button type="button" class="btn border" (click)="cancel()">Cancel</button>
-      </div>
-    </form>
-    <!-- Table -->
-    <div class="table-responsive mt-3">
-      <table class="table table-bordered">
-        <thead *ngIf="users.length != 0">
-          <tr>
-            <th>UID</th>
-            <th *ngFor="let f of fields">{{ f.props?.label || f.key }}</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="users.length === 0">
-            <td [attr.colspan]="fields.length + 2" class="text-center">No users found.</td>
-          </tr>
-          <tr *ngFor="let user of users">
-            <td>{{ user.id }}</td>
-            <td *ngFor="let f of fields">
-              {{ getValue(user, f.key) }}
-            </td>
-            <td>
-              <div class="d-flex gap-2">
-                <button class="btn btn-warning" (click)="editUser(user.id)">Edit</button>
-                <button class="btn btn-danger" (click)="deleteUser(user.id)">Delete</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </div>
 </div>
 
-<!-- Add Field Modal (unchanged, you can keep or remove) -->
 <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <!-- Header -->
       <div class="modal-header">
-        <h5 class="modal-title" id="formModalLabel">
-          {{ step() === 'select' ? 'Choose Field Type' : 'Configure Field' }}
-        </h5>
+        <h5 class="modal-title" id="formModalLabel">Choose Field Type</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
       </div>
-      <!-- Body -->
       <div class="modal-body">
-        <!-- Step 1: Choose type -->
-        <div *ngIf="step() === 'select'" class="mb-3 d-flex gap-2 flex-wrap">
-          <button type="button" class="btn btn-outline-primary" (click)="startAddField('input')">Input</button>
-          <button type="button" class="btn btn-outline-secondary" (click)="startAddField('textarea')">Textarea</button>
-          <button type="button" class="btn btn-outline-success" (click)="startAddField('select')">Select</button>
-          <button type="button" class="btn btn-outline-warning" (click)="startAddField('radio')">Radio</button>
+        <div class="row g-3 justify-content-center">
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('input')">Input</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('textarea')">Textarea</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('select')">Select</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('radio')">Radio</button>
+          </div>
         </div>
-        <!-- Step 2: Configure field -->
-        <form [formGroup]="modalForm" class="mt-3" *ngIf="step() === 'configure'">
-          <formly-form [model]="modalModel" [fields]="modalFields" [form]="modalForm"></formly-form>
-        </form>
       </div>
-      <!-- Footer -->
-      <div class="modal-footer" *ngIf="step() === 'configure'">
-        <button type="button" class="btn btn-secondary" (click)="cancelFieldModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close" (click)="submit()">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Field Modal -->
-<div class="modal fade" id="editFieldModal" tabindex="-1" aria-labelledby="editFieldModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-
-      <!-- Header -->
-      <div class="modal-header">
-        <h5 class="modal-title" id="editFieldModalLabel">
-          <!-- Show title depending on modalStep -->
-          <ng-container *ngIf="modalStep() === 'select'">Fields</ng-container>
-          <ng-container *ngIf="modalStep() === 'configure'">Edit Field</ng-container>
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body">
-
-        <!-- Step 1: Show existing fields list -->
-        <div *ngIf="modalStep() === 'select' && fields.length > 0" class="mt-3">
-          <ul class="list-group">
-            <li *ngFor="let f of fields; let i = index" class="list-group-item d-flex justify-content-between align-items-center">
-              {{ f.props?.label || f.key }}
-              <div class="d-flex">
-                <button class="btn btn-sm btn-primary me-2" (click)="openEditFieldModal(i)">
-                  Edit
-                </button>
-                <button class="btn btn-sm btn-danger" (click)="deleteField(i)">Delete</button>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div *ngIf="modalStep() === 'select' && fields.length === 0" class="text-center p-3">
-          <em>No fields available to edit.</em>
-        </div>
-
-        <!-- Step 2: Edit selected field -->
-        <form [formGroup]="modalForm" *ngIf="modalStep() === 'configure'">
-          <formly-form [model]="modalModel" [fields]="modalFields" [form]="modalForm"></formly-form>
-        </form>
-      </div>
-
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button *ngIf="modalStep() === 'configure'" type="button" class="btn btn-secondary" (click)="modalStep() === 'configure' ? modalStep.set('select') : cancelFieldModal()">
-          Cancel
-        </button>
-
-        <button
-          *ngIf="modalStep() === 'configure'"
-          type="button"
-          class="btn btn-primary"
-          (click)="saveFieldEdit()"
-          data-bs-dismiss="modal"
-        >
-          Save Changes
-        </button>
-      </div>
-
     </div>
   </div>
 </div>

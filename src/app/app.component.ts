@@ -118,95 +118,69 @@ export class App implements OnInit {
     this.editingFieldIndex = null;
   }
 
-  startAddField(type: string) {
-    this.modalStep.set('configure'); // Switch to configure step
-    this.modalForm = this.fb.group({});
-    this.modalModel = {};
-    // Map type to JSON file
-    let filePath = '';
-    switch (type) {
-      case 'input':
-        filePath = 'assets/fields/input.json';
-        this.type.set('input');
-        break;
-      case 'textarea':
-        filePath = 'assets/fields/textarea.json';
-        this.type.set('textarea');
-        break;
-      case 'select':
-        filePath = 'assets/fields/select.json';
-        this.type.set('select');
-        break;
-      case 'radio':
-        filePath = 'assets/fields/radio.json';
-        this.type.set('radio');
-        break;
-      default:
-        console.error('Unknown field type:', type);
-        return;
-    }
-    // Load the JSON
-    this.http.get<FormlyFieldConfig[]>(filePath).subscribe(config => {
-      this.modalFields = config;
-    });
-  }
+  addFixedField(type: 'input' | 'textarea' | 'select' | 'radio') {
+    // Count existing fields with same type prefix in key
+    const existingCount = this.fields.filter(f => 
+      typeof f.key === 'string' && f.key.startsWith(type)
+    ).length;
+    const index = existingCount + 1;
 
-  type = signal('');
+    const baseStyle = {
+      width: '', height: '', maxWidth: '', minWidth: '', maxHeight: '', minHeight: '', display: '',
+      margin: '', marginTop: '', marginRight: '', marginBottom: '', marginLeft: '',
+      padding: '', paddingTop: '', paddingRight: '', paddingBottom: '', paddingLeft: '', boxSizing: '',
+      border: '1px solid #ccc', borderWidth: '', borderTopWidth: '', borderRightWidth: '', borderBottomWidth: '', borderLeftWidth: '',
+      borderStyle: '', borderTopStyle: '', borderRightStyle: '', borderBottomStyle: '', borderLeftStyle: '',
+      borderColor: '', borderTopColor: '', borderRightColor: '', borderBottomColor: '', borderLeftColor: '',
+      borderRadius: '', outline: '', outlineColor: '', outlineWidth: '', outlineStyle: '',
+      color: '', backgroundColor: '', backgroundImage: '', backgroundSize: '', backgroundRepeat: '',
+      backgroundPosition: '', backgroundClip: '', backgroundOrigin: '', backgroundAttachment: '',
+      fontFamily: '', fontSize: '', fontWeight: '', fontStyle: '', fontVariant: '',
+      textAlign: '', textTransform: '', textDecoration: '', letterSpacing: '', wordSpacing: '',
+      lineHeight: '', whiteSpace: '', textOverflow: '',
+      boxShadow: '', textShadow: '', cursor: '', pointerEvents: '', userSelect: '', caretColor: '',
+      transition: '', transitionProperty: '', transitionDuration: '', transitionTimingFunction: '',
+      transitionDelay: '', animation: '', animationName: '', animationDuration: '',
+      animationTimingFunction: '', animationDelay: '', animationIterationCount: '',
+      animationDirection: '', animationFillMode: '',
+      opacity: '', visibility: '', overflow: '', overflowX: '', overflowY: '', clipPath: ''
+    };
 
-  submit() {
-    if (this.modalForm.invalid) {
-      this.modalForm.markAllAsTouched();
-      return;
-    }
     let newField: FormlyFieldConfig = {
-      key: this.modalModel.key,
-      type: 'input',
+      key: `${type}${index}`,  // increment here
+      type: type,
       wrappers: ["form-field-horizontal"],
       props: {
-        label: this.modalModel.label,
-        placeholder: this.modalModel.placeholder || '',
-        class: "form-control mb-2",
-        required: !!this.modalModel.required,
-        labelClass: "form-label",
-        labelFor: this.modalModel.key,
+        label: `${type}${index}`,         // increment here
+        id: `${type}${index}`,            // increment here
+        placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,  // increment here
+        class: type === 'select' ? 'form-select mb-2' :
+              type === 'radio' ? 'form-check-input mb-2' : 'form-control mb-2',
+        required: false,
+        labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
+        labelFor: `${type}${index}`,      // increment here
+        style: baseStyle,
+        pattern: ''
       },
-      validation: {
-        messages: {
-          required: "This field is required"
-        }
-      }
+      validation: { messages: { required: "This field is required" } }
     };
-    // Select / Radio support
-    if (this.type() === 'select') {
-      newField.type = 'select'; // change if you detect radio type
-      newField.props = {
-        ...newField.props,
-        class: "form-select mb-2",
-        options: this.modalModel.options.split(',').map((opt: string) => ({
-          label: opt.trim(),
-          value: opt.trim()
-        }))
-      };
-    } else if (this.type() === 'radio') {
-      newField.type = 'radio'; // change if you detect radio type
-      newField.props = {
-        ...newField.props,
-        class: "form-check-input mb-2",
-        labelClass: 'form-check-label',
-        options: this.modalModel.options.split(',').map((opt: string) => ({
-          label: opt.trim(),
-          value: opt.trim()
-        }))
-      };
+
+    // Special case: Select / Radio default options
+    if (type === 'select' || type === 'radio') {
+      newField.props = newField.props || {};
+      newField.props.options = [
+        { label: 'Option 1', value: 'Option 1' },
+        { label: 'Option 2', value: 'Option 2' }
+      ];
     }
-    // Add to fields array
+
     this.fields.push(newField);
-    // Save updated fields to localStorage
     localStorage.setItem('formFields', JSON.stringify(this.fields));
-    // Reset modal state
     this.cancelFieldModal();
     this.ngOnInit();
   }
+
+  type = signal('');
 
   getValue(user: any, key: any) {
     if (!key) return '';
@@ -215,78 +189,95 @@ export class App implements OnInit {
 
   editingFieldIndex: number | null = null;
 
-  // Opens edit modal and shows existing fields list first
   openEditFieldModal(index: number) {
-    this.editingFieldIndex = index;
-    const field = this.fields[index];
-    const type = typeof field.type === 'string' ? field.type : 'input';
-    this.type.set(type);
+  this.editingFieldIndex = index;
+  const field = this.fields[index];
+  const type = typeof field.type === 'string' ? field.type : 'input';
+  this.type.set(type);
 
-    this.modalStep.set('configure');
+  this.modalStep.set('configure');
 
-    this.modalModel = {
-      key: field.key,
-      label: field.props?.label || '',
-      placeholder: field.props?.placeholder || '',
-      required: !!field.props?.required,
-      options: Array.isArray(field.props?.options)
-        ? field.props.options.map((o: any) => o.label).join(', ')
-        : ''
-    };
+  const style = field.props?.['style'] || {};
 
-    this.modalFields = [
-      { key: 'key', type: 'input', props: { label: 'Key', required: true } },
-      { key: 'label', type: 'input', props: { label: 'Label', required: true } },
-      { key: 'placeholder', type: 'input', props: { label: 'Placeholder' } },
-      { key: 'required', type: 'checkbox', props: { label: 'Required' } },
-    ];
+  this.modalModel = {
+    key: field.key,
+    label: field.props?.label || '',
+    id: field.props?.['id'] || '',
+    class: field.props?.['class'] || '',
+    placeholder: field.props?.placeholder || '',
+    required: !!field.props?.required,
+    options: Array.isArray(field.props?.options)
+      ? field.props.options.map((o: any) => o.label).join(', ')
+      : '',
+    ...style
+  };
 
-    if (type === 'select' || type === 'radio') {
-      this.modalFields.push({ key: 'options', type: 'input', props: { label: 'Options (comma separated)', required: true } });
-    }
+  this.modalFields = [
+    { key: 'key', type: 'input', props: { label: 'Key', required: true } },
+    { key: 'id', type: 'input', props: { label: 'ID' } },
+    { key: 'label', type: 'input', props: { label: 'Label', required: true } },
+    { key: 'placeholder', type: 'input', props: { label: 'Placeholder' } },
+    { key: 'required', type: 'checkbox', props: { label: 'Required' } },
+    { key: 'class', type: 'input', props: { label: 'Class' } },
+  ];
 
-    this.modalForm = this.fb.group({});
+  if (type === 'select' || type === 'radio') {
+    this.modalFields.push({ key: 'options', type: 'input', props: { label: 'Options (comma separated)', required: true } });
+  }
+
+  const styleKeys = Object.keys(this.fields[0]?.props?.['style'] || {});
+  styleKeys.forEach(sk => {
+    this.modalFields.push({
+      key: sk,
+      type: 'input',
+      props: { label: `${sk}` }
+    });
+  });
+
+  this.modalForm = this.fb.group({});
 }
 
   saveFieldEdit() {
-    if (this.editingFieldIndex === null) return;
+  if (this.editingFieldIndex === null) return;
 
-    // Validate modal form
-    if (this.modalForm.invalid) {
-      this.modalForm.markAllAsTouched();
-      return;
-    }
-
-    const updatedField: FormlyFieldConfig = {
-      ...this.fields[this.editingFieldIndex],
-      key: this.modalModel.key,
-      props: {
-        ...this.fields[this.editingFieldIndex].props,
-        label: this.modalModel.label,
-        placeholder: this.modalModel.placeholder,
-        required: !!this.modalModel.required,
-        options: this.modalModel.options
-          ? this.modalModel.options.split(',').map((opt: string) => ({
-              label: opt.trim(),
-              value: opt.trim()
-            }))
-          : undefined
-      }
-    };
-
-    // Update fields array with new field config
-    this.fields[this.editingFieldIndex] = updatedField;
-
-    // Save updated fields to localStorage
-    localStorage.setItem('formFields', JSON.stringify(this.fields));
-
-    // Reset modal state to list view
-    this.modalStep.set('select');
-    this.editingFieldIndex = null;
-    this.modalForm.reset();
-    this.modalModel = {};
-    this.ngOnInit();
+  if (this.modalForm.invalid) {
+    this.modalForm.markAllAsTouched();
+    return;
   }
+
+  const updatedStyle: any = {};
+  const styleKeys = Object.keys(this.fields[0]?.props?.['style'] || {});
+  styleKeys.forEach(sk => {
+    updatedStyle[sk] = this.modalModel[sk] || '';
+  });
+
+  const updatedField: FormlyFieldConfig = {
+    ...this.fields[this.editingFieldIndex],
+    key: this.modalModel.key,
+    props: {
+      ...this.fields[this.editingFieldIndex].props,
+      label: this.modalModel.label,
+      placeholder: this.modalModel.placeholder,
+      required: !!this.modalModel.required,
+      options: this.modalModel.options
+        ? this.modalModel.options.split(',').map((opt: string) => ({
+            label: opt.trim(),
+            value: opt.trim()
+          }))
+        : undefined,
+      style: updatedStyle
+    }
+  };
+
+  this.fields[this.editingFieldIndex] = updatedField;
+  localStorage.setItem('formFields', JSON.stringify(this.fields));
+
+  this.modalStep.set('select');
+  this.editingFieldIndex = null;
+  this.modalForm.reset();
+  this.modalModel = {};
+  this.ngOnInit();
+}
 
   deleteField(index: number) {
     if (index >= 0 && index < this.fields.length) {
@@ -296,4 +287,19 @@ export class App implements OnInit {
     }
   }
 
+  showSideDiv = false;
+
+  onEditFieldsClick() {
+    this.showSideDiv = true;
+    this.modalStep.set('select');
+  }
+
+  closeSideDiv() {
+    this.showSideDiv = false;
+    this.modalStep.set('select');
+  }
+
+  backSideDiv() {
+    this.modalStep.set('select');
+  }
 }
