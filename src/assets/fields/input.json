@@ -1,0 +1,88 @@
+[
+  {
+    "key": "key",
+    "type": "input",
+    "wrappers": ["modal-wrapper"],
+    "props": {
+      "label": "Key",
+      "type": "text",
+      "placeholder": "Enter field key",
+      "required": true,
+      "class": "form-control mb-2",
+      "labelClass": "form-label",
+      "labelFor": "key"
+    },
+    "validation": {
+      "messages": {
+        "required": "This field is required"
+      }
+    }
+  },
+  {
+    "key": "id",
+    "type": "input",
+    "wrappers": ["modal-wrapper"],
+    "props": {
+      "label": "Id",
+      "type": "text",
+      "placeholder": "Enter field id",
+      "required": true,
+      "class": "form-control mb-2",
+      "labelClass": "form-label",
+      "labelFor": "id"
+    },
+    "validation": {
+      "messages": {
+        "required": "This field is required"
+      }
+    }
+  },
+  {
+    "key": "label",
+    "type": "input",
+    "wrappers": ["modal-wrapper"],
+    "props": {
+      "label": "Label",
+      "type": "text",
+      "placeholder": "Enter field label",
+      "required": true,
+      "class": "form-control mb-2",
+      "labelClass": "form-label",
+      "labelFor": "label"
+    },
+    "validation": {
+      "messages": {
+        "required": "This field is required"
+      }
+    }
+  },
+  {
+    "key": "placeholder",
+    "type": "input",
+    "wrappers": ["modal-wrapper"],
+    "props": {
+      "label": "Placeholder",
+      "type": "text",
+      "placeholder": "Enter field placeholder",
+      "required": true,
+      "class": "form-control mb-2",
+      "labelClass": "form-label",
+      "labelFor": "placeholder"
+    },
+    "validation": {
+      "messages": {
+        "required": "This field is required"
+      }
+    }
+  },
+  {
+    "key": "required",
+    "type": "checkbox",
+    "props": {
+      "label": "Required",
+      "class": "form-check-input",
+      "labelClass": "form-label",
+      "labelFor": "required"
+    }
+  }
+]
