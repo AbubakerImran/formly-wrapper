@@ -9,6 +9,8 @@
     [id]="to['id']"
     [autocomplete]="to['autocomplete']"
     [ngStyle]="to['style']"
+    (contextmenu)="showContextMenu($event)" 
+    #inputField
   />
   <input
     *ngSwitchCase="'email'"
@@ -20,6 +22,8 @@
     [autocomplete]="to['autocomplete']"
     pattern="^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
     [ngStyle]="to['style']"
+    (contextmenu)="showContextMenu($event)" 
+    #inputField
   />
   <input
     *ngSwitchCase="'number'"
@@ -30,6 +34,8 @@
     [id]="to['id']"
     pattern="^\d{10,12}$"
     [ngStyle]="to['style']"
+    (contextmenu)="showContextMenu($event)" 
+    #inputField
   />
   <select
     *ngSwitchCase="'select'"
@@ -37,6 +43,8 @@
     [formControl]="formControl"
     [id]="to['id']"
     [ngStyle]="to['style']"
+    (contextmenu)="showContextMenu($event)" 
+    #inputField
   >
     <option *ngIf="to.placeholder" value="">{{ to.placeholder }}</option>
       <ng-container *ngIf="options$ | async as options">
@@ -56,6 +64,8 @@
           [formControl]="formControl"
           [id]="to['id']"
           [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" 
+          #inputField
         />
         <label class="form-check-label" [for]="to['id']">
           {{ option.label }}
@@ -71,8 +81,18 @@
     [formControl]="formControl"
     [id]="to['id']"
     [ngStyle]="to['style']"
+    (contextmenu)="showContextMenu($event)" 
+    #inputField
   />
 </ng-container>
+<!-- Context Menu -->
+<div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul>
+    <li (click)="onMenuClick('Action 1')">Action 1</li>
+    <li (click)="onMenuClick('Action 2')">Action 2</li>
+    <li (click)="onMenuClick('Action 3')">Action 3</li>
+  </ul>
+</div>
 <div *ngIf="showError" class="text-danger mt-1">
   <formly-validation-message [field]="field"></formly-validation-message>
 </div>

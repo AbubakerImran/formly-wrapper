@@ -1,18 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FieldWrapper } from '@ngx-formly/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormlyValidationMessage } from '@ngx-formly/core';
 import { isObservable, of } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-
 @Component({
   selector: 'formly-horizontal-wrapper',
   templateUrl: 'horizontal-wrapper.html',
+  styleUrls: ['../../app.component.css'], // Ensure the correct path
   standalone: true,
   imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule],
 })
 export class FormlyHorizontalWrapper extends FieldWrapper {
+  menuVisible = false;
+  menuPosition = { x: 0, y: 0 };
 
   get options$() {
     const opts = this.to?.options;
@@ -26,5 +28,21 @@ export class FormlyHorizontalWrapper extends FieldWrapper {
 
   override get formControl(): FormControl {
     return super.formControl as FormControl;
+  }
+
+  showContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    this.menuPosition = { x: event.clientX, y: event.clientY };
+    this.menuVisible = true;
+  }
+
+  onMenuClick(action: string) {
+    console.log(action + ' clicked');
+    this.menuVisible = false;
+  }
+
+  @HostListener('document:click')
+  hideMenu() {
+    this.menuVisible = false;
   }
 }
