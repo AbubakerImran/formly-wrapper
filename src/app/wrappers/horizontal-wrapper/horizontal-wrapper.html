@@ -1,4 +1,4 @@
-<label *ngIf="to.label" [ngClass]="to['labelClass']" [attr.for]="to['id']">{{ to.label }}</label>
+<label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
 <ng-container [ngSwitch]="field.type">
   <input
     *ngSwitchCase="'text'"

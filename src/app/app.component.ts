@@ -1,14 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormlyForm, ReactiveFormsModule, HttpClientModule, CommonModule, FormlySelectModule],
+  imports: [FormlyForm, ReactiveFormsModule, HttpClientModule, CommonModule, FormlySelectModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -33,36 +33,239 @@ export class App implements OnInit {
   modalModel: any = {};
   modalOptions: FormlyFormOptions = {};
   modalFields: FormlyFieldConfig[] = [];
+  savedFormNames: string[] = [];
 
-  ngOnInit() {
-    const storedFields = localStorage.getItem('formFields');
-    if (storedFields) {
-      this.fields = JSON.parse(storedFields);
+  editFormModal = new FormGroup({});
+  editFormModel: any = {};
+  editFormFields: FormlyFieldConfig[] = [
+    {
+      key: "formName",
+      type: "input",
+      wrappers: ["form-field-horizontal"],
+      props: {
+        label: "Form Name",
+        placeholder: "Enter form name",
+        class: "form-control mb-2",
+        labelClass: "form-label",
+        id: "formName",
+        required: true
+      },
+      validation: {
+        messages: {
+          required: "This field is required"
+        }
+      }
     }
-    this.fetchData();
+  ];
+
+  displayFields: { key: string, label: string }[] = [];
+
+  formHeading = '';
+  editFormNameBefore = '';
+  showForm = '';
+
+  formChanged = false;
+
+  openEditFormNameModal(name: string) {
+    this.editFormModel = { formName: name };  // Bind directly to Formly model
+    this.editFormNameBefore = name;           // Keep original name for comparison
+  }
+  
+  ngOnInit() {
+    // Don't load any fields until a form is opened
+    this.fields = [];
+    this.model = {};
+    this.users = [];
+    this.fetchData(); 
+    this.loadSavedFormNames();
   }
 
-  step() {
-    return this.modalStep();
+  loadSavedFormNames() {
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    this.savedFormNames = Object.keys(savedForms);
+  }
+
+  loadSavedForm(formName: string) {
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    if (savedForms[formName]) {
+      this.showForm = formName;
+      this.fields = savedForms[formName];
+      this.formHeading = formName;
+      localStorage.setItem('formFields', JSON.stringify(this.fields));
+      this.fetchData(); // <-- reset and load entries for selected form
+    }
+  }
+
+  createNewForm() {
+    let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    let counter = 1;
+    let newFormName = `Form${counter}`;
+    while (savedForms[newFormName]) {
+      counter++;
+      newFormName = `Form${counter}`;
+    }
+
+    this.formHeading = newFormName;
+    this.showForm = newFormName;
+    this.fields = [];
+    this.users = [];
+    this.model = {};
+
+    // ✅ Save immediately with 0 fields
+    savedForms[newFormName] = [];
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+    // ✅ Remove any empty entries for this form
+    let savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    savedEntries[newFormName] = [];
+    localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+    this.loadSavedFormNames();
+    this.fetchData();
+    this.closeSideDiv();
+  }
+
+  saveForm() {
+
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    savedForms[this.formHeading] = this.fields;
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+    this.formChanged = false;
+    this.loadSavedFormNames(); // Refresh sidebar list
+  }
+
+  saveFormNameChange() {
+
+    if (!this.editFormModel.formName) {
+      return;
+    }
+
+    const oldName = this.editFormNameBefore || '';
+    const newName = this.editFormModel.formName?.trim();
+
+    // ✅ If name hasn't changed, just exit
+    if (newName === oldName) {
+      alert("No changes were made.");
+      return;
+    }
+
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+
+    // Prevent renaming to an existing form
+    if (savedForms[newName]) {
+      alert("A form with this name already exists!");
+      return;
+    }
+
+    // ✅ Move form data to the new key
+    if (savedForms[oldName]) {
+      savedForms[newName] = savedForms[oldName];
+      delete savedForms[oldName];
+    }
+
+    if (savedEntries[oldName]) {
+      savedEntries[newName] = savedEntries[oldName];
+      delete savedEntries[oldName];
+    }
+
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+    localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+    // Update current form heading if renamed
+    if (this.formHeading === oldName) {
+      this.formHeading = newName;
+    }
+
+    this.loadSavedFormNames();
+  }
+
+  deleteFormName() {
+    const formName = this.editFormModel.formName?.trim();
+
+    if (!formName) {
+      alert("Form name is missing!");
+      return;
+    }
+
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+
+    if (savedForms[formName]) {
+      delete savedForms[formName];
+    }
+    if (savedEntries[formName]) {
+      delete savedEntries[formName];
+    }
+
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+    localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+    // If currently viewing the deleted form, clear UI
+    if (this.formHeading === formName) {
+      this.formHeading = '';
+      this.fields = [];
+      this.users = [];
+      this.model = {};
+    }
+
+    if (formName === this.showForm) {
+      this.showForm = '';
+    }
+
+    this.loadSavedFormNames();
   }
 
   fetchData() {
-    const data = localStorage.getItem('data');
-    if (data) {
-      this.users = JSON.parse(data);
-    } else {
-      this.users = [];
-    }
+    const entries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    let formEntries = entries[this.formHeading] || [];
+
+    // ✅ Filter empty id-only entries
+    formEntries = formEntries.filter((e: {}) => {
+      const keys = Object.keys(e);
+      return !(keys.length === 1 && keys.includes('id'));
+    });
+
+    entries[this.formHeading] = formEntries;
+    localStorage.setItem('savedFormEntries', JSON.stringify(entries));
+
+    this.users = formEntries;
+
+    // 🔹 Merge keys from fields and users
+    const fieldKeysFromForm = this.fields.map(f => ({
+      key: f.key as string,
+      label: f.props?.label || f.key as string
+    }));
+
+    const fieldKeysFromUsers: { key: string, label: string }[] = [];
+    formEntries.forEach((entry: {}) => {
+      Object.keys(entry).forEach(k => {
+        if (k !== 'id' && !fieldKeysFromForm.some(f => f.key === k) && !fieldKeysFromUsers.some(f => f.key === k)) {
+          fieldKeysFromUsers.push({ key: k, label: k }); // Use key as label if deleted
+        }
+      });
+    });
+
+    this.displayFields = [...fieldKeysFromForm, ...fieldKeysFromUsers];
   }
 
   onSubmit(model: any) {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-    } else if (this.fields.length != 0) {
-      const existingData = JSON.parse(localStorage.getItem('data') || '[]');
+      return;
+    }
+    
+    if (this.fields.length > 0) {
+      const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+      const formEntries = allEntries[this.formHeading] || [];
+
       const newEntry = { id: Date.now(), ...model };
-      existingData.push(newEntry);
-      localStorage.setItem('data', JSON.stringify(existingData));
+      formEntries.push(newEntry);
+
+      allEntries[this.formHeading] = formEntries;
+      localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+
       this.model = {};
       this.form.reset();
       this.fetchData();
@@ -71,35 +274,43 @@ export class App implements OnInit {
   }
 
   update(model: any) {
-    const existingData = JSON.parse(localStorage.getItem('data') || '[]');
-    const updatedData = existingData.map((user: any) => {
-      if (user.id === this.uid()) {
-        return { id: this.uid(), ...model };
-      }
-      return user;
-    });
-    localStorage.setItem('data', JSON.stringify(updatedData));
+    const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    const formEntries = allEntries[this.formHeading] || [];
+
+    const updatedEntries = formEntries.map((entry: any) =>
+      entry.id === this.uid() ? { id: this.uid(), ...model } : entry
+    );
+
+    allEntries[this.formHeading] = updatedEntries;
+    localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+
     this.model = {};
     this.fetchData();
     this.isEdit.set(false);
   }
 
   deleteUser(id: any) {
-    const existingData = JSON.parse(localStorage.getItem('data') || '[]');
-    const updatedData = existingData.filter((user: any) => user.id !== id);
-    localStorage.setItem('data', JSON.stringify(updatedData));
+    const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    const formEntries = allEntries[this.formHeading] || [];
+
+    const updatedEntries = formEntries.filter((entry: any) => entry.id !== id);
+    allEntries[this.formHeading] = updatedEntries;
+
+    localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
     this.fetchData();
   }
 
   editUser(id: number) {
-    const existingData = JSON.parse(localStorage.getItem('data') || '[]');
-    const userToEdit = existingData.find((user: any) => user.id === id);
+    const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    const formEntries = allEntries[this.formHeading] || [];
+    const userToEdit = formEntries.find((entry: any) => entry.id === id);
+
     if (userToEdit) {
       this.model = { ...userToEdit };
+      this.uid.set(id);
+      this.editingId.set(id);
+      this.isEdit.set(true);
     }
-    this.uid.set(id);
-    this.editingId.set(id);
-    this.isEdit.set(true);
   }
 
   cancel() {
@@ -119,12 +330,6 @@ export class App implements OnInit {
   }
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio') {
-    // Count existing fields with same type prefix in key
-    const existingCount = this.fields.filter(f => 
-      typeof f.key === 'string' && f.key.startsWith(type)
-    ).length;
-    const index = existingCount + 1;
-
     const baseStyle = {
       width: '', height: '', maxWidth: '', minWidth: '', maxHeight: '', minHeight: '', display: '',
       margin: '', marginTop: '', marginRight: '', marginBottom: '', marginLeft: '',
@@ -145,39 +350,170 @@ export class App implements OnInit {
       animationDirection: '', animationFillMode: '',
       opacity: '', visibility: '', overflow: '', overflowX: '', overflowY: '', clipPath: ''
     };
+    const labelBaseStyle = {
+      // Layout & Positioning
+      display: '',
+      position: '',
+      top: '',
+      right: '',
+      bottom: '',
+      left: '',
+      float: '',
+      clear: '',
+      zIndex: '',
+
+      // Box Model
+      width: '',
+      height: '',
+      minWidth: '',
+      maxWidth: '',
+      minHeight: '',
+      maxHeight: '',
+      margin: '',
+      marginTop: '',
+      marginRight: '',
+      marginBottom: '',
+      marginLeft: '',
+      padding: '',
+      paddingTop: '',
+      paddingRight: '',
+      paddingBottom: '',
+      paddingLeft: '',
+      boxSizing: '',
+
+      // Border
+      border: '',
+      borderWidth: '',
+      borderTopWidth: '',
+      borderRightWidth: '',
+      borderBottomWidth: '',
+      borderLeftWidth: '',
+      borderStyle: '',
+      borderTopStyle: '',
+      borderRightStyle: '',
+      borderBottomStyle: '',
+      borderLeftStyle: '',
+      borderColor: '',
+      borderTopColor: '',
+      borderRightColor: '',
+      borderBottomColor: '',
+      borderLeftColor: '',
+      borderRadius: '',
+      borderTopLeftRadius: '',
+      borderTopRightRadius: '',
+      borderBottomRightRadius: '',
+      borderBottomLeftRadius: '',
+
+      // Background
+      background: '',
+      backgroundColor: '',
+      backgroundImage: '',
+      backgroundSize: '',
+      backgroundRepeat: '',
+      backgroundPosition: '',
+      backgroundClip: '',
+      backgroundOrigin: '',
+      backgroundAttachment: '',
+
+      // Typography
+      color: '',
+      font: '',
+      fontFamily: '',
+      fontSize: '',
+      fontWeight: '',
+      fontStyle: '',
+      fontVariant: '',
+      fontStretch: '',
+      lineHeight: '',
+      letterSpacing: '',
+      wordSpacing: '',
+      textAlign: '',
+      textTransform: '',
+      textDecoration: '',
+      textIndent: '',
+      whiteSpace: '',
+      textOverflow: '',
+      direction: '',
+      unicodeBidi: '',
+
+      // Effects & Decorations
+      boxShadow: '',
+      textShadow: '',
+      opacity: '',
+      visibility: '',
+
+      // Cursor & Interaction
+      cursor: '',
+      pointerEvents: '',
+      userSelect: '',
+      caretColor: '',
+
+      // Animations & Transitions
+      transition: '',
+      transitionProperty: '',
+      transitionDuration: '',
+      transitionTimingFunction: '',
+      transitionDelay: '',
+      animation: '',
+      animationName: '',
+      animationDuration: '',
+      animationTimingFunction: '',
+      animationDelay: '',
+      animationIterationCount: '',
+      animationDirection: '',
+      animationFillMode: '',
+
+      // Misc
+      clipPath: '',
+      transform: '',
+      transformOrigin: '',
+      transformStyle: '',
+      perspective: '',
+      perspectiveOrigin: '',
+      filter: '',
+      mixBlendMode: '',
+    };
+    const existingCount = this.fields.filter(f =>
+      typeof f.key === 'string' && f.key.startsWith(type)
+    ).length;
+    const index = existingCount + 1;
 
     let newField: FormlyFieldConfig = {
-      key: `${type}${index}`,  // increment here
-      type: type,
+      key: `${type}${index}`,
+      type,
       wrappers: ["form-field-horizontal"],
       props: {
-        label: `${type}${index}`,         // increment here
-        id: `${type}${index}`,            // increment here
-        placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,  // increment here
+        label: `${type}${index}`,
+        id: `${type}${index}`,
+        placeholder: type === 'textarea'
+          ? `Enter ${type}${index} text`
+          : `${type}${index}`,
         class: type === 'select' ? 'form-select mb-2' :
               type === 'radio' ? 'form-check-input mb-2' : 'form-control mb-2',
         required: false,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
-        labelFor: `${type}${index}`,      // increment here
-        style: baseStyle,
-        pattern: ''
+        labelFor: `${type}${index}`,
+        style: baseStyle, // or your default style
+        labelStyle: labelBaseStyle
       },
-      validation: { messages: { required: "This field is required" } }
+      validation: {
+        messages: {
+          required: "This field is required!"
+        }
+      }
     };
 
-    // Special case: Select / Radio default options
     if (type === 'select' || type === 'radio') {
-      newField.props = newField.props || {};
-      newField.props.options = [
+      newField.props!.options = [
         { label: 'Option 1', value: 'Option 1' },
         { label: 'Option 2', value: 'Option 2' }
       ];
     }
 
-    this.fields.push(newField);
-    localStorage.setItem('formFields', JSON.stringify(this.fields));
+    this.fields = [...this.fields, newField];
+    this.formChanged = true; // ✅ mark as changed
+
     this.cancelFieldModal();
-    this.ngOnInit();
   }
 
   type = signal('');
@@ -190,100 +526,159 @@ export class App implements OnInit {
   editingFieldIndex: number | null = null;
 
   openEditFieldModal(index: number) {
-  this.editingFieldIndex = index;
-  const field = this.fields[index];
-  const type = typeof field.type === 'string' ? field.type : 'input';
-  this.type.set(type);
+    this.editingFieldIndex = index;
+    const field = this.fields[index];
+    const type = typeof field.type === 'string' ? field.type : 'input';
+    this.type.set(type);
 
-  this.modalStep.set('configure');
+    this.modalStep.set('configure');
 
-  const style = field.props?.['style'] || {};
+    const style = field.props?.['style'] || {};
+    const labelStyle = field.props?.['labelStyle'] || {};
 
-  this.modalModel = {
-    key: field.key,
-    label: field.props?.label || '',
-    id: field.props?.['id'] || '',
-    class: field.props?.['class'] || '',
-    placeholder: field.props?.placeholder || '',
-    required: !!field.props?.required,
-    options: Array.isArray(field.props?.options)
-      ? field.props.options.map((o: any) => o.label).join(', ')
-      : '',
-    ...style
-  };
+    this.modalModel = {
+      key: field.key,
+      label: field.props?.label || '',
+      id: field.props?.['id'] || '',
+      class: field.props?.['class'] || '',
+      placeholder: field.props?.placeholder || '',
+      required: !!field.props?.required,
+      options: Array.isArray(field.props?.options)
+        ? field.props.options.map((o: any) => o.label).join(', ')
+        : '',
+      ...style,
+      ...labelStyle
+    };
 
-  this.modalFields = [
-    { key: 'key', type: 'input', props: { label: 'Key', required: true } },
-    { key: 'id', type: 'input', props: { label: 'ID' } },
-    { key: 'label', type: 'input', props: { label: 'Label', required: true } },
-    { key: 'placeholder', type: 'input', props: { label: 'Placeholder' } },
-    { key: 'required', type: 'checkbox', props: { label: 'Required' } },
-    { key: 'class', type: 'input', props: { label: 'Class' } },
-  ];
+    // Start fields array
+    this.modalFields = [
+      {
+        fieldGroupClassName: 'row',
+        fieldGroup: [
+          { key: 'key', type: 'input', className: 'col-md-6', props: { label: 'Key', required: true } },
+          { key: 'id', type: 'input', className: 'col-md-6', props: { label: 'ID' } },
+          { key: 'label', type: 'input', className: 'col-md-6', props: { label: 'Label', required: true } },
+          { key: 'placeholder', type: 'input', className: 'col-md-6', props: { label: 'Placeholder' } },
+          { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } },
+          { key: 'class', type: 'input', className: 'col-md-6', props: { label: 'Class' } },
+        ]
+      }
+    ];
 
-  if (type === 'select' || type === 'radio') {
-    this.modalFields.push({ key: 'options', type: 'input', props: { label: 'Options (comma separated)', required: true } });
-  }
+    if (type === 'select' || type === 'radio') {
+      this.modalFields[0].fieldGroup?.push({
+        key: 'options',
+        type: 'input',
+        className: 'col-md-6',
+        props: { label: 'Options (comma separated)', required: true }
+      });
+    }
 
-  const styleKeys = Object.keys(this.fields[0]?.props?.['style'] || {});
-  styleKeys.forEach(sk => {
+    // 🔹 Add a heading for Input Style
     this.modalFields.push({
-      key: sk,
-      type: 'input',
-      props: { label: `${sk}` }
+      template: '<h4 class="mt-3 mb-2">Input Style</h4>'
     });
-  });
+    this.modalFields.push({
+      fieldGroupClassName: 'row',
+      fieldGroup: Object.keys(style).map(sk => ({
+        key: sk,
+        type: 'input',
+        className: 'col-md-6',
+        props: { label: sk }
+      }))
+    });
 
-  this.modalForm = this.fb.group({});
-}
+    // 🔹 Add a heading for Label Style
+    this.modalFields.push({
+      template: '<h4 class="mt-3 mb-2">Label Style</h4>'
+    });
+    this.modalFields.push({
+      fieldGroupClassName: 'row',
+      fieldGroup: Object.keys(labelStyle).map(sk => ({
+        key: sk,
+        type: 'input',
+        className: 'col-md-6',
+        props: { label: sk }
+      }))
+    });
+
+    this.modalForm = this.fb.group({});
+  }
 
   saveFieldEdit() {
-  if (this.editingFieldIndex === null) return;
+    if (this.editingFieldIndex === null) return;
 
-  if (this.modalForm.invalid) {
-    this.modalForm.markAllAsTouched();
-    return;
-  }
-
-  const updatedStyle: any = {};
-  const styleKeys = Object.keys(this.fields[0]?.props?.['style'] || {});
-  styleKeys.forEach(sk => {
-    updatedStyle[sk] = this.modalModel[sk] || '';
-  });
-
-  const updatedField: FormlyFieldConfig = {
-    ...this.fields[this.editingFieldIndex],
-    key: this.modalModel.key,
-    props: {
-      ...this.fields[this.editingFieldIndex].props,
-      label: this.modalModel.label,
-      placeholder: this.modalModel.placeholder,
-      required: !!this.modalModel.required,
-      options: this.modalModel.options
-        ? this.modalModel.options.split(',').map((opt: string) => ({
-            label: opt.trim(),
-            value: opt.trim()
-          }))
-        : undefined,
-      style: updatedStyle
+    if (this.modalForm.invalid) {
+      this.modalForm.markAllAsTouched();
+      return;
     }
-  };
 
-  this.fields[this.editingFieldIndex] = updatedField;
-  localStorage.setItem('formFields', JSON.stringify(this.fields));
+    const updatedStyle: any = {};
+    const updatedLabelStyle: any = {};
 
-  this.modalStep.set('select');
-  this.editingFieldIndex = null;
-  this.modalForm.reset();
-  this.modalModel = {};
-  this.ngOnInit();
-}
+    // Collect style values
+    const styleKeys = Object.keys(this.fields[this.editingFieldIndex]?.props?.['style'] || {});
+    styleKeys.forEach(sk => {
+      updatedStyle[sk] = this.modalModel[sk] || '';
+    });
+
+    // Collect labelStyle values
+    const labelStyleKeys = Object.keys(this.fields[this.editingFieldIndex]?.props?.['labelStyle'] || {});
+    labelStyleKeys.forEach(sk => {
+      updatedLabelStyle[sk] = this.modalModel[sk] || '';
+    });
+
+    const updatedField: FormlyFieldConfig = {
+      ...this.fields[this.editingFieldIndex],
+      key: this.modalModel.key,
+      props: {
+        ...this.fields[this.editingFieldIndex].props,
+        label: this.modalModel.label,
+        class: this.modalModel.class,
+        placeholder: this.modalModel.placeholder,
+        required: !!this.modalModel.required,
+        options: this.modalModel.options
+          ? this.modalModel.options.split(',').map((opt: string) => ({
+              label: opt.trim(),
+              value: opt.trim()
+            }))
+          : undefined,
+        style: updatedStyle,
+        labelStyle: updatedLabelStyle
+      }
+    };
+
+    // ✅ Replace the field in a new array to trigger change detection
+    const newFields = [...this.fields];
+    newFields[this.editingFieldIndex] = updatedField;
+    this.fields = newFields;
+
+    // ✅ Save in localStorage
+    let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    savedForms[this.formHeading] = this.fields;
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+    this.modalStep.set('select');
+    this.editingFieldIndex = null;
+    this.modalForm.reset();
+    this.modalModel = {};
+  }
 
   deleteField(index: number) {
     if (index >= 0 && index < this.fields.length) {
-      this.fields.splice(index, 1);
+      // Create a new array without the deleted field
+      this.fields = this.fields.filter((_, i) => i !== index);
+
+      // Save updated fields in localStorage
       localStorage.setItem('formFields', JSON.stringify(this.fields));
-      this.ngOnInit();
+
+      this.fetchData();
+      this.loadSavedFormNames();
+      this.formChanged = true; // mark as changed
+      if (this.fields.length === 0) {
+        this.closeSideDiv();
+      }
+      this.formChanged = true;
     }
   }
 
