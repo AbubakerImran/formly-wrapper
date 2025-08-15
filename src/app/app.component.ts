@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
@@ -10,7 +10,7 @@ import { FormlySelectModule } from '@ngx-formly/core/select';
   standalone: true,
   imports: [FormlyForm, ReactiveFormsModule, HttpClientModule, CommonModule, FormlySelectModule, FormsModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class App implements OnInit {
 
@@ -90,6 +90,7 @@ export class App implements OnInit {
     if (savedForms[formName]) {
       this.showForm = formName;
       this.fields = savedForms[formName];
+      this.reattachFieldFunctions(); // 🔹 Restore missing functions
       this.formHeading = formName;
       localStorage.setItem('formFields', JSON.stringify(this.fields));
       this.fetchData(); // <-- reset and load entries for selected form
@@ -329,177 +330,52 @@ export class App implements OnInit {
     this.editingFieldIndex = null;
   }
 
+  reattachFieldFunctions() {
+    this.fields = this.fields.map((field, index) => ({
+      ...field,
+      props: {
+        ...field.props,
+        index, // ✅ always reassign fresh index
+        openEditFieldModal: () => this.openEditFieldModal(index),
+        deleteField: () => this.deleteField(index),
+        loadSavedForm: () => this.loadSavedForm(this.formHeading),
+        openEditFormNameModal: () => this.openEditFormNameModal(this.formHeading),
+        deleteFormName: () => this.deleteFormName(),
+      }
+    }));
+  }
+
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio') {
     const baseStyle = {
-      width: '', height: '', maxWidth: '', minWidth: '', maxHeight: '', minHeight: '', display: '',
-      margin: '', marginTop: '', marginRight: '', marginBottom: '', marginLeft: '',
-      padding: '', paddingTop: '', paddingRight: '', paddingBottom: '', paddingLeft: '', boxSizing: '',
-      border: '1px solid #ccc', borderWidth: '', borderTopWidth: '', borderRightWidth: '', borderBottomWidth: '', borderLeftWidth: '',
-      borderStyle: '', borderTopStyle: '', borderRightStyle: '', borderBottomStyle: '', borderLeftStyle: '',
-      borderColor: '', borderTopColor: '', borderRightColor: '', borderBottomColor: '', borderLeftColor: '',
-      borderRadius: '', outline: '', outlineColor: '', outlineWidth: '', outlineStyle: '',
-      color: '', backgroundColor: '', backgroundImage: '', backgroundSize: '', backgroundRepeat: '',
-      backgroundPosition: '', backgroundClip: '', backgroundOrigin: '', backgroundAttachment: '',
-      fontFamily: '', fontSize: '', fontWeight: '', fontStyle: '', fontVariant: '',
-      textAlign: '', textTransform: '', textDecoration: '', letterSpacing: '', wordSpacing: '',
-      lineHeight: '', whiteSpace: '', textOverflow: '',
-      boxShadow: '', textShadow: '', cursor: '', pointerEvents: '', userSelect: '', caretColor: '',
-      transition: '', transitionProperty: '', transitionDuration: '', transitionTimingFunction: '',
-      transitionDelay: '', animation: '', animationName: '', animationDuration: '',
-      animationTimingFunction: '', animationDelay: '', animationIterationCount: '',
-      animationDirection: '', animationFillMode: '',
-      opacity: '', visibility: '', overflow: '', overflowX: '', overflowY: '', clipPath: ''
+      width:'', height:'', maxWidth:'', minWidth:'', maxHeight:'', minHeight:'', display:'', margin:'', marginTop:'', marginRight:'', marginBottom:'', marginLeft:'', padding:'', paddingTop:'', paddingRight:'', paddingBottom:'', paddingLeft:'', boxSizing:'', border:'1px solid #ccc', borderWidth:'', borderTopWidth:'', borderRightWidth:'', borderBottomWidth:'', borderLeftWidth:'', borderStyle:'', borderTopStyle:'', borderRightStyle:'', borderBottomStyle:'', borderLeftStyle:'', borderColor:'', borderTopColor:'', borderRightColor:'', borderBottomColor:'', borderLeftColor:'', borderRadius:'', outline:'', outlineColor:'', outlineWidth:'', outlineStyle:'', color:'', backgroundColor:'', backgroundImage:'', backgroundSize:'', backgroundRepeat:'', backgroundPosition:'', backgroundClip:'', backgroundOrigin:'', backgroundAttachment:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'', fontVariant:'', textAlign:'', textTransform:'', textDecoration:'', letterSpacing:'', wordSpacing:'', lineHeight:'', whiteSpace:'', textOverflow:'', boxShadow:'', textShadow:'', cursor:'', pointerEvents:'', userSelect:'', caretColor:'', transition:'', transitionProperty:'', transitionDuration:'', transitionTimingFunction:'', transitionDelay:'', animation:'', animationName:'', animationDuration:'', animationTimingFunction:'', animationDelay:'', animationIterationCount:'', animationDirection:'', animationFillMode:'', opacity:'', visibility:'', overflow:'', overflowX:'', overflowY:'', clipPath:''
     };
     const labelBaseStyle = {
-      // Layout & Positioning
-      display: '',
-      position: '',
-      top: '',
-      right: '',
-      bottom: '',
-      left: '',
-      float: '',
-      clear: '',
-      zIndex: '',
-
-      // Box Model
-      width: '',
-      height: '',
-      minWidth: '',
-      maxWidth: '',
-      minHeight: '',
-      maxHeight: '',
-      margin: '',
-      marginTop: '',
-      marginRight: '',
-      marginBottom: '',
-      marginLeft: '',
-      padding: '',
-      paddingTop: '',
-      paddingRight: '',
-      paddingBottom: '',
-      paddingLeft: '',
-      boxSizing: '',
-
-      // Border
-      border: '',
-      borderWidth: '',
-      borderTopWidth: '',
-      borderRightWidth: '',
-      borderBottomWidth: '',
-      borderLeftWidth: '',
-      borderStyle: '',
-      borderTopStyle: '',
-      borderRightStyle: '',
-      borderBottomStyle: '',
-      borderLeftStyle: '',
-      borderColor: '',
-      borderTopColor: '',
-      borderRightColor: '',
-      borderBottomColor: '',
-      borderLeftColor: '',
-      borderRadius: '',
-      borderTopLeftRadius: '',
-      borderTopRightRadius: '',
-      borderBottomRightRadius: '',
-      borderBottomLeftRadius: '',
-
-      // Background
-      background: '',
-      backgroundColor: '',
-      backgroundImage: '',
-      backgroundSize: '',
-      backgroundRepeat: '',
-      backgroundPosition: '',
-      backgroundClip: '',
-      backgroundOrigin: '',
-      backgroundAttachment: '',
-
-      // Typography
-      color: '',
-      font: '',
-      fontFamily: '',
-      fontSize: '',
-      fontWeight: '',
-      fontStyle: '',
-      fontVariant: '',
-      fontStretch: '',
-      lineHeight: '',
-      letterSpacing: '',
-      wordSpacing: '',
-      textAlign: '',
-      textTransform: '',
-      textDecoration: '',
-      textIndent: '',
-      whiteSpace: '',
-      textOverflow: '',
-      direction: '',
-      unicodeBidi: '',
-
-      // Effects & Decorations
-      boxShadow: '',
-      textShadow: '',
-      opacity: '',
-      visibility: '',
-
-      // Cursor & Interaction
-      cursor: '',
-      pointerEvents: '',
-      userSelect: '',
-      caretColor: '',
-
-      // Animations & Transitions
-      transition: '',
-      transitionProperty: '',
-      transitionDuration: '',
-      transitionTimingFunction: '',
-      transitionDelay: '',
-      animation: '',
-      animationName: '',
-      animationDuration: '',
-      animationTimingFunction: '',
-      animationDelay: '',
-      animationIterationCount: '',
-      animationDirection: '',
-      animationFillMode: '',
-
-      // Misc
-      clipPath: '',
-      transform: '',
-      transformOrigin: '',
-      transformStyle: '',
-      perspective: '',
-      perspectiveOrigin: '',
-      filter: '',
-      mixBlendMode: '',
+      display:'', position:'', top:'', right:'', bottom:'', left:'', float:'', clear:'', zIndex:'', width:'', height:'', minWidth:'', maxWidth:'', minHeight:'', maxHeight:'', margin:'', marginTop:'', marginRight:'', marginBottom:'', marginLeft:'', padding:'', paddingTop:'', paddingRight:'', paddingBottom:'', paddingLeft:'', boxSizing:'', border:'', borderWidth:'', borderTopWidth:'', borderRightWidth:'', borderBottomWidth:'', borderLeftWidth:'', borderStyle:'', borderTopStyle:'', borderRightStyle:'', borderBottomStyle:'', borderLeftStyle:'', borderColor:'', borderTopColor:'', borderRightColor:'', borderBottomColor:'', borderLeftColor:'', borderRadius:'', borderTopLeftRadius:'', borderTopRightRadius:'', borderBottomRightRadius:'', borderBottomLeftRadius:'', background:'', backgroundColor:'', backgroundImage:'', backgroundSize:'', backgroundRepeat:'', backgroundPosition:'', backgroundClip:'', backgroundOrigin:'', backgroundAttachment:'', color:'', font:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'', fontVariant:'', fontStretch:'', lineHeight:'', letterSpacing:'', wordSpacing:'', textAlign:'', textTransform:'', textDecoration:'', textIndent:'', whiteSpace:'', textOverflow:'', direction:'', unicodeBidi:'', boxShadow:'', textShadow:'', opacity:'', visibility:'', cursor:'', pointerEvents:'', userSelect:'', caretColor:'', transition:'', transitionProperty:'', transitionDuration:'', transitionTimingFunction:'', transitionDelay:'', animation:'', animationName:'', animationDuration:'', animationTimingFunction:'', animationDelay:'', animationIterationCount:'', animationDirection:'', animationFillMode:'', clipPath:'', transform:'', transformOrigin:'', transformStyle:'', perspective:'', perspectiveOrigin:'', filter:'', mixBlendMode:''
     };
     const existingCount = this.fields.filter(f =>
       typeof f.key === 'string' && f.key.startsWith(type)
     ).length;
     const index = existingCount + 1;
 
-    let newField: FormlyFieldConfig = {
+    const newField: FormlyFieldConfig = {
       key: `${type}${index}`,
       type,
       wrappers: ["form-field-horizontal"],
       props: {
         label: `${type}${index}`,
         id: `${type}${index}`,
-        placeholder: type === 'textarea'
-          ? `Enter ${type}${index} text`
-          : `${type}${index}`,
+        placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,
         class: type === 'select' ? 'form-select mb-2' :
               type === 'radio' ? 'form-check-input mb-2' : 'form-control mb-2',
         required: false,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
-        style: baseStyle, // or your default style
-        labelStyle: labelBaseStyle
+        style: baseStyle, // your default style
+        labelStyle: labelBaseStyle,
+        index: this.fields.length, // <-- Save current index
       },
       validation: {
-        messages: {
-          required: "This field is required!"
-        }
+        messages: { required: "This field is required!" }
       }
     };
 
@@ -511,8 +387,12 @@ export class App implements OnInit {
     }
 
     this.fields = [...this.fields, newField];
-    this.formChanged = true; // ✅ mark as changed
 
+    // Update all indexes after addition
+    this.fields.forEach((f, i) => f.props!['index'] = i);
+    this.reattachFieldFunctions(); // 🔹 Make sure new one gets functions
+
+    this.formChanged = true;
     this.cancelFieldModal();
   }
 
@@ -541,6 +421,7 @@ export class App implements OnInit {
       label: field.props?.label || '',
       id: field.props?.['id'] || '',
       class: field.props?.['class'] || '',
+      labelClass: field.props?.['labelClass'] || '',
       placeholder: field.props?.placeholder || '',
       required: !!field.props?.required,
       options: Array.isArray(field.props?.options)
@@ -559,8 +440,9 @@ export class App implements OnInit {
           { key: 'id', type: 'input', className: 'col-md-6', props: { label: 'ID' } },
           { key: 'label', type: 'input', className: 'col-md-6', props: { label: 'Label', required: true } },
           { key: 'placeholder', type: 'input', className: 'col-md-6', props: { label: 'Placeholder' } },
-          { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } },
           { key: 'class', type: 'input', className: 'col-md-6', props: { label: 'Class' } },
+          { key: 'labelClass', type: 'input', className: 'col-md-6', props: { label: 'Label Class' } },
+          { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } },
         ]
       }
     ];
@@ -635,8 +517,10 @@ export class App implements OnInit {
         ...this.fields[this.editingFieldIndex].props,
         label: this.modalModel.label,
         class: this.modalModel.class,
+        labelClass: this.modalModel.labelClass,
         placeholder: this.modalModel.placeholder,
         required: !!this.modalModel.required,
+        index: this.editingFieldIndex, // <-- Save index
         options: this.modalModel.options
           ? this.modalModel.options.split(',').map((opt: string) => ({
               label: opt.trim(),
@@ -666,19 +550,20 @@ export class App implements OnInit {
 
   deleteField(index: number) {
     if (index >= 0 && index < this.fields.length) {
-      // Create a new array without the deleted field
       this.fields = this.fields.filter((_, i) => i !== index);
 
-      // Save updated fields in localStorage
+      // Reassign index to all fields
+      this.fields.forEach((f, i) => f.props!['index'] = i);
+
       localStorage.setItem('formFields', JSON.stringify(this.fields));
 
       this.fetchData();
       this.loadSavedFormNames();
-      this.formChanged = true; // mark as changed
+      this.formChanged = true;
+
       if (this.fields.length === 0) {
         this.closeSideDiv();
       }
-      this.formChanged = true;
     }
   }
 
@@ -696,5 +581,72 @@ export class App implements OnInit {
 
   backSideDiv() {
     this.modalStep.set('select');
+  }
+
+  closeForm() {
+    this.fields = [];
+    this.model = {};
+    this.users = [];
+    this.formHeading = '';
+    this.showForm = '';
+    this.formChanged = false;
+    this.form.reset();
+    this.isEdit.set(false);
+  }
+
+  menuVisible = false;
+  formMenuVisible = false;
+  editMenuVisible = false;
+  menuPosition = { x: 0, y: 0 };
+
+  @HostListener('document:click')
+  hideMenu() {
+    this.menuVisible = false;
+    this.formMenuVisible = false;
+    this.editMenuVisible = false;
+  }
+
+  selectedContextFormName = '';
+
+  showContextMenu(event: MouseEvent, formName: string) {
+    event.preventDefault();
+    this.menuPosition = { x: event.clientX, y: event.clientY };
+    this.selectedContextFormName = formName; // Store which form was right-clicked
+    this.menuVisible = true;
+  }
+
+  showFormContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    this.menuPosition = { x: event.clientX, y: event.clientY };
+    this.formMenuVisible = true;
+  }
+
+  selectedFieldIndex: number | null = null; 
+
+  editContextMenu(event: MouseEvent, index: number) {
+    event.preventDefault(); // Stop default browser menu
+
+    this.selectedFieldIndex = index; // Store the clicked field index
+    this.menuPosition = { x: event.clientX, y: event.clientY }; // Position menu at cursor
+
+    this.editMenuVisible = true; // Show the field edit menu
+  }
+
+  onMenuClick(action: 'loadSavedForm' | 'openEditFormNameModal' | 'deleteFormName' | 'openEditFieldModal' | 'deleteField') {
+    if (action === 'openEditFormNameModal') {
+      this.openEditFormNameModal(this.selectedContextFormName);
+    } else if (action === 'deleteFormName') {
+      this.editFormModel.formName = this.selectedContextFormName;
+      this.deleteFormName();
+    } else if (action === 'loadSavedForm') {
+      this.loadSavedForm(this.selectedContextFormName);
+    } else if (action === 'openEditFieldModal') {
+      this.openEditFieldModal(this.selectedFieldIndex!);
+    } else if (action === 'deleteField') {
+      this.deleteField(this.selectedFieldIndex!);
+    }
+    this.editMenuVisible = false;
+    this.selectedFieldIndex = null;
+    this.menuVisible = false;
   }
 }

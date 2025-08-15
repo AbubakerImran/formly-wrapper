@@ -87,10 +87,9 @@
 </ng-container>
 <!-- Context Menu -->
 <div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
-  <ul>
-    <li (click)="onMenuClick('Action 1')">Action 1</li>
-    <li (click)="onMenuClick('Action 2')">Action 2</li>
-    <li (click)="onMenuClick('Action 3')">Action 3</li>
+  <ul class="list-group">
+    <li class="list-group-item" (click)="to['openEditFieldModal'](to['index'])" data-bs-toggle="modal" data-bs-target="#editFieldModal">Edit Field</li>
+    <li class="list-group-item" (click)="to['deleteField'](to['index'])">Delete Field</li>
   </ul>
 </div>
 <div *ngIf="showError" class="text-danger mt-1">

@@ -4,7 +4,7 @@
     <button type="button" class="btn btn-dark me-3 p-3" *ngIf="savedFormNames.length > 0 && showSideDiv" (click)="closeSideDiv()">Saved Forms</button>
     <button type="button" class="btn btn-warning me-3 p-3" *ngIf="fields.length > 0" (click)="onEditFieldsClick()">Edit Fields</button>
     <button type="button" class="btn btn-primary me-3 p-3" *ngIf="formHeading && savedFormNames.length != 0" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</button>
-    <button type="button" class="btn btn-danger me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="closeSideDiv()">Close Forms</button>
+    <button type="button" class="btn btn-danger me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()">Close Form</button>
     <button type="button" class="btn btn-success p-3" (click)="createNewForm()">Create New Form</button>
   </div>
 </div>  
@@ -15,7 +15,10 @@
       <h5 class="mb-3">Saved Forms</h5>
       <ul class="list-group">
         <li *ngFor="let formName of savedFormNames" 
-            class="list-group-item d-flex justify-content-between align-items-center">
+            class="list-group-item d-flex justify-content-between align-items-center"
+            (contextmenu)="showContextMenu($event, formName)" 
+            #inputField
+            >
           <span style="cursor: pointer;" (click)="loadSavedForm(formName)">{{ formName }}</span>
           <button type="button" 
                   class="btn border-0" 
@@ -38,7 +41,8 @@
       <div *ngIf="modalStep() === 'select' && fields.length > 0" class="container p-3">
         <ul class="list-group">
           <li *ngFor="let f of fields; let i = index" 
-              class="list-group-item d-flex justify-content-between align-items-center">
+              class="list-group-item d-flex justify-content-between align-items-center"
+              (contextmenu)="editContextMenu($event, i)" #inputField>
             {{ f.props?.label || f.key }}
             <div class="d-flex">
               <!-- OPEN MODAL FOR EDIT -->
@@ -55,9 +59,9 @@
       </div>
     </div>
   </div>
-  <div class="container position-absolute end-0 bottom-0 w-75">
+  <div class="container position-absolute bottom-0 end-0 w-75">
     <div class="d-flex flex-column gap-2 p-4 bg-white rounded-top-5 shadow" style="flex: 1; height: 70vh; max-height: 70vh; overflow-y: auto; scrollbar-width: none;">
-      <div *ngIf="formHeading">
+      <div *ngIf="formHeading" (contextmenu)="showFormContextMenu($event)" #inputField>
         <div class="d-flex justify-content-between">
           <h1>{{ formHeading }}</h1>
           <button type="button" class="btn btn-success" *ngIf="formChanged" (click)="saveForm()">Save Form</button>
@@ -177,4 +181,25 @@
 
     </div>
   </div>
+</div>
+<!-- Context Menu -->
+<div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('loadSavedForm')">Open Form</li>
+    <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form Name</li>
+    <li class="list-group-item" (click)="onMenuClick('deleteFormName')">Delete Form</li>
+  </ul>
+</div>
+<div *ngIf="formMenuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('loadSavedForm')" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>
+    <li class="list-group-item" (click)="onEditFieldsClick()">Edit Fields</li>
+    <li class="list-group-item" (click)="closeForm()">Close Form</li>
+  </ul>
+</div>
+<div *ngIf="editMenuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('openEditFieldModal')" data-bs-toggle="modal" data-bs-target="#editFieldModal">Edit Field</li>
+    <li class="list-group-item" (click)="onMenuClick('deleteField')">Delete Field</li>
+  </ul>
 </div>
