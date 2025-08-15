@@ -38,6 +38,8 @@ export class FormlyHorizontalWrapper extends FieldWrapper {
 
   onMenuClick(action: 'openEditFieldModal' | 'deleteField') {
     if (action === 'openEditFieldModal' && typeof this.to['openEditFieldModal'] === 'function') {
+      this.to['openEditFieldModal'](this.field);
+    } else if (action === 'deleteField' && typeof this.to['deleteField'] === 'function') {
       this.to['deleteField']();
     }
     this.menuVisible = false;
