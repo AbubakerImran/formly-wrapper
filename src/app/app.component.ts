@@ -1,20 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormlyForm, ReactiveFormsModule, HttpClientModule, CommonModule, FormlySelectModule, FormsModule],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class App implements OnInit {
 
-  constructor(private http: HttpClient, private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) {}
 
   // Main form
   form = new FormGroup({});
@@ -25,7 +25,6 @@ export class App implements OnInit {
 
   uid = signal(0);
   isEdit = signal(false);
-  editingId = signal(0);
 
   // Modal state
   modalStep = signal<'select' | 'configure'>('select');
@@ -128,6 +127,7 @@ export class App implements OnInit {
 
   loadSavedForm(formName: string) {
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    
     if (savedForms[formName]) {
       this.showForm = formName;
       this.fields = savedForms[formName].map((f: any) => ({
@@ -377,7 +377,6 @@ export class App implements OnInit {
     if (userToEdit) {
       this.model = { ...userToEdit };
       this.uid.set(id);
-      this.editingId.set(id);
       this.isEdit.set(true);
     }
   }
@@ -688,5 +687,19 @@ export class App implements OnInit {
     }
     this.editMenuVisible = false;
     this.selectedFieldIndex = null;
+  }
+
+  drop(event: CdkDragDrop<FormlyFieldConfig[]>) {
+    // 1. Reorder fields array
+    moveItemInArray(this.fields, event.previousIndex, event.currentIndex);
+
+    // 2. Reassign index property for each field
+    this.fields.forEach((f, i) => f.props!['index'] = i);
+
+    // 3. Reattach field functions (so Edit/Delete still work correctly after reorder)
+    this.reattachFieldFunctions();
+
+    // 4. Mark as changed so user can save
+    this.formChanged = true;
   }
 }
