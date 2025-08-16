@@ -1,99 +1,102 @@
-<div class="d-flex align-items-center">
-  <div class="col-2">
-    <label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
-  </div>
-  <div class="col-10">
-    <ng-container [ngSwitch]="field.type">
-      <input
-        *ngSwitchCase="'text'"
-        type="text"
-        [ngClass]="to['class']"
-        [placeholder]="to.placeholder"
-        [formControl]="formControl"
-        [id]="to['id']"
-        [autocomplete]="to['autocomplete']"
-        [ngStyle]="to['style']"
-        (contextmenu)="showContextMenu($event)" 
-        #inputField
-      />
-      <input
-        *ngSwitchCase="'email'"
-        type="email"
-        [ngClass]="to['class']"
-        [placeholder]="to.placeholder"
-        [formControl]="formControl"
-        [id]="to['id']"
-        [autocomplete]="to['autocomplete']"
-        pattern="^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
-        [ngStyle]="to['style']"
-        (contextmenu)="showContextMenu($event)" 
-        #inputField
-      />
-      <textarea
-        *ngSwitchCase="'textarea'"
-        type="tel"
-        [ngClass]="to['class']"
-        [placeholder]="to.placeholder"
-        [formControl]="formControl"
-        [id]="to['id']"
-        pattern="^\d{10,12}$"
-        [ngStyle]="to['style']"
-        (contextmenu)="showContextMenu($event)" 
-        #inputField
-      ></textarea>
-      <select
-        *ngSwitchCase="'select'"
-        [ngClass]="to['class']"
-        [formControl]="formControl"
-        [id]="to['id']"
-        [ngStyle]="to['style']"
-        (contextmenu)="showContextMenu($event)" 
-        #inputField
-      >
-        <option *ngIf="to.placeholder" value="">{{ to.placeholder }}</option>
+<div class="mb-3" cdkDrag>
+  <div class="d-flex align-items-center">
+    <div class="col-2">
+      <label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
+    </div>
+    <div class="col-10">
+      <ng-container [ngSwitch]="field.type">
+        <input
+          *ngSwitchCase="'text'"
+          type="text"
+          [ngClass]="to['class']"
+          [placeholder]="to.placeholder"
+          [formControl]="formControl"
+          [id]="to['id']"
+          [autocomplete]="to['autocomplete']"
+          [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" 
+          #inputField
+        />
+        <input
+          *ngSwitchCase="'email'"
+          type="email"
+          [ngClass]="to['class']"
+          [placeholder]="to.placeholder"
+          [formControl]="formControl"
+          [id]="to['id']"
+          [autocomplete]="to['autocomplete']"
+          pattern="^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+          [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" 
+          #inputField
+        />
+        <textarea
+          *ngSwitchCase="'textarea'"
+          type="tel"
+          [ngClass]="to['class']"
+          [placeholder]="to.placeholder"
+          [formControl]="formControl"
+          [id]="to['id']"
+          pattern="^\d{10,12}$"
+          [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" 
+          #inputField
+        ></textarea>
+        <select
+          *ngSwitchCase="'select'"
+          [ngClass]="to['class']"
+          [formControl]="formControl"
+          [id]="to['id']"
+          [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" 
+          #inputField
+        >
+          <option *ngIf="to.placeholder" value="">{{ to.placeholder }}</option>
+            <ng-container *ngIf="options$ | async as options">
+              <option *ngFor="let option of options" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </ng-container>
+        </select>
+        <div *ngSwitchCase="'radio'" class="form-check d-flex align-items-center">
           <ng-container *ngIf="options$ | async as options">
-            <option *ngFor="let option of options" [value]="option.value">
-              {{ option.label }}
-            </option>
+            <div *ngFor="let option of options" class="form-check me-3">
+              <input
+                type="radio"
+                [ngClass]="to['class']"
+                [name]="to['id']"
+                [id]="to['id'] + '_' + option.value"
+                [value]="option.value"
+                [formControl]="formControl"
+                [ngStyle]="to['style']"
+                (contextmenu)="showContextMenu($event)" 
+                #inputField
+              />
+              <label class="form-check-label" [for]="to['id'] + '_' + option.value">
+                {{ option.label }}
+              </label>
+            </div>
           </ng-container>
-      </select>
-      <div *ngSwitchCase="'radio'" class="form-check">
-        <ng-container *ngIf="options$ | async as options">
-          <div *ngFor="let option of options" class="form-check me-3">
-            <input
-              type="radio"
-              [ngClass]="to['class']"
-              [name]="to['id']"
-              [id]="to['id'] + '_' + option.value"
-              [value]="option.value"
-              [formControl]="formControl"
-              [ngStyle]="to['style']"
-              (contextmenu)="showContextMenu($event)" 
-              #inputField
-            />
-            <label class="form-check-label" [for]="to['id'] + '_' + option.value">
-              {{ option.label }}
-            </label>
-          </div>
-        </ng-container>
-      </div>
-      <input
-        *ngSwitchDefault
-        type="text"
-        [ngClass]="to['class']"
-        [placeholder]="to.placeholder"
-        [formControl]="formControl"
-        [id]="to['id']"
-        [ngStyle]="to['style']"
-        (contextmenu)="showContextMenu($event)" 
-        #inputField
-      />
-    </ng-container>
+        </div>
+        <input
+          *ngSwitchDefault
+          type="text"
+          [ngClass]="to['class']"
+          [placeholder]="to.placeholder"
+          [formControl]="formControl"
+          [id]="to['id']"
+          [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" 
+          #inputField
+        />
+      </ng-container>
+    </div>
+    <span cdkDragHandle style="cursor: grab;">&nbsp;⠿</span>
   </div>
-</div>
-<div *ngIf="showError" class="text-danger mt-1 d-flex">
-  <div class="col-2"></div>
-  <formly-validation-message [field]="field"></formly-validation-message>
+  <div *ngIf="showError" class="text-danger mt-1 d-flex">
+    <div class="col-2"></div>
+    <formly-validation-message [field]="field"></formly-validation-message>
+  </div>
 </div>
 <!-- Context Menu -->
 <div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">

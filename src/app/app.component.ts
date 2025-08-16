@@ -126,6 +126,7 @@ export class App implements OnInit {
   }
 
   loadSavedForm(formName: string) {
+    this.formChanged = false;
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     
     if (savedForms[formName]) {
@@ -433,8 +434,8 @@ export class App implements OnInit {
         label: `${type}${index}`,
         id: `${type}${index}`,
         placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,
-        class: type === 'select' ? 'form-select mb-2' :
-              type === 'radio' ? 'form-check-input mb-2' : 'form-control mb-2',
+        class: type === 'select' ? 'form-select' :
+              type === 'radio' ? 'form-check-input' : 'form-control',
         required: true,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
@@ -632,11 +633,6 @@ export class App implements OnInit {
       this.formChanged = true;
     }
     alert('Field successfully deleted!')
-  }
-
-
-  onEditFieldsClick() {
-    this.modalStep.set('select');
   }
 
   closeForm() {
