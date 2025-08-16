@@ -59,15 +59,15 @@
         <input
         type="radio"
         [ngClass]="to['class']"
-        [id]="to['id']"
+        [name]="to['id']"
+        [id]="to['id'] + '_' + option.value"
         [value]="option.value"
         [formControl]="formControl"
-        [id]="to['id']"
         [ngStyle]="to['style']"
         (contextmenu)="showContextMenu($event)" 
         #inputField
         />
-        <label class="form-check-label" [for]="to['id']">
+        <label class="form-check-label" [for]="to['id'] + '_' + option.value">
         {{ option.label }}
         </label>
     </div>

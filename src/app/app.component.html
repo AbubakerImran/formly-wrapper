@@ -1,63 +1,38 @@
 <div class="container-fluid d-flex bg-white shadow align-items-center justify-content-between rounded-bottom-2">
   <h1 class="ms-3">Angular Forms</h1>
   <div class="d-flex p-3 justify-content-end">
-    <button type="button" class="btn btn-info me-3 p-3" *ngIf="savedFormNames.length > 0 && showSideDiv" (click)="closeSideDiv()">Saved Forms</button>
-    <button type="button" class="btn btn-warning me-3 p-3" *ngIf="fields.length > 0" (click)="onEditFieldsClick()">Edit Fields</button>
-    <button type="button" class="btn btn-danger me-3 p-3" *ngIf="formHeading && savedFormNames.length != 0" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</button>
-    <button type="button" class="btn btn-success me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Wrappers</button>
-    <button type="button" class="btn btn-secondary me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()">Close Form</button>
+    <button type="button" class="btn btn-info me-3 p-3" *ngIf="fields.length > 0" (click)="onEditFieldsClick()">Edit Fields</button>
+    <button type="button" class="btn btn-warning me-3 p-3" *ngIf="formHeading && savedFormNames.length != 0" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</button>
+    <button type="button" class="btn btn-danger me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Wrappers</button>
+    <button type="button" class="btn btn-success me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()">Close Form</button>
+    <button type="button" class="btn btn-secondary me-3 p-3" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal" data-bs-target="#savedFormsModal">Open Forms</button>
     <button type="button" class="btn btn-primary p-3" (click)="createNewForm()">Create New Form</button>
   </div>
 </div>  
 
 <div class="d-flex gap-5">
   <div class="position-absolute start-0 bottom-0 bg-white shadow w-25 rounded-end-5 rounded-bottom-0" style="flex: 1; height: 70vh; max-height: 70vh; overflow-y: auto; scrollbar-width: none;">
-    <div class="p-3" *ngIf="!showSideDiv">
-      <h5 class="mb-3">Saved Forms</h5>
+    <div class="div" *ngIf="modalStep() === 'select' && fields.length === 0" class="container text-center mt-5">
+      <em>No fields available!</em>
+    </div>
+    <div *ngIf="modalStep() === 'select' && fields.length > 0" class="container p-3">
       <ul class="list-group">
-        <li *ngFor="let formName of savedFormNames" 
+        <li *ngFor="let f of fields; let i = index" 
             class="list-group-item d-flex justify-content-between align-items-center"
-            (contextmenu)="showContextMenu($event, formName)" 
-            #inputField
-            >
-          <span style="cursor: pointer;" (click)="loadSavedForm(formName)">{{ formName }}</span>
-          <button type="button" 
-                  class="btn border-0" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#editFormNameModal"
-                  (click)="openEditFormNameModal(formName)">
-            <i class='fas fa-edit'></i>
-          </button>
-        </li>
-        <li *ngIf="savedFormNames.length === 0" class="list-group-item text-muted">
-          No saved forms found.
+            (contextmenu)="editContextMenu($event, i)" #inputField>
+          {{ f.props?.label || f.key }}
+          <div class="d-flex">
+            <!-- OPEN MODAL FOR EDIT -->
+            <button class="btn btn-sm btn-primary me-2" 
+                    (click)="openEditFieldModal(i)" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#editFieldModal">
+              Edit
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deleteField(i)">Delete</button>
+          </div>
         </li>
       </ul>
-    </div>
-    <div *ngIf="showSideDiv">
-      <button type="button" class="btn border-0" 
-              *ngIf="modalStep() === 'select' && fields.length > 0" 
-              (click)="closeSideDiv()"><b>&#x2715;</b></button>
-
-      <div *ngIf="modalStep() === 'select' && fields.length > 0" class="container p-3">
-        <ul class="list-group">
-          <li *ngFor="let f of fields; let i = index" 
-              class="list-group-item d-flex justify-content-between align-items-center"
-              (contextmenu)="editContextMenu($event, i)" #inputField>
-            {{ f.props?.label || f.key }}
-            <div class="d-flex">
-              <!-- OPEN MODAL FOR EDIT -->
-              <button class="btn btn-sm btn-primary me-2" 
-                      (click)="openEditFieldModal(i)" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#editFieldModal">
-                Edit
-              </button>
-              <button class="btn btn-sm btn-danger" (click)="deleteField(i)">Delete</button>
-            </div>
-          </li>
-        </ul>
-      </div>
     </div>
   </div>
   <div class="container position-absolute bottom-0 end-0 w-75">
@@ -158,6 +133,39 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="savedFormsModal" tabindex="-1" aria-labelledby="savedFormsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="savedFormsModalLabel">Saved Forms</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h5 class="mb-3">Saved Forms</h5>
+        <ul class="list-group">
+          <li *ngFor="let formName of savedFormNames" 
+              class="list-group-item d-flex justify-content-between align-items-center"
+              style="cursor: pointer;"
+              data-bs-dismiss="modal"
+              (click)="loadSavedForm(formName)"
+              >
+            {{ formName }}
+            <button type="button" 
+                    class="btn border-0" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#editFormNameModal"
+                    (click)="openEditFormNameModal(formName); $event.stopPropagation()">
+              <i class='fas fa-edit'></i>
+            </button>
+          </li>
+          <li *ngIf="savedFormNames.length === 0" class="list-group-item text-muted">
+            No saved forms found.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- EDIT FIELD MODAL -->
 <div class="modal fade" id="editFieldModal" tabindex="-1" aria-labelledby="editFieldModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
@@ -179,18 +187,10 @@
           </div>
         </form>
       </div>
-
     </div>
   </div>
 </div>
 <!-- Context Menu -->
-<div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
-  <ul class="list-group">
-    <li class="list-group-item" (click)="onMenuClick('loadSavedForm')">Open Form</li>
-    <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</li>
-    <li class="list-group-item" (click)="onMenuClick('deleteFormName')">Delete Form</li>
-  </ul>
-</div>
 <div *ngIf="formMenuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
   <ul class="list-group">
     <li class="list-group-item" (click)="onMenuClick('loadSavedForm')" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>

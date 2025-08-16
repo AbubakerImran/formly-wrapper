@@ -165,7 +165,7 @@ export class App implements OnInit {
 
     this.loadSavedFormNames();
     this.fetchData();
-    this.closeSideDiv();
+    alert("Form created successfully!")
   }
 
   saveForm() {
@@ -175,6 +175,7 @@ export class App implements OnInit {
 
     this.formChanged = false;
     this.loadSavedFormNames(); // Refresh sidebar list
+    alert("Form saved successfully!")
   }
 
   formNameChange(newWrapper: string) {
@@ -238,6 +239,7 @@ export class App implements OnInit {
     localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
 
     this.loadSavedFormNames();
+    alert('Successfully updated form info!')
   }
 
   deleteFormName() {
@@ -278,6 +280,7 @@ export class App implements OnInit {
     }
 
     this.loadSavedFormNames();
+    alert('Form deleted successfully!')
   }
 
   fetchData() {
@@ -334,6 +337,7 @@ export class App implements OnInit {
       this.fetchData();
       this.isEdit.set(false);
     }
+    alert('Successfully submitted!')
   }
 
   update(model: any) {
@@ -350,6 +354,7 @@ export class App implements OnInit {
     this.model = {};
     this.fetchData();
     this.isEdit.set(false);
+    alert('Successfully updated info!')
   }
 
   deleteUser(id: any) {
@@ -361,6 +366,7 @@ export class App implements OnInit {
 
     localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
     this.fetchData();
+    alert('Successfully deleted info!')
   }
 
   editUser(id: number) {
@@ -409,10 +415,10 @@ export class App implements OnInit {
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio') {
     const baseStyle = {
-      width:'', height:'', maxWidth:'', minWidth:'', maxHeight:'', minHeight:'', display:'', margin:'', marginTop:'', marginRight:'', marginBottom:'', marginLeft:'', padding:'', paddingTop:'', paddingRight:'', paddingBottom:'', paddingLeft:'', boxSizing:'', border:'1px solid #ccc', borderWidth:'', borderTopWidth:'', borderRightWidth:'', borderBottomWidth:'', borderLeftWidth:'', borderStyle:'', borderTopStyle:'', borderRightStyle:'', borderBottomStyle:'', borderLeftStyle:'', borderColor:'', borderTopColor:'', borderRightColor:'', borderBottomColor:'', borderLeftColor:'', borderRadius:'', outline:'', outlineColor:'', outlineWidth:'', outlineStyle:'', color:'', backgroundColor:'', backgroundImage:'', backgroundSize:'', backgroundRepeat:'', backgroundPosition:'', backgroundClip:'', backgroundOrigin:'', backgroundAttachment:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'', fontVariant:'', textAlign:'', textTransform:'', textDecoration:'', letterSpacing:'', wordSpacing:'', lineHeight:'', whiteSpace:'', textOverflow:'', boxShadow:'', textShadow:'', cursor:'', pointerEvents:'', userSelect:'', caretColor:'', transition:'', transitionProperty:'', transitionDuration:'', transitionTimingFunction:'', transitionDelay:'', animation:'', animationName:'', animationDuration:'', animationTimingFunction:'', animationDelay:'', animationIterationCount:'', animationDirection:'', animationFillMode:'', opacity:'', visibility:'', overflow:'', overflowX:'', overflowY:'', clipPath:''
+      borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:''
     };
     const labelBaseStyle = {
-      display:'', position:'', top:'', right:'', bottom:'', left:'', float:'', clear:'', zIndex:'', width:'', height:'', minWidth:'', maxWidth:'', minHeight:'', maxHeight:'', margin:'', marginTop:'', marginRight:'', marginBottom:'', marginLeft:'', padding:'', paddingTop:'', paddingRight:'', paddingBottom:'', paddingLeft:'', boxSizing:'', border:'', borderWidth:'', borderTopWidth:'', borderRightWidth:'', borderBottomWidth:'', borderLeftWidth:'', borderStyle:'', borderTopStyle:'', borderRightStyle:'', borderBottomStyle:'', borderLeftStyle:'', borderColor:'', borderTopColor:'', borderRightColor:'', borderBottomColor:'', borderLeftColor:'', borderRadius:'', borderTopLeftRadius:'', borderTopRightRadius:'', borderBottomRightRadius:'', borderBottomLeftRadius:'', background:'', backgroundColor:'', backgroundImage:'', backgroundSize:'', backgroundRepeat:'', backgroundPosition:'', backgroundClip:'', backgroundOrigin:'', backgroundAttachment:'', color:'', font:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'', fontVariant:'', fontStretch:'', lineHeight:'', letterSpacing:'', wordSpacing:'', textAlign:'', textTransform:'', textDecoration:'', textIndent:'', whiteSpace:'', textOverflow:'', direction:'', unicodeBidi:'', boxShadow:'', textShadow:'', opacity:'', visibility:'', cursor:'', pointerEvents:'', userSelect:'', caretColor:'', transition:'', transitionProperty:'', transitionDuration:'', transitionTimingFunction:'', transitionDelay:'', animation:'', animationName:'', animationDuration:'', animationTimingFunction:'', animationDelay:'', animationIterationCount:'', animationDirection:'', animationFillMode:'', clipPath:'', transform:'', transformOrigin:'', transformStyle:'', perspective:'', perspectiveOrigin:'', filter:'', mixBlendMode:''
+      backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:''
     };
     const existingCount = this.fields.filter(f =>
       typeof f.key === 'string' && f.key.startsWith(type)
@@ -430,7 +436,7 @@ export class App implements OnInit {
         placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,
         class: type === 'select' ? 'form-select mb-2' :
               type === 'radio' ? 'form-check-input mb-2' : 'form-control mb-2',
-        required: false,
+        required: true,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
         style: baseStyle, // your default style
@@ -457,6 +463,7 @@ export class App implements OnInit {
 
     this.formChanged = true;
     this.cancelFieldModal();
+    alert('Field added successfully!')
   }
 
   type = signal('');
@@ -609,6 +616,7 @@ export class App implements OnInit {
     this.editingFieldIndex = null;
     this.modalForm.reset();
     this.modalModel = {};
+    alert('Field successfully updated!')
   }
 
   deleteField(index: number) {
@@ -623,26 +631,12 @@ export class App implements OnInit {
       this.fetchData();
       this.loadSavedFormNames();
       this.formChanged = true;
-
-      if (this.fields.length === 0) {
-        this.closeSideDiv();
-      }
     }
+    alert('Field successfully deleted!')
   }
 
-  showSideDiv = false;
 
   onEditFieldsClick() {
-    this.showSideDiv = true;
-    this.modalStep.set('select');
-  }
-
-  closeSideDiv() {
-    this.showSideDiv = false;
-    this.modalStep.set('select');
-  }
-
-  backSideDiv() {
     this.modalStep.set('select');
   }
 
@@ -657,26 +651,17 @@ export class App implements OnInit {
     this.isEdit.set(false);
   }
 
-  menuVisible = false;
   formMenuVisible = false;
   editMenuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
   @HostListener('document:click')
   hideMenu() {
-    this.menuVisible = false;
     this.formMenuVisible = false;
     this.editMenuVisible = false;
   }
 
   selectedContextFormName = '';
-
-  showContextMenu(event: MouseEvent, formName: string) {
-    event.preventDefault();
-    this.menuPosition = { x: event.clientX, y: event.clientY };
-    this.selectedContextFormName = formName; // Store which form was right-clicked
-    this.menuVisible = true;
-  }
 
   showFormContextMenu(event: MouseEvent) {
     event.preventDefault();
@@ -693,13 +678,8 @@ export class App implements OnInit {
     this.editMenuVisible = true; // Show the field edit menu
   }
 
-  onMenuClick(action: 'loadSavedForm' | 'openEditFormNameModal' | 'deleteFormName' | 'openEditFieldModal' | 'deleteField') {
-    if (action === 'openEditFormNameModal') {
-      this.openEditFormNameModal(this.selectedContextFormName);
-    } else if (action === 'deleteFormName') {
-      this.editFormModel.formName = this.selectedContextFormName;
-      this.deleteFormName();
-    } else if (action === 'loadSavedForm') {
+  onMenuClick(action: 'loadSavedForm' |'openEditFieldModal' | 'deleteField') {
+    if (action === 'loadSavedForm') {
       this.loadSavedForm(this.selectedContextFormName);
     } else if (action === 'openEditFieldModal') {
       this.openEditFieldModal(this.selectedFieldIndex!);
@@ -708,6 +688,5 @@ export class App implements OnInit {
     }
     this.editMenuVisible = false;
     this.selectedFieldIndex = null;
-    this.menuVisible = false;
   }
 }
