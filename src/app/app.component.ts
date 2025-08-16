@@ -627,6 +627,7 @@ export class App implements OnInit {
 
       // Reassign index to all fields
       this.fields.forEach((f, i) => f.props!['index'] = i);
+      this.reattachFieldFunctions(); 
 
       localStorage.setItem('formFields', JSON.stringify(this.fields));
 
@@ -648,14 +649,23 @@ export class App implements OnInit {
     this.isEdit.set(false);
   }
 
+  menuVisible = false;
   formMenuVisible = false;
   editMenuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
   @HostListener('document:click')
   hideMenu() {
+    this.menuVisible = false;
     this.formMenuVisible = false;
     this.editMenuVisible = false;
+  }
+
+  showContextMenu(event: MouseEvent, formName: string) {
+    event.preventDefault();
+    this.menuPosition = { x: event.clientX, y: event.clientY };
+    this.selectedContextFormName = formName; // Store which form was right-clicked
+    this.menuVisible = true;
   }
 
   selectedContextFormName = '';
@@ -675,8 +685,13 @@ export class App implements OnInit {
     this.editMenuVisible = true; // Show the field edit menu
   }
 
-  onMenuClick(action: 'loadSavedForm' |'openEditFieldModal' | 'deleteField') {
-    if (action === 'loadSavedForm') {
+  onMenuClick(action: 'deleteFormName' | 'openEditFormNameModal' | 'loadSavedForm' |'openEditFieldModal' | 'deleteField') {
+    if (action === 'openEditFormNameModal') {
+      this.openEditFormNameModal(this.selectedContextFormName);
+    } else if (action === 'deleteFormName') {
+      this.editFormModel.formName = this.selectedContextFormName;
+      this.deleteFormName();
+    } else if (action === 'loadSavedForm') {
       this.loadSavedForm(this.selectedContextFormName);
     } else if (action === 'openEditFieldModal') {
       this.openEditFieldModal(this.selectedFieldIndex!);
@@ -685,6 +700,7 @@ export class App implements OnInit {
     }
     this.editMenuVisible = false;
     this.selectedFieldIndex = null;
+    this.menuVisible = false;
   }
 
   drop(event: CdkDragDrop<FormlyFieldConfig[]>) {

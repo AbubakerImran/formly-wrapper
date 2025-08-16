@@ -151,6 +151,8 @@
               style="cursor: pointer;"
               data-bs-dismiss="modal"
               (click)="loadSavedForm(formName)"
+              (contextmenu)="showContextMenu($event, formName)"
+              #inputField
               >
             {{ formName }}
             <button type="button" 
@@ -208,5 +210,11 @@
   <ul class="list-group">
     <li class="list-group-item" (click)="onMenuClick('openEditFieldModal')" data-bs-toggle="modal" data-bs-target="#editFieldModal">Edit Field</li>
     <li class="list-group-item" (click)="onMenuClick('deleteField')">Delete Field</li>
+  </ul>
+</div>
+<div *ngIf="menuVisible" tabindex="3" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</li>
+    <li class="list-group-item" (click)="onMenuClick('deleteFormName')">Delete Form</li>
   </ul>
 </div>
