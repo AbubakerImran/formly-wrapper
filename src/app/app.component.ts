@@ -94,12 +94,11 @@ export class App implements OnInit {
   openEditFormNameModal(name: string) {
     const savedWrapper = localStorage.getItem(`wrapper_${name}`) || 'form-field-horizontal';
 
-    this.editFormModel = { 
+    this.editFormModel = {
       formName: name,
       wrapper: savedWrapper
     };
 
-    // Update field config dynamically
     this.editFormFields = this.editFormFields.map(f => {
       if (f.key === 'wrapper') {
         return {
@@ -110,7 +109,7 @@ export class App implements OnInit {
       return f;
     });
 
-    this.editFormNameBefore = name; 
+    this.editFormNameBefore = name;
   }
   
   ngOnInit() {
@@ -215,16 +214,21 @@ export class App implements OnInit {
       return;
     }
 
-    // ✅ Handle wrapper change
+    // 🔹 Update wrapper for all fields
     this.formNameChange(newWrapper);
 
-    // ✅ Handle rename (if any)
+    // 🔹 Rename form and entries if name changed
     if (oldName && newName && oldName !== newName) {
       savedForms[newName] = savedForms[oldName];
       delete savedForms[oldName];
 
       savedEntries[newName] = savedEntries[oldName] || [];
       delete savedEntries[oldName];
+
+      // 🔹 Rename wrapper key in localStorage
+      const oldWrapper = localStorage.getItem(`wrapper_${oldName}`) || 'form-field-horizontal';
+      localStorage.setItem(`wrapper_${newName}`, oldWrapper);
+      localStorage.removeItem(`wrapper_${oldName}`);
 
       if (this.formHeading === oldName) this.formHeading = newName;
       if (this.showForm === oldName) this.showForm = newName;

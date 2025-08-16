@@ -91,7 +91,8 @@
     </ng-container>
   </div>
 </div>
-<div *ngIf="showError" class="text-danger mt-1">
+<div *ngIf="showError" class="text-danger mt-1 d-flex">
+  <div class="col-2"></div>
   <formly-validation-message [field]="field"></formly-validation-message>
 </div>
 <!-- Context Menu -->
