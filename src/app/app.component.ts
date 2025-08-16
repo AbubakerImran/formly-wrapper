@@ -60,7 +60,10 @@ export class App implements OnInit {
       key: "wrapper",
       type: "radio",
       wrappers: ["form-field-vertical"],
-      defaultValue: "form-field-horizontal",
+      defaultValue: () => {
+        // Get saved wrapper for current form or default to horizontal
+        return localStorage.getItem(`wrapper_${this.editFormModel.formName}`) || "form-field-horizontal";
+      },
       props: {
         label: "Form Wrapper",
         class: "form-check-input",
@@ -89,8 +92,25 @@ export class App implements OnInit {
   formChanged = false;
 
   openEditFormNameModal(name: string) {
-    this.editFormModel = { formName: name };  // Bind directly to Formly model
-    this.editFormNameBefore = name;           // Keep original name for comparison
+    const savedWrapper = localStorage.getItem(`wrapper_${name}`) || 'form-field-horizontal';
+
+    this.editFormModel = { 
+      formName: name,
+      wrapper: savedWrapper
+    };
+
+    // Update field config dynamically
+    this.editFormFields = this.editFormFields.map(f => {
+      if (f.key === 'wrapper') {
+        return {
+          ...f,
+          defaultValue: savedWrapper
+        };
+      }
+      return f;
+    });
+
+    this.editFormNameBefore = name; 
   }
   
   ngOnInit() {
@@ -111,7 +131,10 @@ export class App implements OnInit {
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     if (savedForms[formName]) {
       this.showForm = formName;
-      this.fields = savedForms[formName];
+      this.fields = savedForms[formName].map((f: any) => ({
+        ...f,
+        wrappers: [localStorage.getItem(`wrapper_${formName}`) || 'form-field-horizontal']
+      }));
       this.reattachFieldFunctions();
       this.formHeading = formName;
       localStorage.setItem('formFields', JSON.stringify(this.fields));
@@ -155,27 +178,60 @@ export class App implements OnInit {
     this.loadSavedFormNames(); // Refresh sidebar list
   }
 
-  saveFormNameChange() {
-    if (!this.editFormModel.formName) {
-      return;
+  formNameChange(newWrapper: string) {
+    if (!this.formHeading) return; // no active form
+
+    // 🔹 Update wrapper for all fields in this form
+    this.fields = this.fields.map(f => ({
+      ...f,
+      wrappers: [newWrapper]
+    }));
+
+    // 🔹 Persist in localStorage
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    if (savedForms[this.formHeading]) {
+      savedForms[this.formHeading] = this.fields;
+      localStorage.setItem('savedForms', JSON.stringify(savedForms));
     }
+
+    // 🔹 Keep current wrapper for new fields
+    localStorage.setItem(`wrapper_${this.formHeading}`, newWrapper);
+
+  }
+
+  saveFormNameChange() {
+    if (!this.editFormModel.formName) return;
+
     const oldName = this.editFormNameBefore || '';
-    const newName = this.editFormModel.formName?.trim();
+    const newName = this.editFormModel.formName.trim();
+    const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
+
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
 
-    // Prevent renaming to an existing form
-    if (savedForms[newName]) {
+    // Prevent duplicate names
+    if (savedForms[newName] && newName !== oldName) {
       alert("A form with this name already exists!");
       return;
     }
 
+    // ✅ Handle wrapper change
+    this.formNameChange(newWrapper);
+
+    // ✅ Handle rename (if any)
+    if (oldName && newName && oldName !== newName) {
+      savedForms[newName] = savedForms[oldName];
+      delete savedForms[oldName];
+
+      savedEntries[newName] = savedEntries[oldName] || [];
+      delete savedEntries[oldName];
+
+      if (this.formHeading === oldName) this.formHeading = newName;
+      if (this.showForm === oldName) this.showForm = newName;
+    }
+
     localStorage.setItem('savedForms', JSON.stringify(savedForms));
     localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
-
-    if (this.formHeading === oldName) {
-      this.formHeading = newName;
-    }
 
     this.loadSavedFormNames();
   }
@@ -197,6 +253,10 @@ export class App implements OnInit {
     if (savedEntries[formName]) {
       delete savedEntries[formName];
     }
+
+    // Remove wrapper from localStorage
+    localStorage.removeItem(`wrapper_${formName}`);
+    localStorage.removeItem('formFields');
 
     localStorage.setItem('savedForms', JSON.stringify(savedForms));
     localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
@@ -354,11 +414,12 @@ export class App implements OnInit {
       typeof f.key === 'string' && f.key.startsWith(type)
     ).length;
     const index = existingCount + 1;
+    const currentWrapper = localStorage.getItem(`wrapper_${this.formHeading}`) || 'form-field-horizontal';
 
     const newField: FormlyFieldConfig = {
       key: `${type}${index}`,
       type,
-      wrappers: ["form-field-horizontal"],
+      wrappers: [currentWrapper],
       props: {
         label: `${type}${index}`,
         id: `${type}${index}`,
