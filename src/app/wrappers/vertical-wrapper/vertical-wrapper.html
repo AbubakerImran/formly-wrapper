@@ -14,6 +14,16 @@
 					(contextmenu)="showContextMenu($event)" 
 					#inputField
 			/>
+      <textarea
+				*ngSwitchCase="'textarea'"
+				[ngClass]="to['class']"
+				[placeholder]="to.placeholder"
+				[formControl]="formControl"
+				[id]="to['id']"
+				[ngStyle]="to['style']"
+				(contextmenu)="showContextMenu($event)" 
+				#inputField
+      ></textarea>
 			<select
 					*ngSwitchCase="'select'"
 					[ngClass]="to['class']"

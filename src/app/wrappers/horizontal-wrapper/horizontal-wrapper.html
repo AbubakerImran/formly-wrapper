@@ -17,27 +17,12 @@
           (contextmenu)="showContextMenu($event)" 
           #inputField
         />
-        <input
-          *ngSwitchCase="'email'"
-          type="email"
-          [ngClass]="to['class']"
-          [placeholder]="to.placeholder"
-          [formControl]="formControl"
-          [id]="to['id']"
-          [autocomplete]="to['autocomplete']"
-          pattern="^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
-          [ngStyle]="to['style']"
-          (contextmenu)="showContextMenu($event)" 
-          #inputField
-        />
         <textarea
           *ngSwitchCase="'textarea'"
-          type="tel"
           [ngClass]="to['class']"
           [placeholder]="to.placeholder"
           [formControl]="formControl"
           [id]="to['id']"
-          pattern="^\d{10,12}$"
           [ngStyle]="to['style']"
           (contextmenu)="showContextMenu($event)" 
           #inputField
