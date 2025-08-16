@@ -46,7 +46,7 @@
           <button type="button" class="btn btn-success" *ngIf="formChanged" (click)="saveForm()">Save Form</button>
         </div>
         <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
-        <formly-form [model]="model" [fields]="fields" [form]="form" cdkDropList (cdkDropListDropped)="drop($event)">></formly-form>
+        <formly-form [model]="model" [fields]="fields" [form]="form" cdkDropList (cdkDropListDropped)="drop($event)"></formly-form>
           <div class="d-flex justify-content-center" *ngIf="!isEdit()" (contextmenu)="showFormContextMenu($event)" #inputField>
             <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0">Submit</button>
             <p *ngIf="fields.length === 0"><em>Start adding fields...</em></p>
