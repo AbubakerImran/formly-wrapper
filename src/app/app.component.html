@@ -56,7 +56,7 @@
             <button type="button" class="btn border" (click)="cancel()">Cancel</button>
           </div>
         </form>
-        <div class="table mt-3" (contextmenu)="showFormContextMenu($event)" #inputField>
+        <div class="table-responsive mt-3" (contextmenu)="showFormContextMenu($event)" #inputField>
           <table class="table table-bordered">
             <thead *ngIf="users.length != 0">
               <tr>

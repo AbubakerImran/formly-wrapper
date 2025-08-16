@@ -324,23 +324,29 @@ export class App implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-    
+
     if (this.fields.length > 0) {
+      // Load all saved entries
       const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
       const formEntries = allEntries[this.formHeading] || [];
 
+      // Keep all keys from model (no filtering by fields)
       const newEntry = { id: Date.now(), ...model };
-      formEntries.push(newEntry);
 
+      // Save new entry
+      formEntries.push(newEntry);
       allEntries[this.formHeading] = formEntries;
+
       localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
 
+      // Reset
       this.model = {};
       this.form.reset();
       this.fetchData();
       this.isEdit.set(false);
     }
-    alert('Successfully submitted!')
+
+    alert('Successfully submitted!');
   }
 
   update(model: any) {
@@ -623,12 +629,21 @@ export class App implements OnInit {
 
   deleteField(index: number) {
     if (index >= 0 && index < this.fields.length) {
+      const fieldKey = this.fields[index].key as string;
+
+      // 🔹 Remove the field from fields array
       this.fields = this.fields.filter((_, i) => i !== index);
+
+      // 🔹 Remove the control from the form
+      if (fieldKey && this.form.contains(fieldKey)) {
+        this.form.removeControl(fieldKey);
+      }
 
       // Reassign index to all fields
       this.fields.forEach((f, i) => f.props!['index'] = i);
-      this.reattachFieldFunctions(); 
+      this.reattachFieldFunctions();
 
+      // Update localStorage
       localStorage.setItem('formFields', JSON.stringify(this.fields));
 
       this.fetchData();
