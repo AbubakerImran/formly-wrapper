@@ -40,8 +40,9 @@ export class App implements OnInit {
     {
       key: "formName",
       type: "input",
-      wrappers: ["form-field-vertical"],
+      wrappers: ["form-field-modal"],
       props: {
+        uid: '1',
         label: "Form Name",
         placeholder: "Enter form name",
         class: "form-control mb-2",
@@ -58,12 +59,13 @@ export class App implements OnInit {
     {
       key: "wrapper",
       type: "radio",
-      wrappers: ["form-field-vertical"],
+      wrappers: ["form-field-modal"],
       defaultValue: () => {
         // Get saved wrapper for current form or default to horizontal
         return localStorage.getItem(`wrapper_${this.editFormModel.formName}`) || "form-field-horizontal";
       },
       props: {
+        uid: '1',
         label: "Form Wrapper",
         class: "form-check-input",
         labelClass: "form-check-label",

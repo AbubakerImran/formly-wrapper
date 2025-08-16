@@ -5,6 +5,7 @@ import { provideFormlyCore } from '@ngx-formly/core';
 import { withFormlyBootstrap } from '@ngx-formly/bootstrap';
 import { FormlyHorizontalWrapper } from './wrappers/horizontal-wrapper/horizontal-wrapper';
 import { FormlyVerticalWrapper } from './wrappers/vertical-wrapper/vertical-wrapper';
+import { FormlyModalWrapper } from './wrappers/modal-wrapper/modal-wrapper';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +15,7 @@ export const appConfig: ApplicationConfig = {
         wrappers: [
           { name: 'form-field-horizontal', component: FormlyHorizontalWrapper },
           { name: 'form-field-vertical', component: FormlyVerticalWrapper },
+          { name: 'form-field-modal', component: FormlyModalWrapper },
         ]
       }
     ]),
