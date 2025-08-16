@@ -41,7 +41,7 @@ export class App implements OnInit {
     {
       key: "formName",
       type: "input",
-      wrappers: ["form-field-horizontal"],
+      wrappers: ["form-field-vertical"],
       props: {
         label: "Form Name",
         placeholder: "Enter form name",
@@ -49,6 +49,28 @@ export class App implements OnInit {
         labelClass: "form-label",
         id: "formName",
         required: true
+      },
+      validation: {
+        messages: {
+          required: "This field is required"
+        }
+      }
+    },
+    {
+      key: "wrapper",
+      type: "radio",
+      wrappers: ["form-field-vertical"],
+      defaultValue: "form-field-horizontal",
+      props: {
+        label: "Form Wrapper",
+        class: "form-check-input",
+        labelClass: "form-check-label",
+        id: "wrapper",
+        required: true,
+        options: [
+          { value: "form-field-horizontal", label: "Horizontal Wrapper" },
+          { value: "form-field-vertical", label: "Vertical Wrapper" },
+        ],
       },
       validation: {
         messages: {
@@ -90,10 +112,10 @@ export class App implements OnInit {
     if (savedForms[formName]) {
       this.showForm = formName;
       this.fields = savedForms[formName];
-      this.reattachFieldFunctions(); // 🔹 Restore missing functions
+      this.reattachFieldFunctions();
       this.formHeading = formName;
       localStorage.setItem('formFields', JSON.stringify(this.fields));
-      this.fetchData(); // <-- reset and load entries for selected form
+      this.fetchData();
     }
   }
 
@@ -112,11 +134,9 @@ export class App implements OnInit {
     this.users = [];
     this.model = {};
 
-    // ✅ Save immediately with 0 fields
     savedForms[newFormName] = [];
     localStorage.setItem('savedForms', JSON.stringify(savedForms));
 
-    // ✅ Remove any empty entries for this form
     let savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
     savedEntries[newFormName] = [];
     localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
@@ -127,7 +147,6 @@ export class App implements OnInit {
   }
 
   saveForm() {
-
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     savedForms[this.formHeading] = this.fields;
     localStorage.setItem('savedForms', JSON.stringify(savedForms));
@@ -137,20 +156,11 @@ export class App implements OnInit {
   }
 
   saveFormNameChange() {
-
     if (!this.editFormModel.formName) {
       return;
     }
-
     const oldName = this.editFormNameBefore || '';
     const newName = this.editFormModel.formName?.trim();
-
-    // ✅ If name hasn't changed, just exit
-    if (newName === oldName) {
-      alert("No changes were made.");
-      return;
-    }
-
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
 
@@ -160,21 +170,9 @@ export class App implements OnInit {
       return;
     }
 
-    // ✅ Move form data to the new key
-    if (savedForms[oldName]) {
-      savedForms[newName] = savedForms[oldName];
-      delete savedForms[oldName];
-    }
-
-    if (savedEntries[oldName]) {
-      savedEntries[newName] = savedEntries[oldName];
-      delete savedEntries[oldName];
-    }
-
     localStorage.setItem('savedForms', JSON.stringify(savedForms));
     localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
 
-    // Update current form heading if renamed
     if (this.formHeading === oldName) {
       this.formHeading = newName;
     }
@@ -625,10 +623,8 @@ export class App implements OnInit {
 
   editContextMenu(event: MouseEvent, index: number) {
     event.preventDefault(); // Stop default browser menu
-
     this.selectedFieldIndex = index; // Store the clicked field index
     this.menuPosition = { x: event.clientX, y: event.clientY }; // Position menu at cursor
-
     this.editMenuVisible = true; // Show the field edit menu
   }
 
