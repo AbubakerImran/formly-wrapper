@@ -635,7 +635,7 @@ export class App implements OnInit {
           labelClass: this.modalModel.labelClass,
           placeholder: this.modalModel.placeholder,
           required: !!this.modalModel.required,
-          index: this.editingFieldIndex, // <-- Save index
+          index: this.editingFieldIndex,
           options: this.modalModel.options
             ? this.modalModel.options.split(',').map((opt: string) => ({
                 label: opt.trim(),
@@ -647,23 +647,26 @@ export class App implements OnInit {
         }
       };
 
-      // ✅ Replace the field in a new array to trigger change detection
+      // ✅ Replace the field in a new array
       const newFields = [...this.fields];
       newFields[this.editingFieldIndex] = updatedField;
       this.fields = newFields;
 
       this.resetFormGroup();
 
-      // ✅ Save in localStorage
-      let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
-      savedForms[this.formHeading] = this.fields;
-      localStorage.setItem('savedForms', JSON.stringify(savedForms));
+      // ❌ Remove auto-save here
+      // let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      // savedForms[this.formHeading] = this.fields;
+      // localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+      // ✅ Just mark as changed
+      this.formChanged = true;
 
       this.modalStep.set('select');
       this.editingFieldIndex = null;
       this.modalForm.reset();
       this.modalModel = {};
-      this.showNotification('Field successfully updated!');
+      this.showNotification('Field updated (remember to Save Form)!');
     }
   }
 
@@ -913,17 +916,21 @@ export class App implements OnInit {
       return {
         ...f,
         key: this.allFieldsModel[`key_${i}`] ?? f.key,
-        props: updatedProps
+        props: updatedProps,
       };
     });
 
     this.resetFormGroup();
 
-    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
-    savedForms[this.formHeading] = this.fields;
-    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+    // ❌ removed auto localStorage save
+    // const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    // savedForms[this.formHeading] = this.fields;
+    // localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+    // ✅ just mark as changed
+    this.formChanged = true;
 
     this.allFieldsModalOpen.set(false);
-    this.showNotification("All fields updated successfully!");
+    this.showNotification("All fields updated (remember to Save Form)!");
   }
 }
