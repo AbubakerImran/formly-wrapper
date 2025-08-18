@@ -1,6 +1,6 @@
 <div class="mb-2" cdkDrag>
 	<label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
-	<div class="d-flex align-items-center">
+	<div class="d-flex align-items-center justify-content-between">
 		<ng-container [ngSwitch]="field.type">
 			<input
 					*ngSwitchCase="'text'"

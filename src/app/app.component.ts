@@ -168,7 +168,7 @@ export class App implements OnInit {
 
     this.loadSavedFormNames();
     this.fetchData();
-    this.showNotification("Form created successfully!")
+    this.showNotification("Form created successfully!");
   }
 
   saveForm() {
@@ -178,7 +178,7 @@ export class App implements OnInit {
 
     this.formChanged = false;
     this.loadSavedFormNames(); // Refresh sidebar list
-    this.showNotification("Form saved successfully!")
+    this.showNotification("Form saved successfully!");
   }
 
   formNameChange(newWrapper: string) {
@@ -203,7 +203,10 @@ export class App implements OnInit {
   }
 
   saveFormNameChange() {
-    if (!this.editFormModel.formName) return;
+    if (!this.editFormModel.formName) {
+      alert("Form name is empty!");
+      return;
+    };
 
     const oldName = this.editFormNameBefore || '';
     const newName = this.editFormModel.formName.trim();
@@ -242,7 +245,7 @@ export class App implements OnInit {
     localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
 
     this.loadSavedFormNames();
-    this.showNotification('Successfully updated form info!')
+    this.showNotification('Successfully updated form info!');
   }
 
   deleteFormName() {
@@ -283,7 +286,7 @@ export class App implements OnInit {
     }
 
     this.loadSavedFormNames();
-    this.showNotification('Form deleted successfully!')
+    this.showNotification('Form deleted successfully!');
   }
 
   fetchData() {
@@ -363,7 +366,7 @@ export class App implements OnInit {
     this.model = {};
     this.fetchData();
     this.isEdit.set(false);
-    this.showNotification('Successfully updated info!')
+    this.showNotification('Successfully updated info!');
   }
 
   deleteUser(id: any) {
@@ -375,7 +378,7 @@ export class App implements OnInit {
 
     localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
     this.fetchData();
-    this.showNotification('Successfully deleted info!')
+    this.showNotification('Successfully deleted info!');
   }
 
   editUser(id: number) {
@@ -428,10 +431,19 @@ export class App implements OnInit {
     const labelBaseStyle = {
       backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:''
     };
-    const existingCount = this.fields.filter(f =>
-      typeof f.key === 'string' && f.key.startsWith(type)
-    ).length;
-    const index = existingCount + 1;
+    const existingIndexes = this.fields
+    .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
+    .map(f => parseInt((f.key as string).replace(type, ''), 10))
+    .filter(num => !isNaN(num))
+    .sort((a, b) => a - b);
+    let index = 1;
+    for (const num of existingIndexes) {
+      if (num === index) {
+        index++;
+      } else {
+        break;
+      }
+    }
     const currentWrapper = localStorage.getItem(`wrapper_${this.formHeading}`) || 'form-field-horizontal';
 
     const newField: FormlyFieldConfig = {
@@ -471,7 +483,7 @@ export class App implements OnInit {
 
     this.formChanged = true;
     this.cancelFieldModal();
-    this.showNotification('Field added successfully!')
+    this.showNotification('Field added successfully!');
   }
 
   type = signal('');
@@ -624,7 +636,7 @@ export class App implements OnInit {
     this.editingFieldIndex = null;
     this.modalForm.reset();
     this.modalModel = {};
-    this.showNotification('Field successfully updated!')
+    this.showNotification('Field successfully updated!');
   }
 
   deleteField(index: number) {
@@ -650,7 +662,7 @@ export class App implements OnInit {
       this.loadSavedFormNames();
       this.formChanged = true;
     }
-    this.showNotification('Field successfully deleted!')
+    this.showNotification('Field successfully deleted!');
   }
 
   closeForm() {

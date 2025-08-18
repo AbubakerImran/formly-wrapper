@@ -57,7 +57,7 @@
                 (contextmenu)="showContextMenu($event)" 
                 #inputField
               />
-              <label class="form-check-label" [for]="to['id'] + '_' + option.value">
+              <label class="form-check-label" [for]="to['id'] + '_' + option.value" (contextmenu)="showContextMenu($event)" #inputField>
                 {{ option.label }}
               </label>
             </div>
