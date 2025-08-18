@@ -34,6 +34,11 @@ export class App implements OnInit {
   modalFields: FormlyFieldConfig[] = [];
   savedFormNames: string[] = [];
 
+  allFieldsModalOpen = signal(false);
+  allFieldsForm = new FormGroup({});
+  allFieldsModel: any = {};
+  allFieldsFields: FormlyFieldConfig[] = [];
+
   editFormModal = new FormGroup({});
   editFormModel: any = {};
   editFormFields: FormlyFieldConfig[] = [
@@ -120,6 +125,11 @@ export class App implements OnInit {
     this.users = [];
     this.fetchData(); 
     this.loadSavedFormNames();
+  }
+
+  private resetFormGroup() {
+    this.form = new FormGroup({});
+    this.model = {};
   }
 
   loadSavedFormNames() {
@@ -350,6 +360,7 @@ export class App implements OnInit {
         this.form.reset();
         this.fetchData();
         this.isEdit.set(false);
+        this.resetFormGroup();
       }
 
       this.showNotification('Successfully submitted!');
@@ -373,6 +384,7 @@ export class App implements OnInit {
       this.model = {};
       this.fetchData();
       this.isEdit.set(false);
+      this.resetFormGroup();
       this.showNotification('Successfully updated info!');
     }
   }
@@ -633,6 +645,8 @@ export class App implements OnInit {
       newFields[this.editingFieldIndex] = updatedField;
       this.fields = newFields;
 
+      this.resetFormGroup();
+
       // ✅ Save in localStorage
       let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
       savedForms[this.formHeading] = this.fields;
@@ -785,5 +799,124 @@ export class App implements OnInit {
     if (preview) preview.style.cursor = '';
     const overlays = document.querySelectorAll('.cdk-overlay-container, .cdk-global-overlay-wrapper');
     overlays.forEach(o => (o as HTMLElement).style.cursor = '');
+  }
+
+  toggleAllFieldsModal() {
+    if (!this.allFieldsModalOpen()) {
+      this.allFieldsModel = {};
+
+      this.allFieldsFields = this.fields.map((f, i) => {
+        // preload all values into allFieldsModel
+        this.allFieldsModel[`key_${i}`] = f.key;
+        this.allFieldsModel[`label_${i}`] = f.props?.label;
+        this.allFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
+        this.allFieldsModel[`class_${i}`] = f.props?.['class'];
+        this.allFieldsModel[`required_${i}`] = f.props?.required;
+
+        if (f.type === 'select' || f.type === 'radio') {
+          const opts = Array.isArray(f.props?.options)
+            ? f.props?.options
+            : []; // ignore if it's an Observable
+
+          this.allFieldsModel[`options_${i}`] = opts
+            .map((opt: any) => opt.label || opt)
+            .join(',');
+        }
+
+        return {
+          fieldGroupClassName: 'row mb-3',
+          fieldGroup: [
+            {
+              key: `key_${i}`,
+              type: 'input',
+              className: 'col-md-3',
+              props: { label: `${f.key} Key` }
+            },
+            {
+              key: `label_${i}`,
+              type: 'input',
+              className: 'col-md-3',
+              props: { label: `${f.key} Label` }
+            },
+            // Conditional placeholder/options
+            f.type === 'select' || f.type === 'radio'
+              ? {
+                  key: `options_${i}`,
+                  type: 'input',
+                  className: 'col-md-3',
+                  props: {
+                    label: `${f.key} Options`
+                  }
+                }
+              : {
+                  key: `placeholder_${i}`,
+                  type: 'input',
+                  className: 'col-md-3',
+                  props: { label: `${f.key} Placeholder` }
+                },
+            {
+              key: `class_${i}`,
+              type: 'input',
+              className: 'col-md-3',
+              props: { label: `${f.key} Class` }
+            },
+            {
+              key: `required_${i}`,
+              type: 'checkbox',
+              className: 'col-md-3',
+              props: { label: `Required` }
+            }
+          ]
+        };
+      });
+
+      this.allFieldsForm = this.fb.group({});
+      this.allFieldsModalOpen.set(true);
+    } else {
+      this.allFieldsModalOpen.set(false);
+    }
+  }
+
+  saveAllFieldsEdit() {
+    this.fields = this.fields.map((f, i) => {
+      // update base props
+      const updatedProps: any = {
+        ...f.props,
+        label: this.allFieldsModel[`label_${i}`] ?? f.props?.label,
+        class: this.allFieldsModel[`class_${i}`] ?? f.props?.['class'],
+        required: this.allFieldsModel[`required_${i}`] ?? f.props?.required,
+      };
+
+      if (f.type === 'select' || f.type === 'radio') {
+        const optionsStr = this.allFieldsModel[`options_${i}`];
+        const opts = Array.isArray(f.props?.options) ? f.props?.options : [];
+
+        updatedProps.options = optionsStr
+          ? optionsStr.split(',').map((opt: string) => ({
+              label: opt.trim(),
+              value: opt.trim(),
+            }))
+          : opts;
+      } else {
+        // normal placeholder
+        updatedProps.placeholder =
+          this.allFieldsModel[`placeholder_${i}`] ?? f.props?.placeholder;
+      }
+
+      return {
+        ...f,
+        key: this.allFieldsModel[`key_${i}`] ?? f.key,
+        props: updatedProps
+      };
+    });
+
+    this.resetFormGroup();
+
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    savedForms[this.formHeading] = this.fields;
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+    this.allFieldsModalOpen.set(false);
+    this.showNotification("All fields updated successfully!");
   }
 }

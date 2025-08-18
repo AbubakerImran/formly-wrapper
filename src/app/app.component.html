@@ -1,12 +1,12 @@
 <div id="notification" class="popup-notification hidden"></div>
 <div class="container-fluid d-flex bg-white shadow align-items-center justify-content-between rounded-bottom-2">
-  <h1 class="ms-3">Angular Forms</h1>
-  <div class="d-flex p-3 justify-content-end">
-    <button type="button" class="btn btn-warning me-3 p-3" *ngIf="formHeading && savedFormNames.length != 0" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</button>
-    <button type="button" class="btn btn-danger me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</button>
-    <button type="button" class="btn btn-success me-3 p-3" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()">Close Form</button>
-    <button type="button" class="btn btn-secondary me-3 p-3" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal" data-bs-target="#savedFormsModal">Open Forms</button>
-    <button type="button" class="btn btn-primary p-3" (click)="createNewForm()">Create New Form</button>
+  <h2 class="ms-3">Angular Forms</h2>
+  <div class="d-flex p-3 gap-3 justify-content-end">
+    <button type="button" class="btn border-0" *ngIf="formHeading && savedFormNames.length != 0" data-bs-toggle="modal" data-bs-target="#formModal"><i class="fa-regular fa-square-plus"></i></button>
+    <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal"><i class="fa-solid fa-file-code"></i></button>
+    <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()"><i class="fa-solid fa-file-excel"></i></button>
+    <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal" data-bs-target="#savedFormsModal"><i class="fa-solid fa-file"></i></button>
+    <button type="button" class="btn border-0" (click)="createNewForm()"><i class="fa-solid fa-file-circle-plus"></i></button>
   </div>
 </div>  
 
@@ -17,6 +17,9 @@
       <em>No fields available!</em>
     </div>
     <div *ngIf="modalStep() === 'select' && fields.length > 0" class="container p-3">
+      <div class="w-100 text-end">
+        <button class="btn border-0 my-2" (click)="toggleAllFieldsModal()" data-bs-toggle="modal" data-bs-target="#allFieldsModal"><i class='fas fa-edit'></i></button>
+      </div>
       <ul class="list-group"
           cdkDropList
           (cdkDropListDropped)="drop($event)">
@@ -29,13 +32,13 @@
           <span id="drag" cdkDragHandle>⠿</span>
           {{ f.props?.label || f.key }}
           <div class="d-flex">
-            <button class="btn btn-sm btn-primary me-2"
+            <button class="btn btn-sm me-2 border-0"
                     (click)="openEditFieldModal(i)"
                     data-bs-toggle="modal"
                     data-bs-target="#editFieldModal">
-              Edit
+              <i class='fas fa-edit'></i>
             </button>
-            <button class="btn btn-sm btn-danger" (click)="deleteField(i)">Delete</button>
+            <button class="btn btn-sm border-0" (click)="deleteField(i)"><i class="fa-solid fa-trash-can"></i></button>
           </div>
         </li>
       </ul>
@@ -46,7 +49,7 @@
       <div *ngIf="formHeading">
         <div class="d-flex justify-content-between" (contextmenu)="showFormContextMenu($event)" #inputField>
           <h1>{{ formHeading }}</h1>
-          <button type="button" class="btn btn-success" *ngIf="formChanged" (click)="saveForm()">Save Form</button>
+          <button type="button" class="btn btn-lg border-0" *ngIf="formChanged" (click)="saveForm()"><i class="fa-solid fa-floppy-disk"></i></button>
         </div>
         <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
         <formly-form [model]="model" [fields]="fields" [form]="form" cdkDropList (cdkDropListDropped)="drop($event)"></formly-form>
@@ -79,8 +82,8 @@
                 </td>
                 <td>
                   <div class="d-flex gap-2">
-                    <button class="btn btn-warning" (click)="editUser(user.id)">Edit</button>
-                    <button class="btn btn-danger" (click)="deleteUser(user.id)">Delete</button>
+                    <button class="btn border-0" (click)="editUser(user.id)"><i class='fas fa-edit'></i></button>
+                    <button class="btn border-0" (click)="deleteUser(user.id)"><i class="fa-solid fa-trash-can"></i></button>
                   </div>
                 </td>
               </tr>
@@ -100,7 +103,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="row g-3 justify-content-center">
+        <div class="row justify-content-center">
           <div class="col-3">
             <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('input')">Input</button>
           </div>
@@ -132,8 +135,10 @@
       <div class="modal-body">
         <form [formGroup]="editFormModal" class="p-4 container" (ngSubmit)="saveFormNameChange()">
           <formly-form [model]="editFormModel" [fields]="editFormFields" [form]="editFormModal"></formly-form>
-          <button type="submit" class="btn btn-primary w-100 mt-3 mb-2" data-bs-dismiss="modal">Save</button>
-          <button type="button" class="btn btn-danger w-100" (click)="deleteFormName()" data-bs-dismiss="modal">Delete Form</button>
+          <div class="d-flex mt-3 gap-2">
+            <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+            <button type="button" class="btn btn-danger" (click)="deleteFormName()" data-bs-dismiss="modal">Delete Form</button>
+          </div>
         </form>
       </div>
     </div>
@@ -220,4 +225,31 @@
     <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</li>
     <li class="list-group-item" (click)="onMenuClick('deleteFormName')">Delete Form</li>
   </ul>
+</div>
+<!-- All Fields Modal -->
+<div class="modal fade" id="allFieldsModal" tabindex="-1" aria-labelledby="allFieldsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content p-3">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="allFieldsModalLabel">Edit All Fields</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"
+                (click)="toggleAllFieldsModal()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="allFieldsForm" (ngSubmit)="saveAllFieldsEdit()" class="container">
+          <formly-form [form]="allFieldsForm" [model]="allFieldsModel" [fields]="allFieldsFields"></formly-form>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success" data-bs-dismiss="modal" (click)="saveAllFieldsEdit()">Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="toggleAllFieldsModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>
