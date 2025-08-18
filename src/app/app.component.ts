@@ -234,8 +234,13 @@ export class App implements OnInit {
       if (savedForms[newName] && newName !== oldName) {
         alert("A form with this name already exists!");
       } else {
-        // 🔹 Update wrapper for all fields
-        this.formNameChange(newWrapper);
+        // 🔹 Persist wrapper to localStorage even if no form is open
+        localStorage.setItem(`wrapper_${newName}`, newWrapper);
+
+        // 🔹 If form is currently open, update wrapper for its fields
+        if (this.formHeading === newName) {
+          this.formNameChange(newWrapper);
+        }
 
         // 🔹 Rename form and entries if name changed
         if (oldName && newName && oldName !== newName) {
@@ -245,10 +250,12 @@ export class App implements OnInit {
           savedEntries[newName] = savedEntries[oldName] || [];
           delete savedEntries[oldName];
 
-          // 🔹 Rename wrapper key in localStorage
-          const oldWrapper = localStorage.getItem(`wrapper_${oldName}`) || 'form-field-horizontal';
-          localStorage.setItem(`wrapper_${newName}`, oldWrapper);
-          localStorage.removeItem(`wrapper_${oldName}`);
+          // Rename wrapper key if it exists
+          const oldWrapper = localStorage.getItem(`wrapper_${oldName}`);
+          if (oldWrapper) {
+            localStorage.setItem(`wrapper_${newName}`, oldWrapper);
+            localStorage.removeItem(`wrapper_${oldName}`);
+          }
 
           if (this.formHeading === oldName) this.formHeading = newName;
           if (this.showForm === oldName) this.showForm = newName;
