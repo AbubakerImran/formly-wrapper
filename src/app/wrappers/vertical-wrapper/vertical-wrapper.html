@@ -1,4 +1,4 @@
-<div class="mb-2" cdkDrag>
+<div class="mb-2" cdkDrag (cdkDragStarted)="onDragStart()" (cdkDragEnded)="onDragEnd()">
 	<label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
 	<div class="d-flex align-items-center justify-content-between">
 		<ng-container [ngSwitch]="field.type">
@@ -72,7 +72,7 @@
 					#inputField
 			/>
 		</ng-container>
-		<span cdkDragHandle style="cursor: grab;">&nbsp;⠿</span>
+		<span cdkDragHandle></span>
 	</div>
 	<div *ngIf="showError" class="text-danger mt-1">
 	<formly-validation-message [field]="field"></formly-validation-message>

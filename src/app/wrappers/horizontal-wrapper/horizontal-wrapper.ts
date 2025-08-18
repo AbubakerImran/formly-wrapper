@@ -50,4 +50,26 @@ export class FormlyHorizontalWrapper extends FieldWrapper {
   hideMenu() {
     this.menuVisible = false;
   }
+
+  onDragStart() {
+    // set body cursor immediately (beats CSS scope issues)
+    document.body.style.cursor = 'grabbing';
+
+    // sometimes the preview element appears a tick later — set it too
+    setTimeout(() => {
+      const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
+      if (preview) preview.style.cursor = 'grabbing';
+      const overlays = document.querySelectorAll('.cdk-overlay-container, .cdk-global-overlay-wrapper');
+      overlays.forEach(o => (o as HTMLElement).style.cursor = 'grabbing');
+    }, 0);
+  }
+
+  onDragEnd() {
+    // reset
+    document.body.style.cursor = '';
+    const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
+    if (preview) preview.style.cursor = '';
+    const overlays = document.querySelectorAll('.cdk-overlay-container, .cdk-global-overlay-wrapper');
+    overlays.forEach(o => (o as HTMLElement).style.cursor = '');
+  }
 }

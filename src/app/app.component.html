@@ -23,8 +23,10 @@
         <li *ngFor="let f of fields; let i = index"
             class="list-group-item d-flex justify-content-between align-items-center"
             cdkDrag
+            (cdkDragStarted)="onDragStart()"
+            (cdkDragEnded)="onDragEnd()"
             (contextmenu)="editContextMenu($event, i)">
-          <span cdkDragHandle style="cursor: grab;">⠿</span>
+          <span id="drag" cdkDragHandle>⠿</span>
           {{ f.props?.label || f.key }}
           <div class="d-flex">
             <button class="btn btn-sm btn-primary me-2"

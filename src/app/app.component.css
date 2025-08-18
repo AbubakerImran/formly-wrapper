@@ -50,3 +50,34 @@
 .hidden {
   display: none;
 }
+
+#drag {
+  cursor: grab;
+}
+
+#drag:active {
+  cursor: grabbing;
+}
+
+/* src/styles.css (global!) */
+
+/* handle default */
+[cdkDragHandle],
+[cdkDragHandle] * {
+  cursor: grab !important;
+}
+
+/* while holding (active) */
+[cdkDragHandle]:active,
+[cdkDragHandle]:active * {
+  cursor: grabbing !important;
+}
+
+/* apply to actual dragging / preview / overlay (high specificity + important) */
+.cdk-drag.cdk-drag-dragging,
+.cdk-drag-preview,
+.cdk-drag-placeholder,
+.cdk-overlay-container,
+.cdk-global-overlay-wrapper {
+  cursor: grabbing !important;
+}

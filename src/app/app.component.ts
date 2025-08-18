@@ -139,6 +139,11 @@ export class App implements OnInit {
       }));
       this.reattachFieldFunctions();
       this.formHeading = formName;
+
+      // 🔹 Reset form group so new fields attach properly
+      this.form = new FormGroup({});
+      this.model = {};
+
       localStorage.setItem('formFields', JSON.stringify(this.fields));
       this.fetchData();
     }
@@ -157,6 +162,9 @@ export class App implements OnInit {
     this.showForm = newFormName;
     this.fields = [];
     this.users = [];
+
+    // 🔹 Reset form group here too
+    this.form = new FormGroup({});
     this.model = {};
 
     savedForms[newFormName] = [];
@@ -170,7 +178,6 @@ export class App implements OnInit {
     this.fetchData();
     this.showNotification("Form created successfully!");
   }
-
   saveForm() {
     const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     savedForms[this.formHeading] = this.fields;
@@ -205,88 +212,84 @@ export class App implements OnInit {
   saveFormNameChange() {
     if (!this.editFormModel.formName) {
       alert("Form name is empty!");
-      return;
-    };
+    } else {
+      const oldName = this.editFormNameBefore || '';
+      const newName = this.editFormModel.formName.trim();
+      const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
 
-    const oldName = this.editFormNameBefore || '';
-    const newName = this.editFormModel.formName.trim();
-    const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
+      const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
 
-    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
-    const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+      // Prevent duplicate names
+      if (savedForms[newName] && newName !== oldName) {
+        alert("A form with this name already exists!");
+      } else {
+        // 🔹 Update wrapper for all fields
+        this.formNameChange(newWrapper);
 
-    // Prevent duplicate names
-    if (savedForms[newName] && newName !== oldName) {
-      alert("A form with this name already exists!");
-      return;
+        // 🔹 Rename form and entries if name changed
+        if (oldName && newName && oldName !== newName) {
+          savedForms[newName] = savedForms[oldName];
+          delete savedForms[oldName];
+
+          savedEntries[newName] = savedEntries[oldName] || [];
+          delete savedEntries[oldName];
+
+          // 🔹 Rename wrapper key in localStorage
+          const oldWrapper = localStorage.getItem(`wrapper_${oldName}`) || 'form-field-horizontal';
+          localStorage.setItem(`wrapper_${newName}`, oldWrapper);
+          localStorage.removeItem(`wrapper_${oldName}`);
+
+          if (this.formHeading === oldName) this.formHeading = newName;
+          if (this.showForm === oldName) this.showForm = newName;
+        }
+
+        localStorage.setItem('savedForms', JSON.stringify(savedForms));
+        localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+        this.loadSavedFormNames();
+        this.showNotification('Successfully updated form info!');
+      }
     }
-
-    // 🔹 Update wrapper for all fields
-    this.formNameChange(newWrapper);
-
-    // 🔹 Rename form and entries if name changed
-    if (oldName && newName && oldName !== newName) {
-      savedForms[newName] = savedForms[oldName];
-      delete savedForms[oldName];
-
-      savedEntries[newName] = savedEntries[oldName] || [];
-      delete savedEntries[oldName];
-
-      // 🔹 Rename wrapper key in localStorage
-      const oldWrapper = localStorage.getItem(`wrapper_${oldName}`) || 'form-field-horizontal';
-      localStorage.setItem(`wrapper_${newName}`, oldWrapper);
-      localStorage.removeItem(`wrapper_${oldName}`);
-
-      if (this.formHeading === oldName) this.formHeading = newName;
-      if (this.showForm === oldName) this.showForm = newName;
-    }
-
-    localStorage.setItem('savedForms', JSON.stringify(savedForms));
-    localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
-
-    this.loadSavedFormNames();
-    this.showNotification('Successfully updated form info!');
   }
 
   deleteFormName() {
     const formName = this.editFormModel.formName?.trim();
-
     if (!formName) {
       alert("Form name is missing!");
-      return;
+    } else {
+      const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+
+      if (savedForms[formName]) {
+        delete savedForms[formName];
+      }
+      if (savedEntries[formName]) {
+        delete savedEntries[formName];
+      }
+
+      // Remove wrapper from localStorage
+      localStorage.removeItem(`wrapper_${formName}`);
+      localStorage.removeItem('formFields');
+
+      localStorage.setItem('savedForms', JSON.stringify(savedForms));
+      localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+      // If currently viewing the deleted form, clear UI
+      if (this.formHeading === formName) {
+        this.formHeading = '';
+        this.fields = [];
+        this.users = [];
+        this.model = {};
+      }
+
+      if (formName === this.showForm) {
+        this.showForm = '';
+      }
+
+      this.loadSavedFormNames();
+      this.showNotification('Form deleted successfully!');
     }
-
-    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
-    const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
-
-    if (savedForms[formName]) {
-      delete savedForms[formName];
-    }
-    if (savedEntries[formName]) {
-      delete savedEntries[formName];
-    }
-
-    // Remove wrapper from localStorage
-    localStorage.removeItem(`wrapper_${formName}`);
-    localStorage.removeItem('formFields');
-
-    localStorage.setItem('savedForms', JSON.stringify(savedForms));
-    localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
-
-    // If currently viewing the deleted form, clear UI
-    if (this.formHeading === formName) {
-      this.formHeading = '';
-      this.fields = [];
-      this.users = [];
-      this.model = {};
-    }
-
-    if (formName === this.showForm) {
-      this.showForm = '';
-    }
-
-    this.loadSavedFormNames();
-    this.showNotification('Form deleted successfully!');
   }
 
   fetchData() {
@@ -325,48 +328,53 @@ export class App implements OnInit {
   onSubmit(model: any) {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      return;
+    } else if (this.formChanged) {
+      alert("Please save the form before submitting data!");
+    } else {
+      if (this.fields.length > 0) {
+        // Load all saved entries
+        const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+        const formEntries = allEntries[this.formHeading] || [];
+
+        // Keep all keys from model (no filtering by fields)
+        const newEntry = { id: Date.now(), ...model };
+
+        // Save new entry
+        formEntries.push(newEntry);
+        allEntries[this.formHeading] = formEntries;
+
+        localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+
+        // Reset
+        this.model = {};
+        this.form.reset();
+        this.fetchData();
+        this.isEdit.set(false);
+      }
+
+      this.showNotification('Successfully submitted!');
     }
-
-    if (this.fields.length > 0) {
-      // Load all saved entries
-      const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
-      const formEntries = allEntries[this.formHeading] || [];
-
-      // Keep all keys from model (no filtering by fields)
-      const newEntry = { id: Date.now(), ...model };
-
-      // Save new entry
-      formEntries.push(newEntry);
-      allEntries[this.formHeading] = formEntries;
-
-      localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
-
-      // Reset
-      this.model = {};
-      this.form.reset();
-      this.fetchData();
-      this.isEdit.set(false);
-    }
-
-    this.showNotification('Successfully submitted!');
   }
 
   update(model: any) {
-    const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
-    const formEntries = allEntries[this.formHeading] || [];
+    if (this.formChanged) {
+      alert("Please save the form before submitting data!");
+    } else {
+      const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+      const formEntries = allEntries[this.formHeading] || [];
 
-    const updatedEntries = formEntries.map((entry: any) =>
-      entry.id === this.uid() ? { id: this.uid(), ...model } : entry
-    );
+      const updatedEntries = formEntries.map((entry: any) =>
+        entry.id === this.uid() ? { id: this.uid(), ...model } : entry
+      );
 
-    allEntries[this.formHeading] = updatedEntries;
-    localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+      allEntries[this.formHeading] = updatedEntries;
+      localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
 
-    this.model = {};
-    this.fetchData();
-    this.isEdit.set(false);
-    this.showNotification('Successfully updated info!');
+      this.model = {};
+      this.fetchData();
+      this.isEdit.set(false);
+      this.showNotification('Successfully updated info!');
+    }
   }
 
   deleteUser(id: any) {
@@ -582,61 +590,60 @@ export class App implements OnInit {
 
     if (this.modalForm.invalid) {
       this.modalForm.markAllAsTouched();
-      return;
+    } else {
+      const updatedStyle: any = {};
+      const updatedLabelStyle: any = {};
+
+      // Collect style values
+      const styleKeys = Object.keys(this.fields[this.editingFieldIndex]?.props?.['style'] || {});
+      styleKeys.forEach(sk => {
+        updatedStyle[sk] = this.modalModel[sk] || '';
+      });
+
+      // Collect labelStyle values
+      const labelStyleKeys = Object.keys(this.fields[this.editingFieldIndex]?.props?.['labelStyle'] || {});
+      labelStyleKeys.forEach(sk => {
+        updatedLabelStyle[sk] = this.modalModel[sk] || '';
+      });
+
+      const updatedField: FormlyFieldConfig = {
+        ...this.fields[this.editingFieldIndex],
+        key: this.modalModel.key,
+        props: {
+          ...this.fields[this.editingFieldIndex].props,
+          label: this.modalModel.label,
+          class: this.modalModel.class,
+          labelClass: this.modalModel.labelClass,
+          placeholder: this.modalModel.placeholder,
+          required: !!this.modalModel.required,
+          index: this.editingFieldIndex, // <-- Save index
+          options: this.modalModel.options
+            ? this.modalModel.options.split(',').map((opt: string) => ({
+                label: opt.trim(),
+                value: opt.trim()
+              }))
+            : undefined,
+          style: updatedStyle,
+          labelStyle: updatedLabelStyle
+        }
+      };
+
+      // ✅ Replace the field in a new array to trigger change detection
+      const newFields = [...this.fields];
+      newFields[this.editingFieldIndex] = updatedField;
+      this.fields = newFields;
+
+      // ✅ Save in localStorage
+      let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      savedForms[this.formHeading] = this.fields;
+      localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+      this.modalStep.set('select');
+      this.editingFieldIndex = null;
+      this.modalForm.reset();
+      this.modalModel = {};
+      this.showNotification('Field successfully updated!');
     }
-
-    const updatedStyle: any = {};
-    const updatedLabelStyle: any = {};
-
-    // Collect style values
-    const styleKeys = Object.keys(this.fields[this.editingFieldIndex]?.props?.['style'] || {});
-    styleKeys.forEach(sk => {
-      updatedStyle[sk] = this.modalModel[sk] || '';
-    });
-
-    // Collect labelStyle values
-    const labelStyleKeys = Object.keys(this.fields[this.editingFieldIndex]?.props?.['labelStyle'] || {});
-    labelStyleKeys.forEach(sk => {
-      updatedLabelStyle[sk] = this.modalModel[sk] || '';
-    });
-
-    const updatedField: FormlyFieldConfig = {
-      ...this.fields[this.editingFieldIndex],
-      key: this.modalModel.key,
-      props: {
-        ...this.fields[this.editingFieldIndex].props,
-        label: this.modalModel.label,
-        class: this.modalModel.class,
-        labelClass: this.modalModel.labelClass,
-        placeholder: this.modalModel.placeholder,
-        required: !!this.modalModel.required,
-        index: this.editingFieldIndex, // <-- Save index
-        options: this.modalModel.options
-          ? this.modalModel.options.split(',').map((opt: string) => ({
-              label: opt.trim(),
-              value: opt.trim()
-            }))
-          : undefined,
-        style: updatedStyle,
-        labelStyle: updatedLabelStyle
-      }
-    };
-
-    // ✅ Replace the field in a new array to trigger change detection
-    const newFields = [...this.fields];
-    newFields[this.editingFieldIndex] = updatedField;
-    this.fields = newFields;
-
-    // ✅ Save in localStorage
-    let savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
-    savedForms[this.formHeading] = this.fields;
-    localStorage.setItem('savedForms', JSON.stringify(savedForms));
-
-    this.modalStep.set('select');
-    this.editingFieldIndex = null;
-    this.modalForm.reset();
-    this.modalModel = {};
-    this.showNotification('Field successfully updated!');
   }
 
   deleteField(index: number) {
@@ -756,5 +763,27 @@ export class App implements OnInit {
       popup.classList.remove('show');
       setTimeout(() => popup.classList.add('hidden'), 100);
     }, 1000);
+  }
+
+  onDragStart() {
+    // set body cursor immediately (beats CSS scope issues)
+    document.body.style.cursor = 'grabbing';
+
+    // sometimes the preview element appears a tick later — set it too
+    setTimeout(() => {
+      const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
+      if (preview) preview.style.cursor = 'grabbing';
+      const overlays = document.querySelectorAll('.cdk-overlay-container, .cdk-global-overlay-wrapper');
+      overlays.forEach(o => (o as HTMLElement).style.cursor = 'grabbing');
+    }, 0);
+  }
+
+  onDragEnd() {
+    // reset
+    document.body.style.cursor = '';
+    const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
+    if (preview) preview.style.cursor = '';
+    const overlays = document.querySelectorAll('.cdk-overlay-container, .cdk-global-overlay-wrapper');
+    overlays.forEach(o => (o as HTMLElement).style.cursor = '');
   }
 }
