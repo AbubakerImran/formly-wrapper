@@ -86,3 +86,9 @@ i {
 .cdk-global-overlay-wrapper {
   cursor: grabbing !important;
 }
+
+.tree-list { list-style: none; padding-left: 1rem; font-family: monospace; }
+.tree-node { cursor: pointer; margin: 2px 0; }
+.tree-children { padding-left: 1rem; border-left: 1px dashed #ccc; margin-left: 4px; list-style: none; }
+.tag { margin-right: 4px; }
+.btn-sm { padding: 0 4px; font-size: 0.75rem; }

@@ -27,9 +27,11 @@
     "@angular/forms": "^20.1.6",
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.1.0",
+    "@ng-bootstrap/ng-bootstrap": "^19.0.1",
     "@ngx-formly/bootstrap": "^7.0.0",
     "@ngx-formly/core": "^7.0.0",
     "bootstrap": "^5.3.7",
+    "or": "^0.2.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

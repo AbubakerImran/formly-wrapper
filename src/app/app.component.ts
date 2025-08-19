@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import { Component, HostListener, Input, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { TooltipDirective } from './tooltip-component/tooltip.directive';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
@@ -459,10 +460,11 @@ export class App implements OnInit {
       backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:''
     };
     const existingIndexes = this.fields
-    .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
-    .map(f => parseInt((f.key as string).replace(type, ''), 10))
-    .filter(num => !isNaN(num))
-    .sort((a, b) => a - b);
+      .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
+      .map(f => parseInt((f.key as string).replace(type, ''), 10))
+      .filter(num => !isNaN(num))
+      .sort((a, b) => a - b);
+
     let index = 1;
     for (const num of existingIndexes) {
       if (num === index) {
@@ -932,5 +934,36 @@ export class App implements OnInit {
 
     this.allFieldsModalOpen.set(false);
     this.showNotification("All fields updated (remember to Save Form)!");
+  }
+
+  deleteAllFields() {
+    if (!this.formHeading) return; // no active form
+
+    // Clear all fields in the UI only
+    this.fields = [];
+    this.form = new FormGroup({});
+    this.model = {};
+    this.displayFields = [];
+
+    // Do NOT touch localStorage here!
+    // localStorage.setItem('savedForms', ...) ❌
+
+    this.formChanged = true; // mark unsaved changes
+    this.showNotification("All fields deleted (remember to Save Form)!");
+  }
+
+  expanded: { [k: string]: boolean } = {};
+
+  toggle(key: string) {
+    this.expanded[key] = !this.expanded[key];
+
+    // If parent is closed, collapse all its children too
+    if (key === 'parent' && !this.expanded[key]) {
+      Object.keys(this.expanded).forEach(k => {
+        if (k.startsWith('child-')) {
+          this.expanded[k] = false;
+        }
+      });
+    }
   }
 }
