@@ -33,21 +33,22 @@
             </button>
 
             <!-- Caret -->
-            <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('parent')" [ngClass]="expanded['parent'] ? 'fa-caret-down' : 'fa-caret-right'"></i>
+            <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('parent')" 
+           [ngClass]="expanded['parent'] ? 'fa-caret-down' : 'fa-caret-right'"></i>
           </div>
 
           <!-- Child divs each containing one input -->
           <ul *ngIf="expanded['parent']" class="ul tree-children"
-              cdkDropList 
-              [cdkDropListData]="fields" 
-              (cdkDropListDropped)="drop($event)">
-            
+            cdkDropList 
+            [cdkDropListData]="fields" 
+            (cdkDropListDropped)="drop($event)">
+          
             <li *ngFor="let field of fields; let i = index" cdkDrag>
               <!-- Child div -->
               <div class="tree-node d-flex align-items-center">
                 <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">div</span>
                 <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formDivModal"
-                  appTooltip title="Add new field" (click)="$event.stopPropagation();" style="font-size: 13px;">
+                  appTooltip title="Add new field" (click)="$event.stopPropagation(); setActiveChildIndex(i)" style="font-size: 13px;">
                   <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
                 </button>
                 <button type="button" class="btn btn-sm border-0" 
@@ -66,9 +67,9 @@
 
               <!-- Input inside child div -->
               <ul *ngIf="expanded['child-' + i]" class="ul tree-children">
-                <li>
+                <li *ngFor="let subField of field.fieldGroup || [field]">
                   <div class="tree-node">
-                    {{ field.type || 'input' }}: {{ field.props?.label || '...' }}
+                    {{ subField.type || 'input' }}: {{ subField.props?.label || '...' }}
                   </div>
                 </li>
               </ul>
@@ -156,6 +157,8 @@
   </div>
 </div>
 
+<!-- ... existing template code ... -->
+
 <div class="modal fade" id="formDivModal" tabindex="-1" aria-labelledby="formDivModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -166,22 +169,28 @@
       <div class="modal-body">
         <div class="row justify-content-center">
           <div class="col-3">
-            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal" (click)="addivField('input')">Input</button>
+            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal" 
+                    (click)="addivField('input', activeChildIndex !== null ? activeChildIndex : undefined)">Input</button>
           </div>
           <div class="col-3">
-            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal" (click)="addivField('textarea')">Textarea</button>
+            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal" 
+                    (click)="addivField('textarea', activeChildIndex !== null ? activeChildIndex : undefined)">Textarea</button>
           </div>
           <div class="col-3">
-            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal" (click)="addivField('select')">Select</button>
+            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal" 
+                    (click)="addivField('select', activeChildIndex !== null ? activeChildIndex : undefined)">Select</button>
           </div>
           <div class="col-3">
-            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal" (click)="addivField('radio')">Radio</button>
+            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal" 
+                    (click)="addivField('radio', activeChildIndex !== null ? activeChildIndex : undefined)">Radio</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ... rest of template ... -->
 <!-- Edit Form Name Modal -->
 <div class="modal fade" id="editFormNameModal" tabindex="-1" aria-labelledby="editFormNameModalLabel" aria-hidden="true">
   <div class="modal-dialog">
