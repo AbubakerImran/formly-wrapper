@@ -438,53 +438,18 @@ export class App implements OnInit {
   }
 
   reattachFieldFunctions() {
-    let globalIndex = 0;
-    
-    this.fields = this.fields.map((field, i) => {
-      if (field.fieldGroup) {
-        // Handle field groups (rows)
-        return {
-          ...field,
-          props: {
-            ...field.props,
-            index: i,
-            openEditFieldModal: () => this.openEditFieldModal(i),
-            deleteField: () => this.deleteField(i),
-            loadSavedForm: () => this.loadSavedForm(this.formHeading),
-            openEditFormNameModal: () => this.openEditFormNameModal(this.formHeading),
-            deleteFormName: () => this.deleteFormName(),
-          },
-          fieldGroup: field.fieldGroup.map((subField, j) => ({
-            ...subField,
-            props: {
-              ...subField.props,
-              index: globalIndex + j,
-              openEditFieldModal: () => this.openEditFieldModal(globalIndex + j),
-              deleteField: () => this.deleteField(globalIndex + j),
-              loadSavedForm: () => this.loadSavedForm(this.formHeading),
-              openEditFormNameModal: () => this.openEditFormNameModal(this.formHeading),
-              deleteFormName: () => this.deleteFormName(),
-            }
-          }))
-        };
-      } else {
-        // Handle single fields
-        const updatedField = {
-          ...field,
-          props: {
-            ...field.props,
-            index: globalIndex,
-            openEditFieldModal: () => this.openEditFieldModal(globalIndex),
-            deleteField: () => this.deleteField(globalIndex),
-            loadSavedForm: () => this.loadSavedForm(this.formHeading),
-            openEditFormNameModal: () => this.openEditFormNameModal(this.formHeading),
-            deleteFormName: () => this.deleteFormName(),
-          }
-        };
-        globalIndex++;
-        return updatedField;
+    this.fields = this.fields.map((field, index) => ({
+      ...field,
+      props: {
+        ...field.props,
+        index, // ✅ always reassign fresh index
+        openEditFieldModal: () => this.openEditFieldModal(index),
+        deleteField: () => this.deleteField(index),
+        loadSavedForm: () => this.loadSavedForm(this.formHeading),
+        openEditFormNameModal: () => this.openEditFormNameModal(this.formHeading),
+        deleteFormName: () => this.deleteFormName(),
       }
-    });
+    }));
   }
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio') {
@@ -494,33 +459,9 @@ export class App implements OnInit {
     const labelBaseStyle = {
       backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:''
     };
-    
-    // Get all existing keys from both top-level fields and nested fieldGroups
-    const allExistingKeys: string[] = [];
-    
-    this.fields.forEach(field => {
-      if (field.fieldGroup) {
-        // Add keys from nested fieldGroups
-        field.fieldGroup.forEach(subField => {
-          if (subField.key) {
-            allExistingKeys.push(subField.key as string);
-          }
-        });
-      } else {
-        // Add keys from top-level fields
-        if (field.key) {
-          allExistingKeys.push(field.key as string);
-        }
-      }
-    });
-    
-    // Filter and extract indexes for the specific type
-    const existingIndexes = allExistingKeys
-      .filter(key => key.startsWith(type))
-      .map(key => {
-        const numStr = key.replace(type, '');
-        return parseInt(numStr, 10);
-      })
+    const existingIndexes = this.fields
+      .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
+      .map(f => parseInt((f.key as string).replace(type, ''), 10))
       .filter(num => !isNaN(num))
       .sort((a, b) => a - b);
 
@@ -532,7 +473,6 @@ export class App implements OnInit {
         break;
       }
     }
-    
     const currentWrapper = localStorage.getItem(`wrapper_${this.formHeading}`) || 'form-field-horizontal';
 
     const newField: FormlyFieldConfig = {
@@ -548,9 +488,9 @@ export class App implements OnInit {
         required: true,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
-        style: baseStyle,
+        style: baseStyle, // your default style
         labelStyle: labelBaseStyle,
-        index: this.fields.length,
+        index: this.fields.length, // <-- Save current index
       },
       validation: {
         messages: { required: "This field is required!" }
@@ -567,33 +507,12 @@ export class App implements OnInit {
     this.fields = [...this.fields, newField];
 
     // Update all indexes after addition
-    this.updateAllFieldIndexes();
-    this.reattachFieldFunctions();
+    this.fields.forEach((f, i) => f.props!['index'] = i);
+    this.reattachFieldFunctions(); // 🔹 Make sure new one gets functions
 
     this.formChanged = true;
     this.cancelFieldModal();
     this.showNotification('Field added successfully!');
-  }
-
-  // Helper method to update indexes for all fields
-  updateAllFieldIndexes() {
-    let globalIndex = 0;
-    
-    this.fields.forEach((field, i) => {
-      if (field.fieldGroup) {
-        // For field groups, assign the parent index and update child props
-        field.props!['index'] = i;
-        
-        field.fieldGroup!.forEach((subField, j) => {
-          subField.props!['index'] = globalIndex;
-          globalIndex++;
-        });
-      } else {
-        // For single fields
-        field.props!['index'] = globalIndex;
-        globalIndex++;
-      }
-    });
   }
 
   activeChildIndex: number | null = null;
@@ -838,71 +757,28 @@ export class App implements OnInit {
   }
 
   deleteField(index: number) {
-    let actualIndex = 0;
-    let fieldToDelete: FormlyFieldConfig | null = null;
-    let parentFieldIndex: number | null = null;
-    
-    // Find the field to delete by traversing the structure
-    for (let i = 0; i < this.fields.length; i++) {
-      const field = this.fields[i];
-      
-      if (field.fieldGroup) {
-        // Check if the field to delete is in this fieldGroup
-        for (let j = 0; j < field.fieldGroup.length; j++) {
-          if (actualIndex === index) {
-            fieldToDelete = field.fieldGroup[j];
-            parentFieldIndex = i;
-            break;
-          }
-          actualIndex++;
-        }
-        if (fieldToDelete) break;
-      } else {
-        if (actualIndex === index) {
-          fieldToDelete = field;
-          break;
-        }
-        actualIndex++;
-      }
-    }
-    
-    if (fieldToDelete) {
-      const fieldKey = fieldToDelete.key as string;
-      
-      if (parentFieldIndex !== null) {
-        // Delete from fieldGroup
-        this.fields[parentFieldIndex].fieldGroup = 
-          this.fields[parentFieldIndex].fieldGroup!.filter((_, j) => {
-            const currentIndex = actualIndex - j - 1;
-            return currentIndex !== index;
-          });
-        
-        // Remove empty fieldGroups
-        if (this.fields[parentFieldIndex].fieldGroup!.length === 0) {
-          this.fields.splice(parentFieldIndex, 1);
-        }
-      } else {
-        // Delete top-level field
-        this.fields = this.fields.filter((_, i) => i !== index);
-      }
-      
-      // Remove the control from the form
+    if (index >= 0 && index < this.fields.length) {
+      const fieldKey = this.fields[index].key as string;
+
+      // 🔹 Remove the field from fields array
+      this.fields = this.fields.filter((_, i) => i !== index);
+
+      // 🔹 Remove the control from the form
       if (fieldKey && this.form.contains(fieldKey)) {
         this.form.removeControl(fieldKey);
       }
-      
-      // Update indexes
-      this.updateAllFieldIndexes();
+
+      // Reassign index to all fields
+      this.fields.forEach((f, i) => f.props!['index'] = i);
       this.reattachFieldFunctions();
-      
+
       // Update localStorage
       localStorage.setItem('formFields', JSON.stringify(this.fields));
-      
+
       this.fetchData();
       this.loadSavedFormNames();
       this.formChanged = true;
     }
-    
     this.showNotification('Field successfully deleted!');
   }
 
