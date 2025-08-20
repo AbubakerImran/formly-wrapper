@@ -515,6 +515,75 @@ export class App implements OnInit {
     this.showNotification('Field added successfully!');
   }
 
+  addivField(type: 'input' | 'textarea' | 'select' | 'radio') {
+    const baseStyle = {
+      borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:''
+    };
+    const labelBaseStyle = {
+      backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:''
+    };
+
+    // Generate unique index for new field
+    const existingIndexes = this.fields
+      .flatMap(f => f.fieldGroup || [f]) // flatten rows
+      .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
+      .map(f => parseInt((f.key as string).replace(type, ''), 10))
+      .filter(num => !isNaN(num))
+      .sort((a, b) => a - b);
+
+    let index = 1;
+    for (const num of existingIndexes) {
+      if (num === index) index++;
+      else break;
+    }
+
+    const currentWrapper = localStorage.getItem(`wrapper_${this.formHeading}`) || 'form-field-horizontal';
+
+    const newField: FormlyFieldConfig = {
+      key: `${type}${index}`,
+      type,
+      wrappers: [currentWrapper],
+      className: 'col-md-6',   // ✅ half width for row layout
+      props: {
+        label: `${type}${index}`,
+        id: `${type}${index}`,
+        placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,
+        class: type === 'select' ? 'form-select' :
+              type === 'radio' ? 'form-check-input' : 'form-control',
+        required: true,
+        labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
+        style: baseStyle,
+        labelStyle: labelBaseStyle,
+      },
+      validation: { messages: { required: "This field is required!" } }
+    };
+
+    if (type === 'select' || type === 'radio') {
+      newField.props!.options = [
+        { label: 'Option 1', value: 'Option 1' },
+        { label: 'Option 2', value: 'Option 2' }
+      ];
+    }
+
+    // ✅ Check last group
+    const lastGroup = this.fields[this.fields.length - 1];
+    if (lastGroup && lastGroup.fieldGroup && lastGroup.fieldGroup.length === 1) {
+      // Add second field to the same row
+      lastGroup.fieldGroup.push(newField);
+    } else {
+      // Start a new row with this field
+      this.fields.push({
+        fieldGroupClassName: 'row',
+        fieldGroup: [newField]
+      });
+    }
+
+    this.reattachFieldFunctions();
+    this.formChanged = true;
+    this.cancelFieldModal();
+    this.showNotification('Field added successfully!');
+  }
+
   type = signal('');
 
   getValue(user: any, key: any) {
