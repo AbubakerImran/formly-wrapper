@@ -515,9 +515,7 @@ export class App implements OnInit {
     this.showNotification('Field added successfully!');
   }
 
-  activeChildIndex: number | null = null;
-
-  addivField(type: 'input' | 'textarea' | 'select' | 'radio', childIndex?: number) {
+  addivField(type: 'input' | 'textarea' | 'select' | 'radio') {
     const baseStyle = {
       borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:''
     };
@@ -567,36 +565,23 @@ export class App implements OnInit {
       ];
     }
 
-    // If we have a specific child index to add to (convert null to undefined)
-    const targetIndex = childIndex !== null ? childIndex : undefined;
-    
-    if (targetIndex !== undefined && this.fields[targetIndex]?.fieldGroup) {
-      // Add to existing row
-      this.fields[targetIndex].fieldGroup!.push(newField);
+    // ✅ Check last group
+    const lastGroup = this.fields[this.fields.length - 1];
+    if (lastGroup && lastGroup.fieldGroup && lastGroup.fieldGroup.length === 1) {
+      // Add second field to the same row
+      lastGroup.fieldGroup.push(newField);
     } else {
-      // Check last group
-      const lastGroup = this.fields[this.fields.length - 1];
-      if (lastGroup && lastGroup.fieldGroup && lastGroup.fieldGroup.length === 1) {
-        // Add second field to the same row
-        lastGroup.fieldGroup.push(newField);
-      } else {
-        // Start a new row with this field
-        this.fields.push({
-          fieldGroupClassName: 'row',
-          fieldGroup: [newField]
-        });
-      }
+      // Start a new row with this field
+      this.fields.push({
+        fieldGroupClassName: 'row',
+        fieldGroup: [newField]
+      });
     }
 
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.cancelFieldModal();
     this.showNotification('Field added successfully!');
-  }
-
-  // Method to set which child div we're adding to
-  setActiveChildIndex(index: number) {
-    this.activeChildIndex = index;
   }
 
   type = signal('');
