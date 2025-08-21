@@ -753,6 +753,7 @@ export class App implements OnInit {
     // Replace field
     row.fieldGroup![fieldIndex] = updatedField;
 
+    this.fields = [...this.fields]; // 🔹 force re-render
     this.reattachFieldFunctions();
     this.formChanged = true;
 
@@ -782,6 +783,7 @@ export class App implements OnInit {
       // Update localStorage
       localStorage.setItem('formFields', JSON.stringify(this.fields));
 
+      this.fields = [...this.fields]; // 🔹 force re-render
       this.fetchData();
       this.loadSavedFormNames();
       this.formChanged = true;
@@ -789,7 +791,7 @@ export class App implements OnInit {
     this.showNotification('Field successfully deleted!');
   }
 
-    deleteRowField(rowIndex: number, fieldIndex: number) {
+  deleteRowField(rowIndex: number, fieldIndex: number) {
     const row = this.fields[rowIndex];
     if (!row?.fieldGroup) return;
 
@@ -848,15 +850,17 @@ export class App implements OnInit {
   }
 
   selectedFieldIndex: number | null = null; 
+  selectedRowIndex: number | null = null;
 
-  editContextMenu(event: MouseEvent, index: number) {
+  editContextMenu(event: MouseEvent, rowIndex: number, fieldIndex: number) {
     event.preventDefault(); // Stop default browser menu
-    this.selectedFieldIndex = index; // Store the clicked field index
+    this.selectedRowIndex = rowIndex;
+    this.selectedFieldIndex = fieldIndex;
     this.menuPosition = { x: event.clientX, y: event.clientY }; // Position menu at cursor
     this.editMenuVisible = true; // Show the field edit menu
   }
 
-  onMenuClick(action: 'deleteFormName' | 'openEditFormNameModal' | 'loadSavedForm' |'openEditFieldModal' | 'deleteField') {
+  onMenuClick(action: 'deleteFormName' | 'openEditFormNameModal' | 'loadSavedForm' | 'openEditFieldModal' | 'deleteField') {
     if (action === 'openEditFormNameModal') {
       this.openEditFormNameModal(this.selectedContextFormName);
     } else if (action === 'deleteFormName') {
@@ -865,11 +869,16 @@ export class App implements OnInit {
     } else if (action === 'loadSavedForm') {
       this.loadSavedForm(this.selectedContextFormName);
     } else if (action === 'openEditFieldModal') {
-      this.openEditFieldModal(this.selectedFieldIndex!);
+      if (this.selectedRowIndex !== null && this.selectedFieldIndex !== null) {
+        this.openRowEditFieldModal(this.selectedRowIndex, this.selectedFieldIndex);
+      }
     } else if (action === 'deleteField') {
-      this.deleteField(this.selectedFieldIndex!);
+      if (this.selectedRowIndex !== null && this.selectedFieldIndex !== null) {
+        this.deleteRowField(this.selectedRowIndex, this.selectedFieldIndex);
+      }
     }
     this.editMenuVisible = false;
+    this.selectedRowIndex = null;
     this.selectedFieldIndex = null;
     this.menuVisible = false;
   }
@@ -927,71 +936,42 @@ export class App implements OnInit {
   toggleAllFieldsModal() {
     if (!this.allFieldsModalOpen()) {
       this.allFieldsModel = {};
+      let counter = 0;
 
-      this.allFieldsFields = this.fields.map((f, i) => {
-        // preload all values into allFieldsModel
-        this.allFieldsModel[`key_${i}`] = f.key;
-        this.allFieldsModel[`label_${i}`] = f.props?.label;
-        this.allFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
-        this.allFieldsModel[`class_${i}`] = f.props?.['class'];
-        this.allFieldsModel[`required_${i}`] = f.props?.required;
+      this.allFieldsFields = this.fields.flatMap((row, rowIndex) =>
+        row.fieldGroup?.map((f, fieldIndex) => {
+          // assign sequential index
+          const i = counter++;
 
-        if (f.type === 'select' || f.type === 'radio') {
-          const opts = Array.isArray(f.props?.options)
-            ? f.props?.options
-            : []; // ignore if it's an Observable
+          // preload values
+          this.allFieldsModel[`key_${i}`] = f.key;
+          this.allFieldsModel[`label_${i}`] = f.props?.label;
+          this.allFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
+          this.allFieldsModel[`class_${i}`] = f.props?.['class'];
+          this.allFieldsModel[`required_${i}`] = f.props?.required;
 
-          this.allFieldsModel[`options_${i}`] = opts
-            .map((opt: any) => opt.label || opt)
-            .join(',');
-        }
+          if (f.type === 'select' || f.type === 'radio') {
+            this.allFieldsModel[`options_${i}`] = (f.props?.options ?? [])
+              && Array.isArray(f.props?.options)
+              ? f.props.options.map((opt: any) => opt.label || opt)
+              : []
+              .join(',');
+          }
 
-        return {
-          fieldGroupClassName: 'row mb-3',
-          fieldGroup: [
-            {
-              key: `key_${i}`,
-              type: 'input',
-              className: 'col-md-3',
-              props: { label: `${f.key} Key` }
-            },
-            {
-              key: `label_${i}`,
-              type: 'input',
-              className: 'col-md-3',
-              props: { label: `${f.key} Label` }
-            },
-            // Conditional placeholder/options
-            f.type === 'select' || f.type === 'radio'
-              ? {
-                  key: `options_${i}`,
-                  type: 'input',
-                  className: 'col-md-3',
-                  props: {
-                    label: `${f.key} Options`
-                  }
-                }
-              : {
-                  key: `placeholder_${i}`,
-                  type: 'input',
-                  className: 'col-md-3',
-                  props: { label: `${f.key} Placeholder` }
-                },
-            {
-              key: `class_${i}`,
-              type: 'input',
-              className: 'col-md-3',
-              props: { label: `${f.key} Class` }
-            },
-            {
-              key: `required_${i}`,
-              type: 'checkbox',
-              className: 'col-md-3',
-              props: { label: `Required` }
-            }
-          ]
-        };
-      });
+          return {
+            fieldGroupClassName: 'row mb-3',
+            fieldGroup: [
+              { key: `key_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Key` } },
+              { key: `label_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Label` } },
+              f.type === 'select' || f.type === 'radio'
+                ? { key: `options_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Options` } }
+                : { key: `placeholder_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Placeholder` } },
+              { key: `class_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Class` } },
+              { key: `required_${i}`, type: 'checkbox', className: 'col-md-3', props: { label: `Required` } }
+            ]
+          };
+        }) || []
+      );
 
       this.allFieldsForm = this.fb.group({});
       this.allFieldsModalOpen.set(true);
@@ -1001,10 +981,12 @@ export class App implements OnInit {
   }
 
   saveAllFieldsEdit() {
-    this.fields = this.fields.map((row, rowIndex) => ({
+    let counter = 0;
+
+    this.fields = this.fields.map(row => ({
       ...row,
-      fieldGroup: row.fieldGroup?.map((field, fieldIndex) => {
-        const i = field.props?.['index'] ?? rowIndex * 2 + fieldIndex; // fallback
+      fieldGroup: row.fieldGroup?.map(field => {
+        const i = counter++;
         const updatedProps: any = {
           ...field.props,
           label: this.allFieldsModel[`label_${i}`] ?? field.props?.label,
@@ -1025,6 +1007,7 @@ export class App implements OnInit {
       })
     }));
 
+    this.fields = [...this.fields];
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.allFieldsModalOpen.set(false);
@@ -1043,6 +1026,7 @@ export class App implements OnInit {
     // Do NOT touch localStorage here!
     // localStorage.setItem('savedForms', ...) ❌
 
+    this.fields = [...this.fields]; // 🔹 force re-render
     this.formChanged = true; // mark unsaved changes
     this.showNotification("All fields deleted (remember to Save Form)!");
   }
@@ -1061,8 +1045,6 @@ export class App implements OnInit {
       });
     }
   }
-
-  selectedRowIndex: number | null = null;
 
   setSelectedRowIndex(index: number) {
     this.selectedRowIndex = index;
