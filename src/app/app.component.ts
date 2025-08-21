@@ -294,6 +294,9 @@ export class App implements OnInit {
     if (!formName) {
       alert("Form name is missing!");
     } else {
+      if (!confirm(`Are you sure you want to delete form "${formName}"?`)) {
+        return;
+      }
       const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
       const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
 
@@ -416,6 +419,7 @@ export class App implements OnInit {
   }
 
   deleteUser(id: any) {
+    if (!confirm("Are you sure you want to delete this record?")) return;
     const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
     const formEntries = allEntries[this.formHeading] || [];
 
@@ -627,7 +631,7 @@ export class App implements OnInit {
     this.modalForm = this.fb.group({});
   }
 
-    openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
+  openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
     this.editingFieldIndex = fieldIndex;
     const field = this.fields[rowIndex].fieldGroup![fieldIndex];
     const type = typeof field.type === 'string' ? field.type : 'input';
@@ -767,6 +771,7 @@ export class App implements OnInit {
   }
 
   deleteField(index: number) {
+    if (!confirm("Are you sure you want to delete this field?")) return;
     if (index >= 0 && index < this.fields.length) {
       const fieldKey = this.fields[index].key as string;
 
@@ -795,6 +800,7 @@ export class App implements OnInit {
   }
 
   deleteRowField(rowIndex: number, fieldIndex: number) {
+    if (!confirm("Are you sure you want to delete this field?")) return;
     const row = this.fields[rowIndex];
     if (!row?.fieldGroup) return;
 
@@ -1034,6 +1040,7 @@ export class App implements OnInit {
 
   deleteAllFields() {
     if (!this.formHeading) return; // no active form
+    if (!confirm("Are you sure you want to delete all fields?")) return;
 
     // Clear all fields in the UI only
     this.fields = [];
