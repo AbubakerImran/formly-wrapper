@@ -632,7 +632,8 @@ export class App implements OnInit {
   }
 
   openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
-    this.editingFieldIndex = fieldIndex;
+    // FIX: Calculate unique index instead of using fieldIndex directly
+    this.editingFieldIndex = rowIndex * 2 + fieldIndex;
     const field = this.fields[rowIndex].fieldGroup![fieldIndex];
     const type = typeof field.type === 'string' ? field.type : 'input';
     this.type.set(type);
@@ -721,17 +722,17 @@ export class App implements OnInit {
       return;
     }
 
-    const rowIndex = this.fields.findIndex(row =>
-      row.fieldGroup?.some(f => f.props?.['index'] === this.editingFieldIndex)
-    );
-    if (rowIndex === -1) return;
+    const rowIndex = Math.floor(this.editingFieldIndex / 2);
+    const fieldIndex = this.editingFieldIndex % 2;
+
+    if (rowIndex >= this.fields.length) return;
 
     const row = this.fields[rowIndex];
-    const fieldIndex = row.fieldGroup!.findIndex(f => f.props?.['index'] === this.editingFieldIndex);
+    if (!row.fieldGroup || fieldIndex >= row.fieldGroup.length) return;
 
     const updatedStyle: any = {};
     const updatedLabelStyle: any = {};
-    const field = row.fieldGroup![fieldIndex];
+    const field = row.fieldGroup[fieldIndex];
 
     Object.keys(field.props?.['style'] || {}).forEach(k => updatedStyle[k] = this.modalModel[k] || '');
     Object.keys(field.props?.['labelStyle'] || {}).forEach(k => updatedLabelStyle[k] = this.modalModel[k] || '');
@@ -743,6 +744,7 @@ export class App implements OnInit {
         ...field.props,
         label: this.modalModel.label,
         class: this.modalModel.class,
+        id: this.modalModel.id,
         labelClass: this.modalModel.labelClass,
         placeholder: this.modalModel.placeholder,
         required: !!this.modalModel.required,
@@ -756,7 +758,7 @@ export class App implements OnInit {
     };
 
     // Replace field
-    row.fieldGroup![fieldIndex] = updatedField;
+    row.fieldGroup[fieldIndex] = updatedField;
 
     this.adjustRowColumns();
     this.fields = [...this.fields]; // 🔹 trigger refresh
