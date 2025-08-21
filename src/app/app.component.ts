@@ -3,7 +3,7 @@ import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { TooltipDirective } from './tooltip-component/tooltip.directive';
 
 @Component({
@@ -888,17 +888,30 @@ export class App implements OnInit {
     this.menuVisible = false;
   }
 
-  drop(event: CdkDragDrop<FormlyFieldConfig[]>) {
-    // 1. Reorder fields array
-    moveItemInArray(this.fields, event.previousIndex, event.currentIndex);
+  drop(event: CdkDragDrop<FormlyFieldConfig[]>, list: FormlyFieldConfig[]) {
+    // Case 1: Moving inside the same list (reorder)
+    if (event.previousContainer === event.container) {
+      moveItemInArray(list, event.previousIndex, event.currentIndex);
+    } 
+    // Case 2: Moving across child divs (drag field into another fieldGroup)
+    else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
 
-    // 2. Reassign index property for each field
-    this.fields.forEach((f, i) => f.props!['index'] = i);
+    // Update indexes for consistency
+    list.forEach((f, i) => {
+      if (!f.props) f.props = {};
+      f.props['index'] = i;
+    });
 
-    // 3. Reattach field functions (so Edit/Delete still work correctly after reorder)
+    // Ensure functions (edit/delete) are still attached
     this.reattachFieldFunctions();
 
-    // 4. Mark as changed so user can save
     this.formChanged = true;
   }
 
