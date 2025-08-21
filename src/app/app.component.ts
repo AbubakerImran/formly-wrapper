@@ -527,7 +527,8 @@ export class App implements OnInit {
       });
     }
 
-    this.fields = [...this.fields]; // force refresh
+    this.adjustRowColumns();
+    this.fields = [...this.fields]; // 🔹 trigger refresh
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.cancelFieldModal();
@@ -753,7 +754,8 @@ export class App implements OnInit {
     // Replace field
     row.fieldGroup![fieldIndex] = updatedField;
 
-    this.fields = [...this.fields]; // 🔹 force re-render
+    this.adjustRowColumns();
+    this.fields = [...this.fields]; // 🔹 trigger refresh
     this.reattachFieldFunctions();
     this.formChanged = true;
 
@@ -783,7 +785,8 @@ export class App implements OnInit {
       // Update localStorage
       localStorage.setItem('formFields', JSON.stringify(this.fields));
 
-      this.fields = [...this.fields]; // 🔹 force re-render
+      this.adjustRowColumns();
+      this.fields = [...this.fields]; // 🔹 trigger refresh
       this.fetchData();
       this.loadSavedFormNames();
       this.formChanged = true;
@@ -805,10 +808,12 @@ export class App implements OnInit {
       this.fields.splice(rowIndex, 1); // remove empty row
     }
 
-    this.fields = [...this.fields]; // force refresh
+    this.adjustRowColumns();
+    this.fields = [...this.fields]; // 🔹 trigger refresh
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.showNotification('Field successfully deleted!');
+    
   }
 
   closeForm() {
@@ -1048,5 +1053,17 @@ export class App implements OnInit {
 
   setSelectedRowIndex(index: number) {
     this.selectedRowIndex = index;
+  }
+
+  private adjustRowColumns() {
+    this.fields.forEach(row => {
+      if (row.fieldGroup && row.fieldGroup.length > 0) {
+        if (row.fieldGroup.length === 1) {
+          row.fieldGroup[0].className = 'col-12';
+        } else if (row.fieldGroup.length === 2) {
+          row.fieldGroup.forEach(f => f.className = 'col-6');
+        }
+      }
+    });
   }
 }
