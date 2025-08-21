@@ -46,29 +46,30 @@
               <!-- Child div -->
               <div class="tree-node d-flex align-items-center">
                 <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">div</span>
-                <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
+                <button type="button" *ngIf="(field.fieldGroup?.length || 0) < 2" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
                   appTooltip title="Add new field" (click)="$event.stopPropagation();" style="font-size: 13px;">
                   <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
-                </button>
-                <button type="button" class="btn btn-sm border-0" 
-                        (click)="$event.stopPropagation(); openEditFieldModal(i)" 
-                        data-bs-toggle="modal" data-bs-target="#editFieldModal" 
-                        appTooltip title="Edit field" style="font-size: 13px;">
-                  <i class='fas fa-edit'></i>
-                </button>
-                <button type="button" class="btn btn-sm border-0" 
-                        appTooltip title="Delete field" 
-                        (click)="$event.stopPropagation(); deleteField(i)">
-                  <i class="fa-solid fa-trash-can"></i>
                 </button>
                 <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('child-' + i)" [ngClass]="expanded['child-' + i] ? 'fa-caret-down' : 'fa-caret-right'"></i>
               </div>
 
               <!-- Input inside child div -->
               <ul *ngIf="expanded['child-' + i]" class="ul tree-children">
-                <li>
+                <li *ngFor="let childField of field.fieldGroup; let j = index">
                   <div class="tree-node">
-                    {{ field.type || 'input' }}: {{ field.props?.label || '...' }}
+                    {{ childField.type || 'input' }}: {{ childField.props?.label || '...' }}
+                    <button type="button" class="btn btn-sm border-0"
+                      (click)="$event.stopPropagation(); openRowEditFieldModal(i, j)"
+                      data-bs-toggle="modal" data-bs-target="#editFieldModal"
+                      appTooltip title="Edit field" style="font-size: 13px;">
+                      <i class='fas fa-edit'></i>
+                    </button>
+
+                    <button type="button" class="btn btn-sm border-0"
+                      (click)="$event.stopPropagation(); deleteRowField(i, j)"
+                      appTooltip title="Delete field">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
                   </div>
                 </li>
               </ul>
