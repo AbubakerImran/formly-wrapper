@@ -460,8 +460,8 @@ export class App implements OnInit {
       row.fieldGroup?.forEach((field, colIndex) => {
         const index = rowIndex * 2 + colIndex; // consistent index for edit/delete
         field.props!['index'] = index;
-        field.props!['openEditFieldModal'] = () => this.openEditFieldModal(index);
-        field.props!['deleteField'] = () => this.deleteField(index);
+        field.props!['openEditFieldModal'] = () => this.openRowEditFieldModal(rowIndex, colIndex);
+        field.props!['deleteField'] = () => this.deleteRowField(rowIndex, colIndex);
         field.props!['loadSavedForm'] = () => this.loadSavedForm(this.formHeading);
         field.props!['openEditFormNameModal'] = () => this.openEditFormNameModal(this.formHeading);
         field.props!['deleteFormName'] = () => this.deleteFormName();
