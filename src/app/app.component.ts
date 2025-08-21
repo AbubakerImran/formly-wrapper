@@ -347,10 +347,15 @@ export class App implements OnInit {
     this.users = formEntries;
 
     // 🔹 Merge keys from fields and users
-    const fieldKeysFromForm = this.fields.map(f => ({
-      key: f.key as string,
-      label: f.props?.label || f.key as string
-    }));
+    const fieldKeysFromForm: { key: string, label: string }[] = [];
+    this.fields.forEach(row => {
+      row.fieldGroup?.forEach(field => {
+        fieldKeysFromForm.push({
+          key: field.key as string,
+          label: field.props?.label || (field.key as string)
+        });
+      });
+    });
 
     const fieldKeysFromUsers: { key: string, label: string }[] = [];
     formEntries.forEach((entry: {}) => {
