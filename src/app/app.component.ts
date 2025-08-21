@@ -473,7 +473,7 @@ export class App implements OnInit {
     const baseStyle = { borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:'' };
     const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'' };
 
-    // Determine next index
+    // Find next available key
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
       .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
@@ -511,19 +511,28 @@ export class App implements OnInit {
       validation: { messages: { required: "This field is required!" } }
     };
 
-    // Add to last row if it has less than 2 fields, otherwise create new row
-    const lastRow = this.fields[this.fields.length - 1];
-    if (lastRow?.fieldGroup && lastRow.fieldGroup.length < 2) {
-      lastRow.fieldGroup.push(newField);
+    // ✅ If adding from a child div button → insert into that fieldGroup (max 2)
+    if (this.selectedRowIndex !== null) {
+      const targetGroup = this.fields[this.selectedRowIndex]?.fieldGroup;
+      if (targetGroup && targetGroup.length < 2) {
+        targetGroup.push(newField);
+      } else {
+        this.showNotification('Max 2 fields allowed per row!');
+      }
     } else {
-      this.fields.push({ fieldGroupClassName: 'row', fieldGroup: [newField] });
+      // ✅ Global / Parent button → always create a new row with one field
+      this.fields.push({
+        fieldGroupClassName: 'row',
+        fieldGroup: [newField]
+      });
     }
 
-    this.fields = [...this.fields]; // 🔹 force refresh
+    this.fields = [...this.fields]; // force refresh
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.cancelFieldModal();
     this.showNotification('Field added successfully!');
+    this.selectedRowIndex = null;
   }
 
   type = signal('');
@@ -1051,5 +1060,11 @@ export class App implements OnInit {
         }
       });
     }
+  }
+
+  selectedRowIndex: number | null = null;
+
+  setSelectedRowIndex(index: number) {
+    this.selectedRowIndex = index;
   }
 }

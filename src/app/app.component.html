@@ -47,7 +47,7 @@
               <div class="tree-node d-flex align-items-center">
                 <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">div</span>
                 <button type="button" *ngIf="(field.fieldGroup?.length || 0) < 2" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
-                  appTooltip title="Add new field" (click)="$event.stopPropagation();" style="font-size: 13px;">
+                  appTooltip title="Add new field" (click)="$event.stopPropagation(); setSelectedRowIndex(i);" style="font-size: 13px;">
                   <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
                 </button>
                 <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('child-' + i)" [ngClass]="expanded['child-' + i] ? 'fa-caret-down' : 'fa-caret-right'"></i>
