@@ -5,19 +5,17 @@ import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/co
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { TooltipDirective } from './tooltip-component/tooltip.directive';
-import { FormService } from './form.service';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
 export class App implements OnInit {
 
-  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) {}
+  constructor(private fb: FormBuilder) {}
 
   // Main form
   form = new FormGroup({});
@@ -126,6 +124,7 @@ export class App implements OnInit {
     this.fields = [];
     this.model = {};
     this.users = [];
+    this.fetchData(); 
     this.loadSavedFormNames();
   }
 
@@ -333,50 +332,72 @@ export class App implements OnInit {
   }
 
   fetchData() {
-    if (!this.formHeading) return;
+    const entries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    let formEntries = entries[this.formHeading] || [];
 
-    this.formService.getEntries(this.formHeading).subscribe({
-      next: (formEntries: any[]) => {
-        // 🟢 Your backend returns: [{ id: 1, data: { name: "John", email: "..." } }, ...]
-        // flatten to: { id: 1, name: "John", email: "..." }
-        this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
-
-        // Build display fields (column headers)
-        if (this.users.length > 0) {
-          this.displayFields = Object.keys(this.users[0])
-            .filter(k => k !== 'id')   // don’t show raw ID twice
-            .map(k => ({ key: k, label: k }));
-        }
-      },
-      error: (err) => {
-        console.error("❌ Error fetching entries:", err);
-        this.users = [];
-        this.displayFields = [];
-      }
+    // ✅ Filter empty id-only entries
+    formEntries = formEntries.filter((e: {}) => {
+      const keys = Object.keys(e);
+      return !(keys.length === 1 && keys.includes('id'));
     });
+
+    entries[this.formHeading] = formEntries;
+    localStorage.setItem('savedFormEntries', JSON.stringify(entries));
+
+    this.users = formEntries;
+
+    // 🔹 Merge keys from fields and users
+    const fieldKeysFromForm: { key: string, label: string }[] = [];
+    this.fields.forEach(row => {
+      row.fieldGroup?.forEach(field => {
+        fieldKeysFromForm.push({
+          key: field.key as string,
+          label: field.props?.label || (field.key as string)
+        });
+      });
+    });
+
+    const fieldKeysFromUsers: { key: string, label: string }[] = [];
+    formEntries.forEach((entry: {}) => {
+      Object.keys(entry).forEach(k => {
+        if (k !== 'id' && !fieldKeysFromForm.some(f => f.key === k) && !fieldKeysFromUsers.some(f => f.key === k)) {
+          fieldKeysFromUsers.push({ key: k, label: k }); // Use key as label if deleted
+        }
+      });
+    });
+
+    this.displayFields = [...fieldKeysFromForm, ...fieldKeysFromUsers];
   }
 
   onSubmit(model: any) {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      return;
-    }
-    if (this.formChanged) {
-      alert('Please save the form before submitting data!');
-      return;
-    }
-    if (this.fields.length > 0) {
-      const newEntry = { ...model };
-      this.formService
-      .createEntry(this.formHeading, newEntry)
-      .subscribe(() => {
+    } else if (this.formChanged) {
+      alert("Please save the form before submitting data!");
+    } else {
+      if (this.fields.length > 0) {
+        // Load all saved entries
+        const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+        const formEntries = allEntries[this.formHeading] || [];
+
+        // Keep all keys from model (no filtering by fields)
+        const newEntry = { id: Date.now(), ...model };
+
+        // Save new entry
+        formEntries.push(newEntry);
+        allEntries[this.formHeading] = formEntries;
+
+        localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+
+        // Reset
         this.model = {};
         this.form.reset();
         this.fetchData();
         this.isEdit.set(false);
         this.resetFormGroup();
-        this.showNotification('Successfully submitted!');
-      });
+      }
+
+      this.showNotification('Successfully submitted!');
     }
   }
 
@@ -384,50 +405,47 @@ export class App implements OnInit {
     if (this.formChanged) {
       alert("Please save the form before submitting data!");
     } else {
-      this.formService.updateEntry(this.formHeading, this.uid(), model).subscribe({
-        next: () => {
-          this.model = {};
-          this.fetchData();  // reload from backend
-          this.isEdit.set(false);
-          this.resetFormGroup();
-          this.showNotification('✅ Successfully updated info!');
-        },
-        error: (err) => {
-          console.error("❌ Update failed:", err);
-          this.showNotification('❌ Failed to update entry!');
-        }
-      });
+      const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+      const formEntries = allEntries[this.formHeading] || [];
+
+      const updatedEntries = formEntries.map((entry: any) =>
+        entry.id === this.uid() ? { id: this.uid(), ...model } : entry
+      );
+
+      allEntries[this.formHeading] = updatedEntries;
+      localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+
+      this.model = {};
+      this.fetchData();
+      this.isEdit.set(false);
+      this.resetFormGroup();
+      this.showNotification('Successfully updated info!');
     }
   }
 
-  deleteUser(id: number) {
+  deleteUser(id: any) {
     if (!confirm("Are you sure you want to delete this record?")) return;
+    const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    const formEntries = allEntries[this.formHeading] || [];
 
-    this.http.delete(`http://localhost:3000/forms/${this.formHeading}/entries/${id}`)
-      .subscribe({
-        next: () => {
-          this.fetchData(); // reload from backend
-          this.showNotification('Successfully deleted info!');
-        },
-        error: (err: any) => {
-          console.error('❌ Failed to delete entry:', err);
-          this.showNotification('Failed to delete entry!');
-        }
-      });
+    const updatedEntries = formEntries.filter((entry: any) => entry.id !== id);
+    allEntries[this.formHeading] = updatedEntries;
+
+    localStorage.setItem('savedFormEntries', JSON.stringify(allEntries));
+    this.fetchData();
+    this.showNotification('Successfully deleted info!');
   }
 
   editUser(id: number) {
-    this.formService.getEntry(this.formHeading, id).subscribe({
-      next: (entry) => {
-        this.model = { ...entry.data };   // ✅ entry.data contains form values
-        this.uid.set(id);
-        this.isEdit.set(true);
-      },
-      error: (err) => {
-        console.error("❌ Failed to fetch entry:", err);
-        this.showNotification('❌ Could not load entry for editing.');
-      }
-    });
+    const allEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    const formEntries = allEntries[this.formHeading] || [];
+    const userToEdit = formEntries.find((entry: any) => entry.id === id);
+
+    if (userToEdit) {
+      this.model = { ...userToEdit };
+      this.uid.set(id);
+      this.isEdit.set(true);
+    }
   }
 
   cancel() {

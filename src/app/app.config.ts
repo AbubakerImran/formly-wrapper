@@ -6,7 +6,6 @@ import { withFormlyBootstrap } from '@ngx-formly/bootstrap';
 import { FormlyHorizontalWrapper } from './wrappers/horizontal-wrapper/horizontal-wrapper';
 import { FormlyVerticalWrapper } from './wrappers/vertical-wrapper/vertical-wrapper';
 import { FormlyModalWrapper } from './wrappers/modal-wrapper/modal-wrapper';
-import { provideHttpClient } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,7 +19,6 @@ export const appConfig: ApplicationConfig = {
         ]
       }
     ]),
-    provideHttpClient(),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes)
