@@ -69,8 +69,8 @@ export class App implements OnInit {
       type: "radio",
       wrappers: ["form-field-modal"],
       defaultValue: () => {
-        return this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
-
+        // Get saved wrapper for current form or default to horizontal
+        return localStorage.getItem(`wrapper_${this.editFormModel.formName}`) || "form-field-horizontal";
       },
       props: {
         uid: '1',
@@ -101,37 +101,24 @@ export class App implements OnInit {
   formChanged = false;
 
   openEditFormNameModal(name: string) {
-    // Fetch the form from backend
-    this.http.get<any>(`http://localhost:3000/forms/${name}`).subscribe({
-      next: (form) => {
-        if (!form) return;
+    const savedWrapper = localStorage.getItem(`wrapper_${name}`) || 'form-field-horizontal';
 
-        // ✅ Get wrapper from the first field if exists
-        const savedWrapper = form.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
+    this.editFormModel = {
+      formName: name,
+      wrapper: savedWrapper
+    };
 
-        this.editFormModel = {
-          formName: name,
-          wrapper: savedWrapper
+    this.editFormFields = this.editFormFields.map(f => {
+      if (f.key === 'wrapper') {
+        return {
+          ...f,
+          defaultValue: savedWrapper
         };
-
-        // Update the editFormFields defaultValue for the wrapper field
-        this.editFormFields = this.editFormFields.map(f => {
-          if (f.key === 'wrapper') {
-            return {
-              ...f,
-              defaultValue: savedWrapper
-            };
-          }
-          return f;
-        });
-
-        this.editFormNameBefore = name;
-      },
-      error: (err) => {
-        console.error("❌ Failed to load form for editing:", err);
-        this.showNotification("Failed to load form data!");
       }
+      return f;
     });
+
+    this.editFormNameBefore = name;
   }
   
   ngOnInit() {
@@ -148,225 +135,201 @@ export class App implements OnInit {
   }
 
   loadSavedFormNames() {
-    this.http.get<any[]>(`http://localhost:3000/forms`)
-      .subscribe({
-        next: (forms) => {
-          this.savedFormNames = forms.map(f => f.name);
-        },
-        error: (err) => {
-          console.error('❌ Failed to load forms:', err);
-          this.savedFormNames = [];
-        }
-      });
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    this.savedFormNames = Object.keys(savedForms);
   }
 
   loadSavedForm(formName: string) {
     this.formChanged = false;
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
 
-    this.http.get<any>(`http://localhost:3000/forms/${formName}`).subscribe({
-      next: (form) => {
-        if (form) {
-          this.showForm = formName;
+    if (savedForms[formName]) {
+      this.showForm = formName;
 
-          // ✅ Use wrappers from backend instead of localStorage
-          this.fields = form.fields.map((row: any) => ({
-            ...row,
-            fieldGroup: row.fieldGroup?.map((field: any) => ({
-              ...field,
-              wrappers: field.wrappers?.length ? field.wrappers : ['form-field-horizontal']
-            }))
-          }));
+      // ✅ Deep clone saved fields and only update wrappers
+      this.fields = savedForms[formName].map((row: any) => ({
+        ...row,
+        fieldGroup: row.fieldGroup?.map((field: any) => ({
+          ...field,
+          // keep className, styles, etc. exactly as saved
+          wrappers: [localStorage.getItem(`wrapper_${formName}`) || 'form-field-horizontal']
+        }))
+      }));
 
-          this.formHeading = formName;
+      this.formHeading = formName;
 
-          // Reattach edit/delete functions
-          this.reattachFieldFunctions();
+      // Reattach edit/delete functions
+      this.reattachFieldFunctions();
 
-          // ✅ Rebuild FormGroup controls for reactive form
-          this.form = new FormGroup({});
-          this.fields.forEach(row => {
-            row.fieldGroup?.forEach(field => {
-              const key = field.key as string;
-              this.form.addControl(
-                key,
-                this.fb.control(
-                  this.model[key] ?? '',
-                  field.props?.required ? Validators.required : null
-                )
-              );
-            });
-          });
+      // ✅ Rebuild FormGroup controls for reactive form
+      this.form = new FormGroup({});
+      this.fields.forEach(row => {
+        row.fieldGroup?.forEach(field => {
+          const key = field.key as string;
+          this.form.addControl(
+            key,
+            this.fb.control(
+              this.model[key] ?? '',
+              field.props?.required ? Validators.required : null
+            )
+          );
+        });
+      });
 
-          this.fetchData();
-        }
-      },
-      error: (err) => {
-        console.error("❌ Failed to load form:", err);
-      }
-    });
+      this.fetchData();
+    }
   }
 
   createNewForm() {
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
     let counter = 1;
     let newFormName = `Form${counter}`;
+    while (savedForms[newFormName]) {
+      counter++;
+      newFormName = `Form${counter}`;
+    }
 
-    // 🔹 First fetch all saved forms from backend to check name collisions
-    this.http.get<any[]>(`http://localhost:3000/forms`).subscribe({
-      next: (forms) => {
-        const existingNames = forms.map(f => f.name);
-        while (existingNames.includes(newFormName)) {
-          counter++;
-          newFormName = `Form${counter}`;
-        }
+    this.formHeading = newFormName;
+    this.showForm = newFormName;
+    this.fields = [];
+    this.users = [];
 
-        // 🔹 Call backend to actually create the form
-        this.http.post<any>(`http://localhost:3000/forms`, { name: newFormName, fields: [] })
-          .subscribe({
-            next: (createdForm) => {
-              this.formHeading = createdForm.name;
-              this.showForm = createdForm.name;
-              this.fields = [];
-              this.users = [];
-              this.form = new FormGroup({});
-              this.model = {};
+    this.form = new FormGroup({}); // reset reactive form
+    this.model = {};
 
-              this.loadSavedFormNames(); // now fetch from backend
-              this.fetchData();          // fetch entries for new form
-              this.showNotification("Form created successfully!");
-            },
-            error: (err) => {
-              console.error("❌ Failed to create form:", err);
-            }
-          });
-      },
-      error: (err) => {
-        console.error("❌ Failed to load forms:", err);
-      }
-    });
+    savedForms[newFormName] = [];
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
+
+    let savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+    savedEntries[newFormName] = [];
+    localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+    this.loadSavedFormNames();
+    this.fetchData();
+    this.showNotification("Form created successfully!");
   }
 
   saveForm() {
-    // form schema
-    const formPayload = {
-      name: this.formHeading,
-      fields: this.fields,
-    };
+    const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+    savedForms[this.formHeading] = this.fields;
+    localStorage.setItem('savedForms', JSON.stringify(savedForms));
 
-    this.http.post('http://localhost:3000/forms', formPayload).subscribe({
-      next: () => {
-        this.formChanged = false;
-        this.loadSavedFormNames();
-        this.showNotification("Form saved successfully!");
-      },
-      error: (err) => {
-        console.error("❌ Failed to save form:", err);
-        this.showNotification("Failed to save form!");
-      }
-    });
+    this.formChanged = false;
+    this.loadSavedFormNames();
+    this.showNotification("Form saved successfully!");
   }
 
-  formNameChange(newWrapper: string) {
-    if (!this.formHeading) return;
-
-    // 🔹 Update all fields locally
-    this.fields = this.fields.map(row => ({
-      ...row,
-      fieldGroup: row.fieldGroup?.map(field => ({
-        ...field,
-        wrappers: [newWrapper]   // update wrapper
-      })) ?? []
-    }));
-
-    // 🔹 Reset the FormlyForm by reassigning the model and options
-    const oldModel = { ...this.model };
-    this.model = {};               // clear model temporarily
-    setTimeout(() => {             // allow Angular to detect changes
-      this.model = oldModel;       // restore model
-      this.options = { ...this.options }; // refresh Formly options
-    }, 0);
-
-    this.showNotification("Wrapper updated instantly in UI!");
-
-    // 🔹 Update backend asynchronously
-    const payload = { name: this.formHeading, fields: this.fields };
-    this.http.put(`http://localhost:3000/forms/${this.formHeading}`, payload).subscribe({
-      next: () => {
-        this.showNotification("Wrapper updated in backend!");
-      },
-      error: (err) => {
-        console.error("❌ Failed to update wrapper in backend:", err);
-        this.showNotification("Failed to update wrapper in backend!");
+    formNameChange(newWrapper: string) {
+      if (!this.formHeading) return;
+      this.fields = this.fields.map(row => ({
+        ...row,
+        fieldGroup: row.fieldGroup?.map(field => ({
+          ...field,
+          wrappers: [newWrapper]
+        })) ?? []
+      }));
+      // 🔹 Persist in localStorage
+      const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      if (savedForms[this.formHeading]) {
+        savedForms[this.formHeading] = this.fields;
+        localStorage.setItem('savedForms', JSON.stringify(savedForms));
       }
-    });
-  }
+      // 🔹 Keep wrapper for new fields
+      localStorage.setItem(`wrapper_${this.formHeading}`, newWrapper);
+      this.fields = [...this.fields]; // force refresh
+    }
 
   saveFormNameChange() {
     if (!this.editFormModel.formName) {
       alert("Form name is empty!");
-      return;
-    }
+    } else {
+      const oldName = this.editFormNameBefore || '';
+      const newName = this.editFormModel.formName.trim();
+      const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
 
-    const oldName = this.editFormNameBefore || '';
-    const newName = this.editFormModel.formName.trim();
-    const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
+      const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
 
-    // Prevent duplicate (optional check via frontend)
-    if (this.savedFormNames.includes(newName) && newName !== oldName) {
-      alert("A form with this name already exists!");
-      return;
-    }
+      // Prevent duplicate names
+      if (savedForms[newName] && newName !== oldName) {
+        alert("A form with this name already exists!");
+      } else {
+        // 🔹 Persist wrapper to localStorage even if no form is open
+        localStorage.setItem(`wrapper_${newName}`, newWrapper);
 
-    this.http.put(`http://localhost:3000/forms/rename/${oldName}`, {
-      newName,
-      wrapper: newWrapper
-    }).subscribe({
-      next: () => {
-        // refresh UI
-        this.formHeading = newName;
-        this.showForm = newName;
+        // 🔹 If form is currently open, update wrapper for its fields
+        if (this.formHeading === newName) {
+          this.formNameChange(newWrapper);
+        }
+
+        // 🔹 Rename form and entries if name changed
+        if (oldName && newName && oldName !== newName) {
+          savedForms[newName] = savedForms[oldName];
+          delete savedForms[oldName];
+
+          savedEntries[newName] = savedEntries[oldName] || [];
+          delete savedEntries[oldName];
+
+          // Rename wrapper key if it exists
+          const oldWrapper = localStorage.getItem(`wrapper_${oldName}`);
+          if (oldWrapper) {
+            localStorage.setItem(`wrapper_${newName}`, oldWrapper);
+            localStorage.removeItem(`wrapper_${oldName}`);
+          }
+
+          if (this.formHeading === oldName) this.formHeading = newName;
+          if (this.showForm === oldName) this.showForm = newName;
+        }
+
+        localStorage.setItem('savedForms', JSON.stringify(savedForms));
+        localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
         this.loadSavedFormNames();
-        this.showNotification("Successfully updated form info!");
-      },
-      error: (err) => {
-        console.error("❌ Failed to rename form:", err);
-        this.showNotification("Error updating form info!");
+        this.showNotification('Successfully updated form info!');
       }
-    });
+    }
   }
 
   deleteFormName() {
     const formName = this.editFormModel.formName?.trim();
     if (!formName) {
       alert("Form name is missing!");
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to delete form "${formName}"?`)) {
-      return;
-    }
-
-    this.http.delete(`http://localhost:3000/forms/${formName}`)
-    .subscribe({
-      next: () => {
-        // ✅ Clear UI if deleted form was open
-        if (this.formHeading === formName) {
-          this.formHeading = '';
-          this.fields = [];
-          this.users = [];
-          this.model = {};
-        }
-        if (formName === this.showForm) {
-          this.showForm = '';
-        }
-
-        this.loadSavedFormNames();
-        this.showNotification("Form deleted successfully!");
-      },
-      error: (err) => {
-        console.error("❌ Failed to delete form:", err);
-        this.showNotification("Error deleting form!");
+    } else {
+      if (!confirm(`Are you sure you want to delete form "${formName}"?`)) {
+        return;
       }
-    });
+      const savedForms = JSON.parse(localStorage.getItem('savedForms') || '{}');
+      const savedEntries = JSON.parse(localStorage.getItem('savedFormEntries') || '{}');
+
+      if (savedForms[formName]) {
+        delete savedForms[formName];
+      }
+      if (savedEntries[formName]) {
+        delete savedEntries[formName];
+      }
+
+      // Remove wrapper from localStorage
+      localStorage.removeItem(`wrapper_${formName}`);
+      localStorage.removeItem('formFields');
+
+      localStorage.setItem('savedForms', JSON.stringify(savedForms));
+      localStorage.setItem('savedFormEntries', JSON.stringify(savedEntries));
+
+      // If currently viewing the deleted form, clear UI
+      if (this.formHeading === formName) {
+        this.formHeading = '';
+        this.fields = [];
+        this.users = [];
+        this.model = {};
+      }
+
+      if (formName === this.showForm) {
+        this.showForm = '';
+      }
+
+      this.loadSavedFormNames();
+      this.showNotification('Form deleted successfully!');
+    }
   }
 
   fetchData() {
@@ -512,7 +475,7 @@ export class App implements OnInit {
     let index = 1;
     for (const num of existingIndexes) if (num === index) index++; else break;
 
-    const currentWrapper = this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
+    const currentWrapper = localStorage.getItem(`wrapper_${this.formHeading}`) || 'form-field-horizontal';
 
     const newField: FormlyFieldConfig = {
       className: 'col-6',
@@ -539,6 +502,7 @@ export class App implements OnInit {
       validation: { messages: { required: "This field is required!" } }
     };
 
+    // ✅ If adding from a child div button → insert into that fieldGroup (max 2)
     if (this.selectedRowIndex !== null) {
       const targetGroup = this.fields[this.selectedRowIndex]?.fieldGroup;
       if (targetGroup && targetGroup.length < 2) {
@@ -547,6 +511,7 @@ export class App implements OnInit {
         this.showNotification('Max 2 fields allowed per row!');
       }
     } else {
+      // ✅ Global / Parent button → always create a new row with one field
       this.fields.push({
         fieldGroupClassName: 'row',
         fieldGroup: [newField]
@@ -554,13 +519,12 @@ export class App implements OnInit {
     }
 
     this.adjustRowColumns();
-    this.fields = [...this.fields];
+    this.fields = [...this.fields]; // 🔹 trigger refresh
     this.reattachFieldFunctions();
+    this.formChanged = true;
     this.cancelFieldModal();
+    this.showNotification('Field added successfully!');
     this.selectedRowIndex = null;
-
-    this.formChanged = true; // ✅ only mark as dirty
-    this.showNotification('Field added (not saved yet)!');
   }
 
   type = signal('');
