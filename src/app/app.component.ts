@@ -265,41 +265,6 @@ export class App implements OnInit {
     });
   }
 
-  formNameChange(newWrapper: string) {
-    if (!this.formHeading) return;
-
-    // 🔹 Update all fields locally
-    this.fields = this.fields.map(row => ({
-      ...row,
-      fieldGroup: row.fieldGroup?.map(field => ({
-        ...field,
-        wrappers: [newWrapper]   // update wrapper
-      })) ?? []
-    }));
-
-    // 🔹 Reset the FormlyForm by reassigning the model and options
-    const oldModel = { ...this.model };
-    this.model = {};               // clear model temporarily
-    setTimeout(() => {             // allow Angular to detect changes
-      this.model = oldModel;       // restore model
-      this.options = { ...this.options }; // refresh Formly options
-    }, 0);
-
-    this.showNotification("Wrapper updated instantly in UI!");
-
-    // 🔹 Update backend asynchronously
-    const payload = { name: this.formHeading, fields: this.fields };
-    this.http.put(`http://localhost:3000/forms/${this.formHeading}`, payload).subscribe({
-      next: () => {
-        this.showNotification("Wrapper updated in backend!");
-      },
-      error: (err) => {
-        console.error("❌ Failed to update wrapper in backend:", err);
-        this.showNotification("Failed to update wrapper in backend!");
-      }
-    });
-  }
-
   saveFormNameChange() {
     if (!this.editFormModel.formName) {
       alert("Form name is empty!");
@@ -310,7 +275,7 @@ export class App implements OnInit {
     const newName = this.editFormModel.formName.trim();
     const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
 
-    // Prevent duplicate (optional check via frontend)
+    // Prevent duplicate
     if (this.savedFormNames.includes(newName) && newName !== oldName) {
       alert("A form with this name already exists!");
       return;
@@ -321,11 +286,14 @@ export class App implements OnInit {
       wrapper: newWrapper
     }).subscribe({
       next: () => {
-        // refresh UI
+        // refresh UI AFTER backend update
         this.formHeading = newName;
         this.showForm = newName;
         this.loadSavedFormNames();
         this.showNotification("Successfully updated form info!");
+
+        // ✅ Load updated form now
+        this.loadSavedForm(newName);
       },
       error: (err) => {
         console.error("❌ Failed to rename form:", err);
