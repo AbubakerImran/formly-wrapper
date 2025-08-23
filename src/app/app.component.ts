@@ -257,6 +257,18 @@ export class App implements OnInit {
         this.formChanged = false;
         this.loadSavedFormNames();
         this.showNotification("Form saved successfully!");
+
+        // ✅ reload updated form schema so Formly has fresh config
+        this.http.get<any>(`http://localhost:3000/forms/${this.formHeading}`).subscribe({
+          next: (updatedForm) => {
+            this.fields = updatedForm.fields;   // replace schema
+            this.form.reset();                  // reset form group
+            this.model = {};                    // clear model to avoid stale values
+          },
+          error: (err) => {
+            console.error("❌ Failed to reload updated form:", err);
+          }
+        });
       },
       error: (err) => {
         console.error("❌ Failed to save form:", err);
@@ -266,6 +278,12 @@ export class App implements OnInit {
   }
 
   saveFormNameChange() {
+
+    if(this.formChanged) {
+      if(!confirm("Are you sure to update the form info? changes will be lost!"))
+      return
+    }
+
     if (!this.editFormModel.formName) {
       alert("Form name is empty!");
       return;
