@@ -486,7 +486,7 @@ export class App implements OnInit {
     });
   }
 
-  addFixedField(type: 'input' | 'textarea' | 'select' | 'radio') {
+  addFixedField(type: 'input' | 'textarea' | 'select' | 'radio' | 'div') {
     const baseStyle = { borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:'' };
     const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'' };
 
@@ -506,12 +506,12 @@ export class App implements OnInit {
     const newField: FormlyFieldConfig = {
       className: 'col-12',
       key: `${type}${index}`,
-      type,
+      type: (type === 'div' ? 'input' : type),   // if button pressed was "div", actual field is input
       wrappers: [currentWrapper],
       props: {
         label: `${type}${index}`,
         id: `${type}${index}`,
-        ...(type === 'textarea' || type === 'input' ? { placeholder: `${type}${index}` } : {}),
+        ...(type === 'textarea' || type === 'input' || type === 'div' ? { placeholder: `${type}${index}` } : {}),
         class: type === 'select' ? 'form-select' :
               type === 'radio' ? 'form-check-input' : 'form-control',
         required: true,
@@ -539,14 +539,22 @@ export class App implements OnInit {
 
     if (type === 'select') newField.defaultValue = '';
 
-    // always add to parent field group
-    if (this.fields.length === 0) {
+    // if "div" pressed → always create a new fieldGroup row
+    if (type === 'div') {
       this.fields.push({
         fieldGroupClassName: 'row',
         fieldGroup: [newField]
       });
     } else {
-      this.fields[0].fieldGroup?.push(newField);
+      // normal case → append inside first row
+      if (this.fields.length === 0) {
+        this.fields.push({
+          fieldGroupClassName: 'row',
+          fieldGroup: [newField]
+        });
+      } else {
+        this.fields[0].fieldGroup?.push(newField);
+      }
     }
 
     this.fields = [...this.fields];
