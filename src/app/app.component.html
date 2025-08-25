@@ -40,53 +40,29 @@
               [ngClass]="expanded['parent'] ? 'fa-caret-down' : 'fa-caret-right'"></i>
           </div>
 
-          <!-- Child divs -->
+          <!-- Fields directly inside parent -->
           <ul *ngIf="expanded['parent']"
               cdkDropList
-              [cdkDropListData]="fields"
-              (cdkDropListDropped)="drop($event, fields)"
+              [cdkDropListData]="fields[0].fieldGroup ?? []"
+              (cdkDropListDropped)="drop($event, fields[0].fieldGroup ?? [])"
               class="ul tree-children">
 
-            <li *ngFor="let field of fields; let i = index" cdkDrag>
-              <!-- Child div -->
-              <div class="tree-node d-flex align-items-center">
-                <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">div</span>
-                <button type="button" *ngIf="(field.fieldGroup?.length || 0) < 2"
-                  class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
-                  appTooltip title="Add new field" (click)="$event.stopPropagation(); setSelectedRowIndex(i);"
-                  style="font-size: 13px;">
-                  <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
+            <li *ngFor="let childField of fields[0]?.fieldGroup; let j = index" cdkDrag>
+              <div class="tree-node">
+                {{ childField.props?.label || '...' }}
+                <button type="button" class="btn btn-sm border-0"
+                  (click)="$event.stopPropagation(); openRowEditFieldModal(0, j)"
+                  data-bs-toggle="modal" data-bs-target="#editFieldModal"
+                  appTooltip title="Edit field" style="font-size: 13px;">
+                  <i class='fas fa-edit'></i>
                 </button>
-                <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('child-' + i)"
-                  [ngClass]="expanded['child-' + i] ? 'fa-caret-down' : 'fa-caret-right'"></i>
+
+                <button type="button" class="btn btn-sm border-0"
+                  (click)="$event.stopPropagation(); deleteRowField(0, j)"
+                  appTooltip title="Delete field">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
               </div>
-
-              <!-- Fields inside child div -->
-              <ul *ngIf="expanded['child-' + i]"
-                  cdkDropList
-                  [cdkDropListData]="field.fieldGroup ?? []"
-                  (cdkDropListDropped)="drop($event, field.fieldGroup ?? [])"
-                  class="ul tree-children">
-
-                <li *ngFor="let childField of field.fieldGroup; let j = index" cdkDrag>
-                  <div class="tree-node">
-                    {{ childField.type || 'input' }}: {{ childField.props?.label || '...' }}
-
-                    <button type="button" class="btn btn-sm border-0"
-                      (click)="$event.stopPropagation(); openRowEditFieldModal(i, j)"
-                      data-bs-toggle="modal" data-bs-target="#editFieldModal"
-                      appTooltip title="Edit field" style="font-size: 13px;">
-                      <i class='fas fa-edit'></i>
-                    </button>
-
-                    <button type="button" class="btn btn-sm border-0"
-                      (click)="$event.stopPropagation(); deleteRowField(i, j)"
-                      appTooltip title="Delete field">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                  </div>
-                </li>
-              </ul>
             </li>
           </ul>
         </li>

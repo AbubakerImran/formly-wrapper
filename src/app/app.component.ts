@@ -470,15 +470,18 @@ export class App implements OnInit {
   }
 
   reattachFieldFunctions() {
+    let globalIndex = 0;
+
     this.fields.forEach((row, rowIndex) => {
       row.fieldGroup?.forEach((field, colIndex) => {
-        const index = rowIndex * 2 + colIndex; // consistent index for edit/delete
-        field.props!['index'] = index;
+        field.props!['index'] = globalIndex;
         field.props!['openEditFieldModal'] = () => this.openRowEditFieldModal(rowIndex, colIndex);
         field.props!['deleteField'] = () => this.deleteRowField(rowIndex, colIndex);
         field.props!['loadSavedForm'] = () => this.loadSavedForm(this.formHeading);
         field.props!['openEditFormNameModal'] = () => this.openEditFormNameModal(this.formHeading);
         field.props!['deleteFormName'] = () => this.deleteFormName();
+
+        globalIndex++;
       });
     });
   }
@@ -487,7 +490,7 @@ export class App implements OnInit {
     const baseStyle = { borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:'' };
     const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'' };
 
-    // Find next available key
+    // find next available key
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
       .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
@@ -501,7 +504,7 @@ export class App implements OnInit {
     const currentWrapper = this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
 
     const newField: FormlyFieldConfig = {
-      className: 'col-6',
+      className: 'col-12',
       key: `${type}${index}`,
       type,
       wrappers: [currentWrapper],
@@ -519,7 +522,7 @@ export class App implements OnInit {
         index: this.fields.length,
         ...(type === 'select' ? {
           options: [
-            { label: 'Select an option...', value: '', disabled: true }, // ✅ placeholder
+            { label: 'Select an option...', value: '', disabled: true },
             { label: 'Option 1', value: 'Option 1' },
             { label: 'Option 2', value: 'Option 2' }
           ]
@@ -534,32 +537,23 @@ export class App implements OnInit {
       validation: { messages: { required: "This field is required!" } }
     };
 
-    // ✅ Default value for select = null (forces placeholder to show first)
-    if (type === 'select') {
-      newField.defaultValue = '';
-    }
+    if (type === 'select') newField.defaultValue = '';
 
-    if (this.selectedRowIndex !== null) {
-      const targetGroup = this.fields[this.selectedRowIndex]?.fieldGroup;
-      if (targetGroup && targetGroup.length < 2) {
-        targetGroup.push(newField);
-      } else {
-        this.showNotification('Max 2 fields allowed per row!');
-      }
-    } else {
+    // always add to parent field group
+    if (this.fields.length === 0) {
       this.fields.push({
         fieldGroupClassName: 'row',
         fieldGroup: [newField]
       });
+    } else {
+      this.fields[0].fieldGroup?.push(newField);
     }
 
-    this.adjustRowColumns();
     this.fields = [...this.fields];
     this.reattachFieldFunctions();
     this.cancelFieldModal();
-    this.selectedRowIndex = null;
 
-    this.formChanged = true; // ✅ only mark as dirty
+    this.formChanged = true;
     this.showNotification('Field added (not saved yet)!');
   }
 
@@ -573,9 +567,11 @@ export class App implements OnInit {
   editingFieldIndex: number | null = null;
 
   openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
-    // Unique field index
-    this.editingFieldIndex = rowIndex * 2 + fieldIndex;
     const field = this.fields[rowIndex].fieldGroup![fieldIndex];
+    this.editingFieldIndex = field.props?.['index'] ?? null;
+
+    if (this.editingFieldIndex === null) return;
+
     const type = typeof field.type === 'string' ? field.type : 'input';
     this.type.set(type);
 
@@ -588,7 +584,7 @@ export class App implements OnInit {
     this.modalModel = {
       key: field.key,
       label: field.props?.label || '',
-      id: field.props?.['id'] || '',
+      className: field.className || '',
       class: field.props?.['class'] || '',
       labelClass: field.props?.['labelClass'] || '',
       placeholder: field.props?.placeholder || '',
@@ -606,11 +602,11 @@ export class App implements OnInit {
         fieldGroupClassName: 'row',
         fieldGroup: [
           { key: 'key', type: 'input', className: 'col-md-6', props: { label: 'Key', required: true } },
-          { key: 'id', type: 'input', className: 'col-md-6', props: { label: 'ID' } },
           { key: 'label', type: 'input', className: 'col-md-6', props: { label: 'Label', required: true } },
           { key: 'placeholder', type: 'input', className: 'col-md-6', props: { label: 'Placeholder' } },
           { key: 'class', type: 'input', className: 'col-md-6', props: { label: 'Class' } },
           { key: 'labelClass', type: 'input', className: 'col-md-6', props: { label: 'Label Class' } },
+          { key: 'className', type: 'input', className: 'col-md-6', props: { label: 'Class Name' } },
           { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } },
         ]
       }
@@ -660,16 +656,29 @@ export class App implements OnInit {
       return;
     }
 
-    const rowIndex = Math.floor(this.editingFieldIndex / 2);
-    const fieldIndex = this.editingFieldIndex % 2;
-    if (rowIndex >= this.fields.length) return;
+    let targetRowIndex = -1;
+    let targetFieldIndex = -1;
+    let globalIndex = 0;
 
-    const row = this.fields[rowIndex];
-    if (!row.fieldGroup || fieldIndex >= row.fieldGroup.length) return;
+    // find correct field by global index
+    outer: for (let r = 0; r < this.fields.length; r++) {
+      const row = this.fields[r];
+      for (let f = 0; f < (row.fieldGroup?.length || 0); f++) {
+        if (globalIndex === this.editingFieldIndex) {
+          targetRowIndex = r;
+          targetFieldIndex = f;
+          break outer;
+        }
+        globalIndex++;
+      }
+    }
 
-    const field = row.fieldGroup[fieldIndex];
+    if (targetRowIndex === -1 || targetFieldIndex === -1) return;
 
-    // Rebuild style objects from modalModel.style / modalModel.labelStyle
+    const row = this.fields[targetRowIndex];
+    const field = row.fieldGroup![targetFieldIndex];
+
+    // build updatedField as you already do...
     const updatedStyle: any = {};
     const updatedLabelStyle: any = {};
 
@@ -684,11 +693,12 @@ export class App implements OnInit {
     const updatedField: FormlyFieldConfig = {
       ...field,
       key: this.modalModel.key,
+      className: this.modalModel.className,
       props: {
         ...field.props,
         label: this.modalModel.label,
         class: this.modalModel.class,
-        id: this.modalModel.id,
+        id: this.modalModel.key,
         labelClass: this.modalModel.labelClass,
         placeholder: this.modalModel.placeholder,
         required: !!this.modalModel.required,
@@ -704,11 +714,9 @@ export class App implements OnInit {
       }
     };
 
-    // Replace field
-    row.fieldGroup[fieldIndex] = updatedField;
+    row.fieldGroup![targetFieldIndex] = updatedField;
 
-    this.adjustRowColumns();
-    this.fields = [...this.fields]; // force refresh
+    this.fields = [...this.fields];
     this.reattachFieldFunctions();
     this.formChanged = true;
 
@@ -734,7 +742,6 @@ export class App implements OnInit {
       this.fields.splice(rowIndex, 1); // remove empty row
     }
 
-    this.adjustRowColumns();
     this.fields = [...this.fields]; // 🔹 trigger refresh
     this.reattachFieldFunctions();
     this.formChanged = true;
@@ -883,34 +890,33 @@ export class App implements OnInit {
       let counter = 0;
 
       this.allFieldsFields = this.fields.flatMap((row, rowIndex) =>
-        row.fieldGroup?.map((f, fieldIndex) => {
-          // assign sequential index
+        row.fieldGroup?.map((f) => {
           const i = counter++;
 
-          // preload values
           this.allFieldsModel[`key_${i}`] = f.key;
+          this.allFieldsModel[`className_${i}`] = f.className;
           this.allFieldsModel[`label_${i}`] = f.props?.label;
           this.allFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
           this.allFieldsModel[`class_${i}`] = f.props?.['class'];
           this.allFieldsModel[`required_${i}`] = f.props?.required;
 
           if (f.type === 'select' || f.type === 'radio') {
-            this.allFieldsModel[`options_${i}`] = (f.props?.options ?? [])
-              && Array.isArray(f.props?.options)
-              ? f.props.options.map((opt: any) => opt.label || opt)
-              : []
-              .join(',');
+            this.allFieldsModel[`options_${i}`] = Array.isArray(f.props?.options)
+              ? f.props.options.map((opt: any) => opt.label || opt).join(',')
+              : '';
           }
 
           return {
             fieldGroupClassName: 'row mb-3',
             fieldGroup: [
-              { key: `key_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Key` } },
-              { key: `label_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Label` } },
+              { template: `<h4 class="mt-3 mb-2">${f.key}</h4>` },
+              { key: `key_${i}`, type: 'input', className: 'col-md-3', props: { label: `Key` } },
+              { key: `label_${i}`, type: 'input', className: 'col-md-3', props: { label: `Label` } },
               f.type === 'select' || f.type === 'radio'
-                ? { key: `options_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Options` } }
-                : { key: `placeholder_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Placeholder` } },
-              { key: `class_${i}`, type: 'input', className: 'col-md-3', props: { label: `${f.key} Class` } },
+                ? { key: `options_${i}`, type: 'input', className: 'col-md-3', props: { label: `Options` } }
+                : { key: `placeholder_${i}`, type: 'input', className: 'col-md-3', props: { label: `Placeholder` } },
+              { key: `class_${i}`, type: 'input', className: 'col-md-3', props: { label: `Class` } },
+              { key: `className_${i}`, type: 'input', className: 'col-md-3', props: { label: `Class Name` } },
               { key: `required_${i}`, type: 'checkbox', className: 'col-md-3', props: { label: `Required` } }
             ]
           };
@@ -935,7 +941,7 @@ export class App implements OnInit {
           ...field.props,
           label: this.allFieldsModel[`label_${i}`] ?? field.props?.label,
           class: this.allFieldsModel[`class_${i}`] ?? field.props?.['class'],
-          required: this.allFieldsModel[`required_${i}`] ?? field.props?.required,
+          required: !!this.allFieldsModel[`required_${i}`]
         };
 
         if (field.type === 'select' || field.type === 'radio') {
@@ -947,7 +953,12 @@ export class App implements OnInit {
           updatedProps.placeholder = this.allFieldsModel[`placeholder_${i}`] ?? field.props?.placeholder;
         }
 
-        return { ...field, key: this.allFieldsModel[`key_${i}`] ?? field.key, props: updatedProps };
+        return {
+          ...field,
+          key: this.allFieldsModel[`key_${i}`] ?? field.key,
+          className: this.allFieldsModel[`className_${i}`] ?? field.className,
+          props: updatedProps
+        };
       })
     }));
 
@@ -993,17 +1004,5 @@ export class App implements OnInit {
 
   setSelectedRowIndex(index: number) {
     this.selectedRowIndex = index;
-  }
-
-  private adjustRowColumns() {
-    this.fields.forEach(row => {
-      if (row.fieldGroup && row.fieldGroup.length > 0) {
-        if (row.fieldGroup.length === 1) {
-          row.fieldGroup[0].className = 'col-12';
-        } else if (row.fieldGroup.length === 2) {
-          row.fieldGroup.forEach(f => f.className = 'col-6');
-        }
-      }
-    });
   }
 }
