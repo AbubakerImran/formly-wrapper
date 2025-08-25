@@ -13,7 +13,7 @@
 <div class="d-flex gap-5">
   <div class="position-absolute start-0 bottom-0 bg-white shadow w-25 rounded-end-5 rounded-bottom-0"
       style="flex: 1; height: 85vh; max-height: 85vh; overflow-y: auto; scrollbar-width: none;">
-    <div class="container p-3" *ngIf="modalStep() === 'select' && fields.length != 0">
+    <div class="container p-3" *ngIf="modalStep()">
       <h3>Form Tree</h3>
       <ul class="tree-list">
         <li>
