@@ -36,7 +36,6 @@
           (contextmenu)="showContextMenu($event)" 
           #inputField
         >
-          <option *ngIf="to.placeholder" value="">{{ to.placeholder }}</option>
             <ng-container *ngIf="options$ | async as options">
               <option *ngFor="let option of options" [value]="option.value">
                 {{ option.label }}

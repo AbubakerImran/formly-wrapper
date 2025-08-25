@@ -508,7 +508,7 @@ export class App implements OnInit {
       props: {
         label: `${type}${index}`,
         id: `${type}${index}`,
-        placeholder: type === 'textarea' ? `Enter ${type}${index} text` : `${type}${index}`,
+        ...(type === 'textarea' || type === 'input' ? { placeholder: `${type}${index}` } : {}),
         class: type === 'select' ? 'form-select' :
               type === 'radio' ? 'form-check-input' : 'form-control',
         required: true,
@@ -517,13 +517,27 @@ export class App implements OnInit {
         style: baseStyle,
         labelStyle: labelBaseStyle,
         index: this.fields.length,
-        ...(type === 'select' || type === 'radio' ? { options: [
-          { label: 'Option 1', value: 'Option 1' },
-          { label: 'Option 2', value: 'Option 2' }
-        ] } : {})
+        ...(type === 'select' ? {
+          options: [
+            { label: 'Select an option...', value: '', disabled: true }, // ✅ placeholder
+            { label: 'Option 1', value: 'Option 1' },
+            { label: 'Option 2', value: 'Option 2' }
+          ]
+        } : {}),
+        ...(type === 'radio' ? {
+          options: [
+            { label: 'Option 1', value: 'Option 1' },
+            { label: 'Option 2', value: 'Option 2' }
+          ]
+        } : {})
       },
       validation: { messages: { required: "This field is required!" } }
     };
+
+    // ✅ Default value for select = null (forces placeholder to show first)
+    if (type === 'select') {
+      newField.defaultValue = '';
+    }
 
     if (this.selectedRowIndex !== null) {
       const targetGroup = this.fields[this.selectedRowIndex]?.fieldGroup;
