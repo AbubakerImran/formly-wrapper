@@ -258,17 +258,7 @@ export class App implements OnInit {
         this.loadSavedFormNames();
         this.showNotification("Form saved successfully!");
 
-        // ✅ reload updated form schema so Formly has fresh config
-        this.http.get<any>(`http://localhost:3000/forms/${this.formHeading}`).subscribe({
-          next: (updatedForm) => {
-            this.fields = updatedForm.fields;   // replace schema
-            this.form.reset();                  // reset form group
-            this.model = {};                    // clear model to avoid stale values
-          },
-          error: (err) => {
-            console.error("❌ Failed to reload updated form:", err);
-          }
-        });
+        this.loadSavedForm(this.formHeading);
       },
       error: (err) => {
         console.error("❌ Failed to save form:", err);
@@ -558,90 +548,8 @@ export class App implements OnInit {
 
   editingFieldIndex: number | null = null;
 
-  openEditFieldModal(index: number) {
-    this.editingFieldIndex = index;
-    const field = this.fields[index];
-    const type = typeof field.type === 'string' ? field.type : 'input';
-    this.type.set(type);
-
-    this.modalStep.set('configure');
-
-    const style = field.props?.['style'] || {};
-    const labelStyle = field.props?.['labelStyle'] || {};
-
-    this.modalModel = {
-      key: field.key,
-      label: field.props?.label || '',
-      id: field.props?.['id'] || '',
-      class: field.props?.['class'] || '',
-      labelClass: field.props?.['labelClass'] || '',
-      placeholder: field.props?.placeholder || '',
-      required: !!field.props?.required,
-      options: Array.isArray(field.props?.options)
-        ? field.props.options.map((o: any) => o.label).join(', ')
-        : '',
-      ...style,
-      ...labelStyle
-    };
-
-    // Start fields array
-    this.modalFields = [
-      {
-        fieldGroupClassName: 'row',
-        fieldGroup: [
-          { key: 'key', type: 'input', className: 'col-md-6', props: { label: 'Key', required: true } },
-          { key: 'id', type: 'input', className: 'col-md-6', props: { label: 'ID' } },
-          { key: 'label', type: 'input', className: 'col-md-6', props: { label: 'Label', required: true } },
-          { key: 'placeholder', type: 'input', className: 'col-md-6', props: { label: 'Placeholder' } },
-          { key: 'class', type: 'input', className: 'col-md-6', props: { label: 'Class' } },
-          { key: 'labelClass', type: 'input', className: 'col-md-6', props: { label: 'Label Class' } },
-          { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } },
-        ]
-      }
-    ];
-
-    if (type === 'select' || type === 'radio') {
-      this.modalFields[0].fieldGroup?.push({
-        key: 'options',
-        type: 'input',
-        className: 'col-md-6',
-        props: { label: 'Options (comma separated)', required: true }
-      });
-    }
-
-    // 🔹 Add a heading for Input Style
-    this.modalFields.push({
-      template: '<h4 class="mt-3 mb-2">Input Style</h4>'
-    });
-    this.modalFields.push({
-      fieldGroupClassName: 'row',
-      fieldGroup: Object.keys(style).map(sk => ({
-        key: sk,
-        type: 'input',
-        className: 'col-md-6',
-        props: { label: sk }
-      }))
-    });
-
-    // 🔹 Add a heading for Label Style
-    this.modalFields.push({
-      template: '<h4 class="mt-3 mb-2">Label Style</h4>'
-    });
-    this.modalFields.push({
-      fieldGroupClassName: 'row',
-      fieldGroup: Object.keys(labelStyle).map(sk => ({
-        key: sk,
-        type: 'input',
-        className: 'col-md-6',
-        props: { label: sk }
-      }))
-    });
-
-    this.modalForm = this.fb.group({});
-  }
-
   openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
-    // FIX: Calculate unique index instead of using fieldIndex directly
+    // Unique field index
     this.editingFieldIndex = rowIndex * 2 + fieldIndex;
     const field = this.fields[rowIndex].fieldGroup![fieldIndex];
     const type = typeof field.type === 'string' ? field.type : 'input';
@@ -652,6 +560,7 @@ export class App implements OnInit {
     const style = field.props?.['style'] || {};
     const labelStyle = field.props?.['labelStyle'] || {};
 
+    // Keep style objects separate
     this.modalModel = {
       key: field.key,
       label: field.props?.label || '',
@@ -663,11 +572,11 @@ export class App implements OnInit {
       options: Array.isArray(field.props?.options)
         ? field.props.options.map((o: any) => o.label).join(', ')
         : '',
-      ...style,
-      ...labelStyle
+      style: { ...style },
+      labelStyle: { ...labelStyle }
     };
 
-    // Start fields array
+    // Start base field group
     this.modalFields = [
       {
         fieldGroupClassName: 'row',
@@ -692,28 +601,24 @@ export class App implements OnInit {
       });
     }
 
-    // 🔹 Add a heading for Input Style
-    this.modalFields.push({
-      template: '<h4 class="mt-3 mb-2">Input Style</h4>'
-    });
+    // Input Style
+    this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
     this.modalFields.push({
       fieldGroupClassName: 'row',
       fieldGroup: Object.keys(style).map(sk => ({
-        key: sk,
+        key: `style.${sk}`,
         type: 'input',
         className: 'col-md-6',
         props: { label: sk }
       }))
     });
 
-    // 🔹 Add a heading for Label Style
-    this.modalFields.push({
-      template: '<h4 class="mt-3 mb-2">Label Style</h4>'
-    });
+    // Label Style
+    this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Label Style</h4>' });
     this.modalFields.push({
       fieldGroupClassName: 'row',
       fieldGroup: Object.keys(labelStyle).map(sk => ({
-        key: sk,
+        key: `labelStyle.${sk}`,
         type: 'input',
         className: 'col-md-6',
         props: { label: sk }
@@ -733,18 +638,24 @@ export class App implements OnInit {
 
     const rowIndex = Math.floor(this.editingFieldIndex / 2);
     const fieldIndex = this.editingFieldIndex % 2;
-
     if (rowIndex >= this.fields.length) return;
 
     const row = this.fields[rowIndex];
     if (!row.fieldGroup || fieldIndex >= row.fieldGroup.length) return;
 
-    const updatedStyle: any = {};
-    const updatedLabelStyle: any = {};
     const field = row.fieldGroup[fieldIndex];
 
-    Object.keys(field.props?.['style'] || {}).forEach(k => updatedStyle[k] = this.modalModel[k] || '');
-    Object.keys(field.props?.['labelStyle'] || {}).forEach(k => updatedLabelStyle[k] = this.modalModel[k] || '');
+    // Rebuild style objects from modalModel.style / modalModel.labelStyle
+    const updatedStyle: any = {};
+    const updatedLabelStyle: any = {};
+
+    Object.keys(field.props?.['style'] || {}).forEach(k => {
+      updatedStyle[k] = this.modalModel.style?.[k] || '';
+    });
+
+    Object.keys(field.props?.['labelStyle'] || {}).forEach(k => {
+      updatedLabelStyle[k] = this.modalModel.labelStyle?.[k] || '';
+    });
 
     const updatedField: FormlyFieldConfig = {
       ...field,
@@ -759,7 +670,10 @@ export class App implements OnInit {
         required: !!this.modalModel.required,
         index: this.editingFieldIndex,
         options: this.modalModel.options
-          ? this.modalModel.options.split(',').map((opt: string) => ({ label: opt.trim(), value: opt.trim() }))
+          ? this.modalModel.options.split(',').map((opt: string) => ({
+              label: opt.trim(),
+              value: opt.trim()
+            }))
           : field.props?.options,
         style: updatedStyle,
         labelStyle: updatedLabelStyle
@@ -770,7 +684,7 @@ export class App implements OnInit {
     row.fieldGroup[fieldIndex] = updatedField;
 
     this.adjustRowColumns();
-    this.fields = [...this.fields]; // 🔹 trigger refresh
+    this.fields = [...this.fields]; // force refresh
     this.reattachFieldFunctions();
     this.formChanged = true;
 
@@ -779,35 +693,6 @@ export class App implements OnInit {
     this.modalForm.reset();
     this.modalModel = {};
     this.showNotification('Field updated (remember to Save Form)!');
-  }
-
-  deleteField(index: number) {
-    if (!confirm("Are you sure you want to delete this field?")) return;
-    if (index >= 0 && index < this.fields.length) {
-      const fieldKey = this.fields[index].key as string;
-
-      // 🔹 Remove the field from fields array
-      this.fields = this.fields.filter((_, i) => i !== index);
-
-      // 🔹 Remove the control from the form
-      if (fieldKey && this.form.contains(fieldKey)) {
-        this.form.removeControl(fieldKey);
-      }
-
-      // Reassign index to all fields
-      this.fields.forEach((f, i) => f.props!['index'] = i);
-      this.reattachFieldFunctions();
-
-      // Update localStorage
-      localStorage.setItem('formFields', JSON.stringify(this.fields));
-
-      this.adjustRowColumns();
-      this.fields = [...this.fields]; // 🔹 trigger refresh
-      this.fetchData();
-      this.loadSavedFormNames();
-      this.formChanged = true;
-    }
-    this.showNotification('Field successfully deleted!');
   }
 
   deleteRowField(rowIndex: number, fieldIndex: number) {
