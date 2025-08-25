@@ -393,6 +393,16 @@ export class App implements OnInit {
     }
   }
 
+  resetForm() {
+    this.model = {};
+    this.form.reset();
+    this.options.formState = { ...(this.options.formState || {}), submitted: false };
+  }
+
+  get hasModel(): boolean {
+    return this.model && Object.keys(this.model).length > 0;
+  }
+
   update(model: any) {
     if (this.formChanged) {
       alert("Please save the form before submitting data!");
