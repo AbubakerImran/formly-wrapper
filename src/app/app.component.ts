@@ -488,7 +488,7 @@ export class App implements OnInit {
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio' | 'div') {
     const baseStyle = { borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:'' };
-    const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'' };
+    const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'' };
 
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
@@ -690,14 +690,27 @@ export class App implements OnInit {
 
     // build updatedField as you already do...
     const updatedStyle: any = {};
-    const updatedLabelStyle: any = {};
-
     Object.keys(field.props?.['style'] || {}).forEach(k => {
-      updatedStyle[k] = this.modalModel.style?.[k] || '';
+      let val = this.modalModel.style?.[k] || '';
+      if ((k === 'borderRadius' || k === 'fontSize') && val !== '') {
+        const num = val.toString().trim();
+        if (/^\d+$/.test(num)) {
+          val = `${num}px`;
+        }
+      }
+      updatedStyle[k] = val;
     });
 
+    const updatedLabelStyle: any = {};
     Object.keys(field.props?.['labelStyle'] || {}).forEach(k => {
-      updatedLabelStyle[k] = this.modalModel.labelStyle?.[k] || '';
+      let val = this.modalModel.labelStyle?.[k] || '';
+      if (k === 'fontSize' && val !== '') {
+        const num = val.toString().trim();
+        if (/^\d+$/.test(num)) {
+          val = `${num}px`;
+        }
+      }
+      updatedLabelStyle[k] = val;
     });
 
     const updatedField: FormlyFieldConfig = {
