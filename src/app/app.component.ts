@@ -855,6 +855,7 @@ export class App implements OnInit {
 
   selectedFieldIndex: number | null = null; 
   selectedRowIndex: number | null = null;
+  selectedGroupIndex: number | null = null;
 
   editContextMenu(event: MouseEvent, rowIndex: number, fieldIndex: number) {
     event.preventDefault(); // Stop default browser menu
@@ -955,38 +956,40 @@ export class App implements OnInit {
       this.allFieldsModel = {};
       let counter = 0;
 
-      this.allFieldsFields = this.fields.flatMap((row, rowIndex) =>
-        row.fieldGroup?.map((f) => {
-          const i = counter++;
+      const targetGroup = this.selectedGroupIndex !== null
+        ? this.fields[this.selectedGroupIndex].fieldGroup ?? []
+        : [];
 
-          this.allFieldsModel[`key_${i}`] = f.key;
-          this.allFieldsModel[`className_${i}`] = f.className;
-          this.allFieldsModel[`label_${i}`] = f.props?.label;
-          this.allFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
-          this.allFieldsModel[`class_${i}`] = f.props?.['class'];
-          this.allFieldsModel[`required_${i}`] = f.props?.required;
+      this.allFieldsFields = targetGroup.map((f) => {
+        const i = counter++;
 
-          if (f.type === 'select' || f.type === 'radio') {
-            this.allFieldsModel[`options_${i}`] = Array.isArray(f.props?.options)
-              ? f.props.options.map((opt: any) => opt.label || opt).join(',')
-              : '';
-          }
+        this.allFieldsModel[`key_${i}`] = f.key;
+        this.allFieldsModel[`className_${i}`] = f.className;
+        this.allFieldsModel[`label_${i}`] = f.props?.label;
+        this.allFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
+        this.allFieldsModel[`class_${i}`] = f.props?.['class'];
+        this.allFieldsModel[`required_${i}`] = f.props?.required;
 
-          return {
-            fieldGroupClassName: 'row mb-3',
-            fieldGroup: [
-              { template: `<h4 class="mt-3 mb-2">${f.key}</h4>` },
-              { key: `key_${i}`, type: 'input', className: 'col-3', props: { label: `Key` } },
-              { key: `label_${i}`, type: 'input', className: 'col-3', props: { label: `Label` } },
-              f.type === 'select' || f.type === 'radio'
-                ? { key: `options_${i}`, type: 'input', className: 'col-3', props: { label: `Options` } }
-                : { key: `placeholder_${i}`, type: 'input', className: 'col-3', props: { label: `Placeholder` } },
-              { key: `className_${i}`, type: 'input', className: 'col-3', props: { label: `Class Name` } },
-              { key: `required_${i}`, type: 'checkbox', className: 'col-3', props: { label: `Required` } }
-            ]
-          };
-        }) || []
-      );
+        if (f.type === 'select' || f.type === 'radio') {
+          this.allFieldsModel[`options_${i}`] = Array.isArray(f.props?.options)
+            ? f.props.options.map((opt: any) => opt.label || opt).join(',')
+            : '';
+        }
+
+        return {
+          fieldGroupClassName: 'row mb-3',
+          fieldGroup: [
+            { template: `<h4 class="mt-3 mb-2">${f.key}</h4>` },
+            { key: `key_${i}`, type: 'input', className: 'col-3', props: { label: `Key` } },
+            { key: `label_${i}`, type: 'input', className: 'col-3', props: { label: `Label` } },
+            f.type === 'select' || f.type === 'radio'
+              ? { key: `options_${i}`, type: 'input', className: 'col-3', props: { label: `Options` } }
+              : { key: `placeholder_${i}`, type: 'input', className: 'col-3', props: { label: `Placeholder` } },
+            { key: `className_${i}`, type: 'input', className: 'col-3', props: { label: `Class Name` } },
+            { key: `required_${i}`, type: 'checkbox', className: 'col-3', props: { label: `Required` } }
+          ]
+        };
+      });
 
       this.allFieldsForm = this.fb.group({});
       this.allFieldsModalOpen.set(true);
@@ -996,42 +999,45 @@ export class App implements OnInit {
   }
 
   saveAllFieldsEdit() {
+    if (this.selectedGroupIndex === null) return;
+
     let counter = 0;
+    const updatedGroup = this.fields[this.selectedGroupIndex].fieldGroup?.map(field => {
+      const i = counter++;
+      const updatedProps: any = {
+        ...field.props,
+        label: this.allFieldsModel[`label_${i}`] ?? field.props?.label,
+        class: this.allFieldsModel[`class_${i}`] ?? field.props?.['class'],
+        required: !!this.allFieldsModel[`required_${i}`]
+      };
 
-    this.fields = this.fields.map(row => ({
-      ...row,
-      fieldGroup: row.fieldGroup?.map(field => {
-        const i = counter++;
-        const updatedProps: any = {
-          ...field.props,
-          label: this.allFieldsModel[`label_${i}`] ?? field.props?.label,
-          class: this.allFieldsModel[`class_${i}`] ?? field.props?.['class'],
-          required: !!this.allFieldsModel[`required_${i}`]
-        };
+      if (field.type === 'select' || field.type === 'radio') {
+        const optsStr = this.allFieldsModel[`options_${i}`];
+        updatedProps.options = optsStr
+          ? optsStr.split(',').map((opt: string) => ({ label: opt.trim(), value: opt.trim() }))
+          : field.props?.options;
+      } else {
+        updatedProps.placeholder = this.allFieldsModel[`placeholder_${i}`] ?? field.props?.placeholder;
+      }
 
-        if (field.type === 'select' || field.type === 'radio') {
-          const optsStr = this.allFieldsModel[`options_${i}`];
-          updatedProps.options = optsStr
-            ? optsStr.split(',').map((opt: string) => ({ label: opt.trim(), value: opt.trim() }))
-            : field.props?.options;
-        } else {
-          updatedProps.placeholder = this.allFieldsModel[`placeholder_${i}`] ?? field.props?.placeholder;
-        }
+      return {
+        ...field,
+        key: this.allFieldsModel[`key_${i}`] ?? field.key,
+        className: this.allFieldsModel[`className_${i}`] ?? field.className,
+        props: updatedProps
+      };
+    }) ?? [];
 
-        return {
-          ...field,
-          key: this.allFieldsModel[`key_${i}`] ?? field.key,
-          className: this.allFieldsModel[`className_${i}`] ?? field.className,
-          props: updatedProps
-        };
-      })
-    }));
+    this.fields[this.selectedGroupIndex] = {
+      ...this.fields[this.selectedGroupIndex],
+      fieldGroup: updatedGroup
+    };
 
     this.fields = [...this.fields];
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.allFieldsModalOpen.set(false);
-    this.showNotification('All fields updated (remember to Save Form)!');
+    this.showNotification('Field group updated (remember to Save Form)!');
   }
 
   deleteFieldGroup(index: number) {
@@ -1077,5 +1083,10 @@ export class App implements OnInit {
 
   setSelectedRowIndex(i: number) {
     this.selectedRowIndex = i;
+  }
+
+  openAllFieldsModal(groupIndex: number) {
+    this.selectedGroupIndex = groupIndex;
+    this.toggleAllFieldsModal();
   }
 }

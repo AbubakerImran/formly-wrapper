@@ -2,7 +2,6 @@
 <div class="container-fluid d-flex bg-white shadow align-items-center justify-content-between rounded-bottom-2">
   <h2 class="ms-3">Angular Forms</h2>
   <div class="d-flex p-3 gap-3 justify-content-end">
-    <button type="button" class="btn border-0" *ngIf="formHeading && savedFormNames.length != 0" data-bs-toggle="modal" data-bs-target="#formDivModal" appTooltip title="Add new field"><i class="fa-regular fa-square-plus"></i></button>
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" appTooltip title="Edit form"><i class="fa-solid fa-file-code"></i></button>
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()" appTooltip title="Close form"><i class="fa-solid fa-file-excel"></i></button>
     <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal" data-bs-target="#savedFormsModal" appTooltip title="Open saved form"><i class="fa-solid fa-file"></i></button>
@@ -13,7 +12,7 @@
 <div class="d-flex gap-5">
   <div class="position-absolute start-0 bottom-0 bg-white shadow w-25 rounded-end-5 rounded-bottom-0"
       style="flex: 1; height: 85vh; max-height: 85vh; overflow-y: auto; scrollbar-width: none;">
-    <div class="container p-3" *ngIf="modalStep() && fields.length != 0">
+    <div class="container p-3" *ngIf="modalStep() && showForm">
       <h3>Form Tree</h3>
       <ul class="tree-list">
         <li>
@@ -23,7 +22,7 @@
 
             <!-- Action buttons -->
             <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formDivModal"
-              appTooltip title="Add new field" (click)="$event.stopPropagation();" style="font-size: 13px;">
+              appTooltip title="Add new div" (click)="$event.stopPropagation();" style="font-size: 13px;">
               <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
             </button>
             <button type="button" class="btn btn-sm border-0" (click)="$event.stopPropagation(); toggleAllFieldsModal()"
@@ -57,7 +56,7 @@
                   style="font-size: 13px;">
                   <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
                 </button>
-                <button type="button" class="btn btn-sm border-0" (click)="$event.stopPropagation(); toggleAllFieldsModal()"
+                <button type="button" class="btn btn-sm border-0" (click)="$event.stopPropagation(); openAllFieldsModal(i)"
                   data-bs-toggle="modal" data-bs-target="#allFieldsModal" appTooltip title="Edit all fields" style="font-size: 13px;">
                   <i class='fas fa-edit' style="align-self: center;"></i>
                 </button>
@@ -153,36 +152,6 @@
   </div>
 </div>
 
-<div class="modal fade" id="formDivModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="formModalLabel">Choose Field Type</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row justify-content-center">
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('input')">Input</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('textarea')">Textarea</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('select')">Select</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('radio')">Radio</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-warning w-100 p-5 mt-3" data-bs-dismiss="modal" (click)="addFixedField('div')">Div</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -203,6 +172,23 @@
           </div>
           <div class="col-3">
             <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('radio')">Radio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="formDivModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row justify-content-center">
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-warning w-100 p-5 mt-3" data-bs-dismiss="modal" (click)="addFixedField('div')">Div</button>
           </div>
         </div>
       </div>
@@ -331,6 +317,10 @@
         <form [formGroup]="allFieldsForm" (ngSubmit)="saveAllFieldsEdit()" class="container">
           <formly-form [form]="allFieldsForm" [model]="allFieldsModel" [fields]="allFieldsFields"></formly-form>
         </form>
+      </div>
+
+      <div class="text-center mb-4" *ngIf="fields.length === 0">
+        No fields available to edit.
       </div>
 
       <!-- Footer -->
