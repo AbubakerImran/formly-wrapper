@@ -17,12 +17,17 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class App implements OnInit {
 
-  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) {}
+  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) { }
 
   // Main form
   form = new FormGroup({});
   model: any = {};
-  options: FormlyFormOptions = {};
+  options: FormlyFormOptions = {
+  formState: { submitted: false },
+  showError: (field) =>
+    field.formControl?.invalid &&
+    (field.formControl?.touched || this.options.formState?.submitted),
+  };
   fields: FormlyFieldConfig[] = [];
   users: any[] = [];
 
@@ -138,18 +143,13 @@ export class App implements OnInit {
       }
     });
   }
-  
+
   ngOnInit() {
     // Don't load any fields until a form is opened
     this.fields = [];
     this.model = {};
     this.users = [];
     this.loadSavedFormNames();
-  }
-
-  private resetFormGroup() {
-    this.form = new FormGroup({});
-    this.model = {};
   }
 
   loadSavedFormNames() {
@@ -274,9 +274,9 @@ export class App implements OnInit {
 
   saveFormNameChange() {
 
-    if(this.formChanged) {
-      if(!confirm("Are you sure to update the form info? changes will be lost!"))
-      return
+    if (this.formChanged) {
+      if (!confirm("Are you sure to update the form info? changes will be lost!"))
+        return
     }
 
     if (!this.editFormModel.formName) {
@@ -327,27 +327,27 @@ export class App implements OnInit {
     }
 
     this.http.delete(`http://localhost:3000/forms/${formName}`)
-    .subscribe({
-      next: () => {
-        // ✅ Clear UI if deleted form was open
-        if (this.formHeading === formName) {
-          this.formHeading = '';
-          this.fields = [];
-          this.users = [];
-          this.model = {};
-        }
-        if (formName === this.showForm) {
-          this.showForm = '';
-        }
+      .subscribe({
+        next: () => {
+          // ✅ Clear UI if deleted form was open
+          if (this.formHeading === formName) {
+            this.formHeading = '';
+            this.fields = [];
+            this.users = [];
+            this.model = {};
+          }
+          if (formName === this.showForm) {
+            this.showForm = '';
+          }
 
-        this.loadSavedFormNames();
-        this.showNotification("Form deleted successfully!");
-      },
-      error: (err) => {
-        console.error("❌ Failed to delete form:", err);
-        this.showNotification("Error deleting form!");
-      }
-    });
+          this.loadSavedFormNames();
+          this.showNotification("Form deleted successfully!");
+        },
+        error: (err) => {
+          console.error("❌ Failed to delete form:", err);
+          this.showNotification("Error deleting form!");
+        }
+      });
   }
 
   fetchData() {
@@ -375,6 +375,8 @@ export class App implements OnInit {
   }
 
   onSubmit(model: any) {
+    this.options.formState.submitted = true;
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -385,14 +387,10 @@ export class App implements OnInit {
     }
     if (this.fields.length > 0) {
       const newEntry = { ...model };
-      this.formService
-      .createEntry(this.formHeading, newEntry)
-      .subscribe(() => {
-        this.model = {};
-        this.form.reset();
+      this.formService.createEntry(this.formHeading, newEntry).subscribe(() => {
+        this.resetForm();
         this.fetchData();
         this.isEdit.set(false);
-        this.resetFormGroup();
         this.showNotification('Successfully submitted!');
       });
     }
@@ -401,7 +399,7 @@ export class App implements OnInit {
   resetForm() {
     this.model = {};
     this.form.reset();
-    this.options.formState = { ...(this.options.formState || {}), submitted: false };
+    this.options.formState.submitted = false;
   }
 
   get hasModel(): boolean {
@@ -417,7 +415,7 @@ export class App implements OnInit {
           this.model = {};
           this.fetchData();  // reload from backend
           this.isEdit.set(false);
-          this.resetFormGroup();
+          this.resetForm();
           this.showNotification('✅ Successfully updated info!');
         },
         error: (err) => {
@@ -492,8 +490,8 @@ export class App implements OnInit {
   }
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio' | 'div') {
-    const baseStyle = { borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:'' };
-    const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'' };
+    const baseStyle = { borderRadius: '', color: '', backgroundColor: '', fontFamily: '', fontSize: '', fontWeight: '' };
+    const labelBaseStyle = { backgroundColor: '', color: '', fontFamily: '', fontSize: '', fontWeight: '' };
 
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
@@ -517,7 +515,7 @@ export class App implements OnInit {
         id: `${type}${index}`,
         ...(type === 'textarea' || type === 'input' || type === 'div' ? { placeholder: `${type}${index}` } : {}),
         class: type === 'select' ? 'form-select' :
-              type === 'radio' ? 'form-check-input' : 'form-control',
+          type === 'radio' ? 'form-check-input' : 'form-control',
         required: true,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
@@ -741,9 +739,9 @@ export class App implements OnInit {
         index: this.editingFieldIndex,
         options: this.modalModel.options
           ? this.modalModel.options.split(',').map((opt: string) => ({
-              label: opt.trim(),
-              value: opt.trim()
-            }))
+            label: opt.trim(),
+            value: opt.trim()
+          }))
           : field.props?.options,
         style: updatedStyle,
         labelStyle: updatedLabelStyle
@@ -817,7 +815,7 @@ export class App implements OnInit {
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.showNotification('Field successfully deleted!');
-    
+
   }
 
   closeForm() {
@@ -858,7 +856,7 @@ export class App implements OnInit {
     this.formMenuVisible = true;
   }
 
-  selectedFieldIndex: number | null = null; 
+  selectedFieldIndex: number | null = null;
   selectedRowIndex: number | null = null;
   selectedGroupIndex: number | null = null;
 
@@ -897,7 +895,7 @@ export class App implements OnInit {
     // Case 1: Moving inside the same list (reorder)
     if (event.previousContainer === event.container) {
       moveItemInArray(list, event.previousIndex, event.currentIndex);
-    } 
+    }
     // Case 2: Moving across child divs (drag field into another fieldGroup)
     else {
       transferArrayItem(
