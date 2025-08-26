@@ -23,10 +23,10 @@ export class App implements OnInit {
   form = new FormGroup({});
   model: any = {};
   options: FormlyFormOptions = {
-  formState: { submitted: false },
-  showError: (field) =>
-    field.formControl?.invalid &&
-    (field.formControl?.touched || this.options.formState?.submitted),
+    formState: { submitted: false },
+    showError: (field) =>
+      field.formControl?.invalid &&
+      (field.formControl?.touched || this.options.formState?.submitted),
   };
   fields: FormlyFieldConfig[] = [];
   users: any[] = [];
@@ -375,8 +375,6 @@ export class App implements OnInit {
   }
 
   onSubmit(model: any) {
-    this.options.formState.submitted = true;
-
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -385,6 +383,7 @@ export class App implements OnInit {
       alert('Please save the form before submitting data!');
       return;
     }
+    this.options.formState.submitted = true;
     if (this.fields.length > 0) {
       const newEntry = { ...model };
       this.formService.createEntry(this.formHeading, newEntry).subscribe(() => {
