@@ -49,7 +49,8 @@
             <li *ngFor="let field of fields; let i = index" cdkDrag>
               <!-- Child div -->
               <div class="tree-node d-flex align-items-center">
-                <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">div</span>
+                <span cdkDragHandle>⠿</span>
+                <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">&nbsp;div</span>
                 <button type="button"
                   class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
                   appTooltip title="Add new field" (click)="$event.stopPropagation(); setSelectedRowIndex(i);"
@@ -77,6 +78,7 @@
 
                 <li *ngFor="let childField of field.fieldGroup; let j = index" cdkDrag>
                   <div class="tree-node">
+                    <span cdkDragHandle>⠿</span>
                     {{ childField.type || 'input' }}: {{ childField.props?.label || '...' }}
 
                     <button type="button" class="btn btn-sm border-0"
