@@ -688,7 +688,15 @@ export class App implements OnInit {
     const row = this.fields[targetRowIndex];
     const field = row.fieldGroup![targetFieldIndex];
 
-    // build updatedField as you already do...
+    const oldKey = field.key as string;
+    const newKey = this.modalModel.key;
+
+    // --- migrate key if changed ---
+    if (oldKey && newKey && oldKey !== newKey) {
+      this.updateFieldKey(oldKey, newKey);
+    }
+
+    // build updatedField
     const updatedStyle: any = {};
     Object.keys(field.props?.['style'] || {}).forEach(k => {
       let val = this.modalModel.style?.[k] || '';
@@ -715,13 +723,13 @@ export class App implements OnInit {
 
     const updatedField: FormlyFieldConfig = {
       ...field,
-      key: this.modalModel.key,
+      key: newKey,
       className: this.modalModel.className,
       props: {
         ...field.props,
         label: this.modalModel.label,
         class: this.modalModel.class,
-        id: this.modalModel.key,
+        id: newKey,
         labelClass: this.modalModel.labelClass,
         placeholder: this.modalModel.placeholder,
         required: !!this.modalModel.required,
@@ -748,6 +756,41 @@ export class App implements OnInit {
     this.modalForm.reset();
     this.modalModel = {};
     this.showNotification('Field updated (remember to Save Form)!');
+  }
+
+  updateFieldKey(oldKey: string, newKey: string) {
+    // update users table
+    this.users = this.users.map(u => {
+      if (u.hasOwnProperty(oldKey)) {
+        u[newKey] = u[oldKey];
+        delete u[oldKey];
+      }
+      return u;
+    });
+
+    // update model
+    if (this.model.hasOwnProperty(oldKey)) {
+      this.model[newKey] = this.model[oldKey];
+      delete this.model[oldKey];
+    }
+
+    // update form controls
+    if (this.form.contains(oldKey)) {
+      const ctrl = this.form.get(oldKey);
+      this.form.removeControl(oldKey);
+      this.form.addControl(newKey, ctrl!);
+    }
+
+    // persist to backend
+    this.users.forEach(user => {
+      const { id, ...data } = user;
+      this.formService.updateEntry(this.formHeading, id, data).subscribe();
+    });
+
+    // update displayFields
+    this.displayFields = this.displayFields.map(f =>
+      f.key === oldKey ? { key: newKey, label: f.label } : f
+    );
   }
 
   deleteRowField(rowIndex: number, fieldIndex: number) {
@@ -933,14 +976,13 @@ export class App implements OnInit {
             fieldGroupClassName: 'row mb-3',
             fieldGroup: [
               { template: `<h4 class="mt-3 mb-2">${f.key}</h4>` },
-              { key: `key_${i}`, type: 'input', className: 'col-md-3', props: { label: `Key` } },
-              { key: `label_${i}`, type: 'input', className: 'col-md-3', props: { label: `Label` } },
+              { key: `key_${i}`, type: 'input', className: 'col-3', props: { label: `Key` } },
+              { key: `label_${i}`, type: 'input', className: 'col-3', props: { label: `Label` } },
               f.type === 'select' || f.type === 'radio'
-                ? { key: `options_${i}`, type: 'input', className: 'col-md-3', props: { label: `Options` } }
-                : { key: `placeholder_${i}`, type: 'input', className: 'col-md-3', props: { label: `Placeholder` } },
-              { key: `class_${i}`, type: 'input', className: 'col-md-3', props: { label: `Class` } },
-              { key: `className_${i}`, type: 'input', className: 'col-md-3', props: { label: `Class Name` } },
-              { key: `required_${i}`, type: 'checkbox', className: 'col-md-3', props: { label: `Required` } }
+                ? { key: `options_${i}`, type: 'input', className: 'col-3', props: { label: `Options` } }
+                : { key: `placeholder_${i}`, type: 'input', className: 'col-3', props: { label: `Placeholder` } },
+              { key: `className_${i}`, type: 'input', className: 'col-3', props: { label: `Class Name` } },
+              { key: `required_${i}`, type: 'checkbox', className: 'col-3', props: { label: `Required` } }
             ]
           };
         }) || []
@@ -990,6 +1032,14 @@ export class App implements OnInit {
     this.formChanged = true;
     this.allFieldsModalOpen.set(false);
     this.showNotification('All fields updated (remember to Save Form)!');
+  }
+
+  deleteFieldGroup(index: number) {
+    if (!confirm("Delete this div and its fields?")) return;
+    this.fields.splice(index, 1);
+    this.fields = [...this.fields]; // force UI refresh
+    this.formChanged = true;
+    this.showNotification("Field group deleted (remember to Save Form)!");
   }
 
   deleteAllFields() {
