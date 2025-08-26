@@ -42,6 +42,11 @@ export class App implements OnInit {
   allFieldsModel: any = {};
   allFieldsFields: FormlyFieldConfig[] = [];
 
+  globalFieldsModalOpen = signal(false);
+  globalFieldsForm = new FormGroup({});
+  globalFieldsModel: any = {};
+  globalFieldsFields: FormlyFieldConfig[] = [];
+
   editFormModal = new FormGroup({});
   editFormModel: any = {};
   editFormFields: FormlyFieldConfig[] = [
@@ -1038,6 +1043,84 @@ export class App implements OnInit {
     this.formChanged = true;
     this.allFieldsModalOpen.set(false);
     this.showNotification('Field group updated (remember to Save Form)!');
+  }
+
+  toggleGlobalFieldsModal() {
+    if (!this.globalFieldsModalOpen()) {
+      this.globalFieldsModel = {};
+      let counter = 0;
+
+      this.globalFieldsFields = this.fields.flatMap((row) =>
+        row.fieldGroup?.map((f) => {
+          const i = counter++;
+
+          this.globalFieldsModel[`key_${i}`] = f.key;
+          this.globalFieldsModel[`className_${i}`] = f.className;
+          this.globalFieldsModel[`label_${i}`] = f.props?.label;
+          this.globalFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
+          this.globalFieldsModel[`class_${i}`] = f.props?.['class'];
+          this.globalFieldsModel[`required_${i}`] = f.props?.required;
+
+          if (f.type === 'select' || f.type === 'radio') {
+            this.globalFieldsModel[`options_${i}`] = Array.isArray(f.props?.options)
+              ? f.props.options.map((opt: any) => opt.label || opt).join(',')
+              : '';
+          }
+          return {
+            fieldGroupClassName: 'row mb-3',
+            fieldGroup: [
+              { template: `<h4 class="mt-3 mb-2">${f.key}</h4>` },
+              { key: `key_${i}`, type: 'input', className: 'col-3', props: { label: `Key` } },
+              { key: `label_${i}`, type: 'input', className: 'col-3', props: { label: `Label` } },
+              f.type === 'select' || f.type === 'radio'
+                ? { key: `options_${i}`, type: 'input', className: 'col-3', props: { label: `Options` } }
+                : { key: `placeholder_${i}`, type: 'input', className: 'col-3', props: { label: `Placeholder` } },
+              { key: `className_${i}`, type: 'input', className: 'col-3', props: { label: `Class Name` } },
+              { key: `required_${i}`, type: 'checkbox', className: 'col-3', props: { label: `Required` } }
+            ]
+          };
+        }) || []
+      );
+      this.globalFieldsForm = this.fb.group({});
+      this.globalFieldsModalOpen.set(true);
+    } else {
+      this.globalFieldsModalOpen.set(false);
+    }
+  }
+
+  saveGlobalFieldsEdit() {
+    let counter = 0;
+    this.fields = this.fields.map(row => ({
+      ...row,
+      fieldGroup: row.fieldGroup?.map(field => {
+        const i = counter++;
+        const updatedProps: any = {
+          ...field.props,
+          label: this.globalFieldsModel[`label_${i}`] ?? field.props?.label,
+          class: this.globalFieldsModel[`class_${i}`] ?? field.props?.['class'],
+          required: !!this.globalFieldsModel[`required_${i}`]
+        };
+        if (field.type === 'select' || field.type === 'radio') {
+          const optsStr = this.globalFieldsModel[`options_${i}`];
+          updatedProps.options = optsStr
+            ? optsStr.split(',').map((opt: string) => ({ label: opt.trim(), value: opt.trim() }))
+            : field.props?.options;
+        } else {
+          updatedProps.placeholder = this.globalFieldsModel[`placeholder_${i}`] ?? field.props?.placeholder;
+        }
+        return {
+          ...field,
+          key: this.globalFieldsModel[`key_${i}`] ?? field.key,
+          className: this.globalFieldsModel[`className_${i}`] ?? field.className,
+          props: updatedProps
+        };
+      })
+    }));
+    this.fields = [...this.fields];
+    this.reattachFieldFunctions();
+    this.formChanged = true;
+    this.globalFieldsModalOpen.set(false);
+    this.showNotification('All fields updated (remember to Save Form)!');
   }
 
   deleteFieldGroup(index: number) {
