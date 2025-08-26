@@ -490,7 +490,6 @@ export class App implements OnInit {
     const baseStyle = { borderRadius:'', color:'', backgroundColor:'', fontFamily:'', fontSize:'', fontWeight:'' };
     const labelBaseStyle = { backgroundColor:'', color:'', fontFamily:'', fontSize:'', fontWeight:'', fontStyle:'' };
 
-    // find next available key
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
       .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
@@ -506,7 +505,7 @@ export class App implements OnInit {
     const newField: FormlyFieldConfig = {
       className: 'col-12',
       key: `${type}${index}`,
-      type: (type === 'div' ? 'input' : type),   // if button pressed was "div", actual field is input
+      type: (type === 'div' ? 'input' : type),
       wrappers: [currentWrapper],
       props: {
         label: `${type}${index}`,
@@ -519,7 +518,6 @@ export class App implements OnInit {
         labelFor: `${type}${index}`,
         style: baseStyle,
         labelStyle: labelBaseStyle,
-        index: this.fields.length,
         ...(type === 'select' ? {
           options: [
             { label: 'Select an option...', value: '', disabled: true },
@@ -539,25 +537,29 @@ export class App implements OnInit {
 
     if (type === 'select') newField.defaultValue = '';
 
-    // if "div" pressed → always create a new fieldGroup row
     if (type === 'div') {
       this.fields.push({
         fieldGroupClassName: 'row',
-        fieldGroup: [newField]
+        fieldGroup: []
       });
     } else {
-      // normal case → append inside first row
-      if (this.fields.length === 0) {
-        this.fields.push({
-          fieldGroupClassName: 'row',
-          fieldGroup: [newField]
-        });
+      if (this.selectedRowIndex !== null) {
+        this.fields[this.selectedRowIndex].fieldGroup?.push(newField);
       } else {
-        this.fields[0].fieldGroup?.push(newField);
+        // fallback if no row selected
+        if (this.fields.length === 0) {
+          this.fields.push({
+            fieldGroupClassName: 'row',
+            fieldGroup: [newField]
+          });
+        } else {
+          this.fields[0].fieldGroup?.push(newField);
+        }
       }
     }
 
     this.fields = [...this.fields];
+    this.selectedFieldIndex = null;
     this.reattachFieldFunctions();
     this.cancelFieldModal();
 
@@ -1010,7 +1012,7 @@ export class App implements OnInit {
     }
   }
 
-  setSelectedRowIndex(index: number) {
-    this.selectedRowIndex = index;
+  setSelectedRowIndex(i: number) {
+    this.selectedRowIndex = i;
   }
 }
