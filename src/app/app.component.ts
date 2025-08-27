@@ -22,6 +22,11 @@ export class App implements OnInit {
   totalPages = 0;
   paginatedUsers: any[] = [];
 
+  get paginatedIds(): string {
+    if (!this.paginatedUsers || this.paginatedUsers.length === 0) return '';
+    return this.paginatedUsers.map(u => u.id).join(', ');
+  }
+
   constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) { }
 
   // Main form
@@ -451,12 +456,11 @@ export class App implements OnInit {
         // Build display fields (column headers)
         if (this.users.length > 0) {
           // find entry with most keys
-  const widest = this.users.reduce((max, u) =>
-    Object.keys(u).length > Object.keys(max).length ? u : max
-  , this.users[0]);
-
-  const keys = Object.keys(widest).filter(k => k !== 'id');
-  this.displayFields = keys.map(k => ({ key: k, label: k }));
+          const widest = this.users.reduce((max, u) =>
+            Object.keys(u).length > Object.keys(max).length ? u : max, this.users[0]
+          );
+          const keys = Object.keys(widest).filter(k => k !== 'id');
+          this.displayFields = keys.map(k => ({ key: k, label: k }));
         }
         this.updatePagination();
       },
