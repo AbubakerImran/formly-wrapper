@@ -46,7 +46,7 @@
               (cdkDropListDropped)="drop($event, fields)"
               class="ul tree-children">
 
-            <li *ngFor="let field of fields; let i = index" cdkDrag>
+            <li *ngFor="let field of fields; let i = index" cdkDrag (cdkDragStarted)="onDragStart()" (cdkDragEnded)="onDragEnd()">
               <!-- Child div -->
               <div class="tree-node d-flex align-items-center">
                 <span cdkDragHandle>⠿</span>
@@ -76,7 +76,7 @@
                   (cdkDropListDropped)="drop($event, field.fieldGroup ?? [])"
                   class="ul tree-children">
 
-                <li *ngFor="let childField of field.fieldGroup; let j = index" cdkDrag>
+                <li *ngFor="let childField of field.fieldGroup; let j = index" cdkDrag (cdkDragStarted)="onDragStart()" (cdkDragEnded)="onDragEnd()">
                   <div class="tree-node">
                     <span cdkDragHandle>⠿</span>
                     {{ childField.type || 'input' }}: {{ childField.props?.label || '...' }}

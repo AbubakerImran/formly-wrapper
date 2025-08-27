@@ -1,4 +1,4 @@
-<div class="mb-3" cdkDrag (cdkDragStarted)="onDragStart()" (cdkDragEnded)="onDragEnd()">
+<div class="mb-3">
   <div class="d-flex align-items-center">
     <div class="col-2">
       <label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
@@ -75,7 +75,6 @@
         />
       </ng-container>
     </div>
-    <span cdkDragHandle></span>
   </div>
   <div *ngIf="showError" class="text-danger mt-1 d-flex">
     <div class="col-2"></div>
