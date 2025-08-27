@@ -134,7 +134,7 @@
         </div>
         <div class="table-responsive mt-3" (contextmenu)="showFormContextMenu($event)" #inputField>
           <table class="table table-bordered">
-            <thead *ngIf="users.length != 0">
+            <thead *ngIf="users.length != 0 && filteredUsers.length != 0">
               <tr>
                 <th *ngFor="let f of displayFields" 
                     (click)="toggleSort(f.key)" 
@@ -148,6 +148,11 @@
               </tr>
             </thead>
             <tbody>
+              <tr *ngIf="filteredUsers.length === 0 && users.length != 0">
+                <td [attr.colspan]="displayFields.length + 2" class="text-center">
+                  No matching entries found.
+                </td>
+              </tr>
               <tr *ngIf="users.length === 0">
                 <td [attr.colspan]="displayFields.length + 2" class="text-center">No users found.</td>
               </tr>
