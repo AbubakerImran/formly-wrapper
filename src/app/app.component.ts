@@ -17,6 +17,11 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class App implements OnInit {
 
+  pageSize = 3;
+  currentPage = 1;
+  totalPages = 0;
+  paginatedUsers: any[] = [];
+
   constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) { }
 
   // Main form
@@ -150,6 +155,25 @@ export class App implements OnInit {
     this.model = {};
     this.users = [];
     this.loadSavedFormNames();
+  }
+
+  updatePagination() {
+    this.totalPages = Math.ceil(this.users.length / this.pageSize) || 1;
+
+    // clamp currentPage
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.paginatedUsers = this.users.slice(start, end);
+  }
+
+  setPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
   }
 
   loadSavedFormNames() {
@@ -365,11 +389,13 @@ export class App implements OnInit {
             .filter(k => k !== 'id')   // don’t show raw ID twice
             .map(k => ({ key: k, label: k }));
         }
+        this.updatePagination();
       },
       error: (err) => {
         console.error("❌ Error fetching entries:", err);
         this.users = [];
         this.displayFields = [];
+        this.updatePagination();
       }
     });
   }
