@@ -11,7 +11,7 @@ import { CdkDrag } from "@angular/cdk/drag-drop";
   templateUrl: 'horizontal-wrapper.html',
   styleUrls: ['../../app.component.css'], // Ensure the correct path
   standalone: true,
-  imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule, CdkDrag],
+  imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule],
 })
 export class FormlyHorizontalWrapper extends FieldWrapper {
   menuVisible = false;

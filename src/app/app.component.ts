@@ -399,6 +399,8 @@ export class App implements OnInit {
     });
   }
 
+  loading = signal(false);
+
   onSubmit(model: any) {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -408,6 +410,7 @@ export class App implements OnInit {
       alert('Please save the form before submitting data!');
       return;
     }
+    this.loading.set(true);
     this.options.formState.submitted = true;
     if (this.fields.length > 0) {
       const newEntry = { ...model };
@@ -418,6 +421,7 @@ export class App implements OnInit {
         this.showNotification('Successfully submitted!');
       });
     }
+    this.loading.set(false);
   }
 
   resetForm() {

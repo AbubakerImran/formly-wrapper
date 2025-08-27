@@ -112,7 +112,7 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
         <formly-form [model]="model" [fields]="this.fields" [form]="this.form" cdkDropList [options]="this.options" [cdkDropListData]="fields" (cdkDropListDropped)="drop($event, fields)"></formly-form>
           <div class="d-flex justify-content-center" *ngIf="!isEdit()" (contextmenu)="showFormContextMenu($event)" #inputField>
-            <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0">Submit</button>
+            <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0" [disabled]="this.loading()">Submit</button>
             <button type="button" class="btn border mt-3 ms-3" *ngIf="fields.length != 0 && hasModel" (click)="resetForm()">Reset</button>
             <p *ngIf="fields.length === 0"><em>Start adding fields...</em></p>
           </div>
