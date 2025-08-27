@@ -486,12 +486,8 @@ export class App implements OnInit {
     }
     this.loading.set(true);
     this.options.formState.submitted = true;
-    const maxId = this.users.length > 0
-    ? Math.max(...this.users.map(u => u.id ?? 0))
-    : 0;
     if (this.fields.length > 0) {
       const newEntry = { 
-        Id: maxId + 1,
         ...model
       };
       this.formService.createEntry(this.formHeading, newEntry).subscribe(() => {

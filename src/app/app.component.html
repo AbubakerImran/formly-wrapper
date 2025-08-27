@@ -136,6 +136,12 @@
           <table class="table table-bordered">
             <thead *ngIf="users.length != 0 && filteredUsers.length != 0">
               <tr>
+                <th (click)="toggleSort('id')" style="cursor:pointer">
+                  UID
+                  <span *ngIf="sortColumn === 'id'">
+                    {{ sortAscending ? '▲' : '▼' }}
+                  </span>
+                </th>
                 <th *ngFor="let f of displayFields" 
                     (click)="toggleSort(f.key)" 
                     style="cursor:pointer">
@@ -157,6 +163,7 @@
                 <td [attr.colspan]="displayFields.length + 2" class="text-center">No users found.</td>
               </tr>
               <tr *ngFor="let user of paginatedUsers">
+                <td>{{ user.id }}</td>
                 <td *ngFor="let f of displayFields">{{ getValue(user, f.key) }}</td>
                 <td>
                   <div class="d-flex gap-2">
