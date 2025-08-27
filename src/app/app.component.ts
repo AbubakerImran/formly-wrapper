@@ -450,9 +450,13 @@ export class App implements OnInit {
 
         // Build display fields (column headers)
         if (this.users.length > 0) {
-          this.displayFields = Object.keys(this.users[0])
-            .filter(k => k !== 'id')   // don’t show raw ID twice
-            .map(k => ({ key: k, label: k }));
+          // find entry with most keys
+  const widest = this.users.reduce((max, u) =>
+    Object.keys(u).length > Object.keys(max).length ? u : max
+  , this.users[0]);
+
+  const keys = Object.keys(widest).filter(k => k !== 'id');
+  this.displayFields = keys.map(k => ({ key: k, label: k }));
         }
         this.updatePagination();
       },
