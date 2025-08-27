@@ -121,7 +121,7 @@
             <button type="button" class="btn border" (click)="cancel()">Cancel</button>
           </div>
         </form>
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between" *ngIf="users.length != 0">
           <h4>Entries</h4>
           <div class="mb-3 d-flex">
             <input type="text"
@@ -136,12 +136,6 @@
           <table class="table table-bordered">
             <thead *ngIf="users.length != 0">
               <tr>
-                <th (click)="toggleSort('id')" style="cursor:pointer">
-                  UID
-                  <span *ngIf="sortColumn === 'id'">
-                    {{ sortAscending ? '▲' : '▼' }}
-                  </span>
-                </th>
                 <th *ngFor="let f of displayFields" 
                     (click)="toggleSort(f.key)" 
                     style="cursor:pointer">
@@ -158,7 +152,6 @@
                 <td [attr.colspan]="displayFields.length + 2" class="text-center">No users found.</td>
               </tr>
               <tr *ngFor="let user of paginatedUsers">
-                <td>{{ user.id }}</td>
                 <td *ngFor="let f of displayFields">{{ getValue(user, f.key) }}</td>
                 <td>
                   <div class="d-flex gap-2">

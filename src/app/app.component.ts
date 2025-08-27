@@ -179,8 +179,9 @@ export class App implements OnInit {
   sortAscending: boolean = true;
 
   sortUsers() {
-    this.users.sort((a, b) => {
-      const col = this.sortColumn;
+    const col = this.sortColumn;
+
+    this.filteredUsers.sort((a, b) => {
       const valA = a[col];
       const valB = b[col];
 
@@ -190,6 +191,13 @@ export class App implements OnInit {
 
       if (typeof valA === 'number' && typeof valB === 'number') {
         return this.sortAscending ? valA - valB : valB - valA;
+      }
+
+      // force numbers stored as strings to be compared numerically
+      const numA = Number(valA);
+      const numB = Number(valB);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return this.sortAscending ? numA - numB : numB - numA;
       }
 
       return this.sortAscending
@@ -202,10 +210,10 @@ export class App implements OnInit {
 
   toggleSort(col: string) {
     if (this.sortColumn === col) {
-      this.sortAscending = !this.sortAscending; // toggle direction
+      this.sortAscending = !this.sortAscending;
     } else {
       this.sortColumn = col;
-      this.sortAscending = true; // reset to ascending for new col
+      this.sortAscending = true;
     }
     this.sortUsers();
   }
@@ -428,7 +436,7 @@ export class App implements OnInit {
         )
       );
     }
-    this.updatePagination();
+    this.sortUsers(); // ⬅️ keep sorted order
   }
 
   fetchData() {
@@ -471,7 +479,10 @@ export class App implements OnInit {
     this.loading.set(true);
     this.options.formState.submitted = true;
     if (this.fields.length > 0) {
-      const newEntry = { ...model };
+      const newEntry = { 
+        Id: this.users.length + 1,
+        ...model
+      };
       this.formService.createEntry(this.formHeading, newEntry).subscribe(() => {
         this.resetForm();
         this.fetchData();
