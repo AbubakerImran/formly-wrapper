@@ -167,24 +167,30 @@
               </tr>
             </tbody>
           </table>
-          <!-- Pagination -->
-          <nav aria-label="..." *ngIf="totalPages > 1">
-            <ul class="pagination justify-content-center">
-              <li class="page-item" [class.disabled]="currentPage === 1">
-                <a class="page-link" (click)="setPage(currentPage - 1)">Previous</a>
-              </li>
+          <div class="d-flex justify-content-between">
+            <!-- Pagination -->
+            <nav aria-label="..." *ngIf="totalPages > 1">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <a class="page-link" (click)="setPage(currentPage - 1)">Previous</a>
+                </li>
 
-              <li class="page-item"
-                  *ngFor="let page of [].constructor(totalPages); let i = index"
-                  [class.active]="currentPage === i + 1">
-                <a class="page-link" (click)="setPage(i + 1)">{{ i + 1 }}</a>
-              </li>
+                <li class="page-item"
+                    *ngFor="let page of [].constructor(totalPages); let i = index"
+                    [class.active]="currentPage === i + 1">
+                  <a class="page-link" (click)="setPage(i + 1)">{{ i + 1 }}</a>
+                </li>
 
-              <li class="page-item" [class.disabled]="currentPage === totalPages">
-                <a class="page-link" (click)="setPage(currentPage + 1)">Next</a>
-              </li>
-            </ul>
-          </nav>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <a class="page-link" (click)="setPage(currentPage + 1)">Next</a>
+                </li>
+              </ul>
+            </nav>
+            <div class="d-flex align-items-center">
+              <h6>Total Entries: {{ users.length }} |</h6>
+              <h6> Showing Entries: {{ pageSize }}</h6>
+            </div>
+          </div>
         </div>
       </div>
     </div>
