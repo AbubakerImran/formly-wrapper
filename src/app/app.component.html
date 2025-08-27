@@ -125,8 +125,20 @@
           <table class="table table-bordered">
             <thead *ngIf="users.length != 0">
               <tr>
-                <th>UID</th>
-                <th *ngFor="let f of displayFields">{{ f.label }}</th>
+                <th (click)="toggleSort('id')" style="cursor:pointer">
+                  UID
+                  <span *ngIf="sortColumn === 'id'">
+                    {{ sortAscending ? '▲' : '▼' }}
+                  </span>
+                </th>
+                <th *ngFor="let f of displayFields" 
+                    (click)="toggleSort(f.key)" 
+                    style="cursor:pointer">
+                  {{ f.label }}
+                  <span *ngIf="sortColumn === f.key">
+                    {{ sortAscending ? '▲' : '▼' }}
+                  </span>
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>

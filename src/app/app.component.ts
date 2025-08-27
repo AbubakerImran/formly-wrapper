@@ -176,6 +176,41 @@ export class App implements OnInit {
     this.updatePagination();
   }
 
+  sortColumn: string = 'id';
+  sortAscending: boolean = true;
+
+  sortUsers() {
+    this.users.sort((a, b) => {
+      const col = this.sortColumn;
+      const valA = a[col];
+      const valB = b[col];
+
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return this.sortAscending ? -1 : 1;
+      if (valB == null) return this.sortAscending ? 1 : -1;
+
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return this.sortAscending ? valA - valB : valB - valA;
+      }
+
+      return this.sortAscending
+        ? String(valA).localeCompare(String(valB))
+        : String(valB).localeCompare(String(valA));
+    });
+
+    this.updatePagination();
+  }
+
+  toggleSort(col: string) {
+    if (this.sortColumn === col) {
+      this.sortAscending = !this.sortAscending; // toggle direction
+    } else {
+      this.sortColumn = col;
+      this.sortAscending = true; // reset to ascending for new col
+    }
+    this.sortUsers();
+  }
+
   loadSavedFormNames() {
     this.http.get<any[]>(`http://localhost:3000/forms`)
       .subscribe({
@@ -381,6 +416,7 @@ export class App implements OnInit {
     this.formService.getEntries(this.formHeading).subscribe({
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
+        this.sortUsers();
 
         // Build display fields (column headers)
         if (this.users.length > 0) {
