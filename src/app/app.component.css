@@ -87,8 +87,8 @@ i {
   cursor: grabbing !important;
 }
 
-.tree-list { list-style: none; padding-left: 1rem; font-family: monospace; }
+.tree-list { list-style: none; padding-left: 0.3rem; font-family: monospace; }
 .tree-node { margin: 2px 0; }
-.tree-children { padding-left: 23px; border-left: 1px dashed #ccc; margin-left: 4px; list-style: none; }
+.tree-children { padding-left: 10px; border-left: 1px dashed #ccc; margin-left: 4px; list-style: none; }
 .tag { margin-right: 4px; font-size: 18px; }
 .btn-sm { font-size: 12px; }

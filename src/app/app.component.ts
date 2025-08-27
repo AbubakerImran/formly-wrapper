@@ -227,6 +227,7 @@ export class App implements OnInit {
           });
 
           this.fetchData();
+          this.toggle('parent');
         }
       },
       error: (err) => {
@@ -379,8 +380,6 @@ export class App implements OnInit {
 
     this.formService.getEntries(this.formHeading).subscribe({
       next: (formEntries: any[]) => {
-        // 🟢 Your backend returns: [{ id: 1, data: { name: "John", email: "..." } }, ...]
-        // flatten to: { id: 1, name: "John", email: "..." }
         this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
 
         // Build display fields (column headers)
@@ -789,17 +788,28 @@ export class App implements OnInit {
   updateFieldKey(oldKey: string, newKey: string) {
     // update users table
     this.users = this.users.map(u => {
-      if (u.hasOwnProperty(oldKey)) {
-        u[newKey] = u[oldKey];
-        delete u[oldKey];
+      const newObj: any = {};
+      for (const k of Object.keys(u)) {
+        if (k === oldKey) {
+          newObj[newKey] = u[k];  // replace key
+        } else {
+          newObj[k] = u[k];
+        }
       }
-      return u;
+      return newObj;
     });
 
     // update model
     if (this.model.hasOwnProperty(oldKey)) {
-      this.model[newKey] = this.model[oldKey];
-      delete this.model[oldKey];
+      const newModel: any = {};
+      for (const k of Object.keys(this.model)) {
+        if (k === oldKey) {
+          newModel[newKey] = this.model[k];
+        } else {
+          newModel[k] = this.model[k];
+        }
+      }
+      this.model = newModel;
     }
 
     // update form controls
