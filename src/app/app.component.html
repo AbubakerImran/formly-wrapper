@@ -121,6 +121,17 @@
             <button type="button" class="btn border" (click)="cancel()">Cancel</button>
           </div>
         </form>
+        <div class="d-flex justify-content-between">
+          <h4>Entries</h4>
+          <div class="mb-3 d-flex">
+            <input type="text"
+              class="form-control"
+              placeholder="Search..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="applyFilter()" />
+            <button class="btn btn-warning ms-2" type="button" (click)="resetSearch()">Reset</button>
+          </div>
+        </div>
         <div class="table-responsive mt-3" (contextmenu)="showFormContextMenu($event)" #inputField>
           <table class="table table-bordered">
             <thead *ngIf="users.length != 0">
