@@ -158,16 +158,15 @@ export class App implements OnInit {
   }
 
   updatePagination() {
-    this.totalPages = Math.ceil(this.users.length / this.pageSize) || 1;
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
 
-    // clamp currentPage
     if (this.currentPage > this.totalPages) {
       this.currentPage = this.totalPages;
     }
 
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
-    this.paginatedUsers = this.users.slice(start, end);
+    this.paginatedUsers = this.filteredUsers.slice(start, end);
   }
 
   setPage(page: number) {
@@ -410,6 +409,28 @@ export class App implements OnInit {
       });
   }
 
+  searchTerm: string = '';
+  filteredUsers: any[] = [];
+
+  resetSearch() {
+    this.searchTerm = '';
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    const term = this.searchTerm.toLowerCase();
+    if (!term) {
+      this.filteredUsers = [...this.users];
+    } else {
+      this.filteredUsers = this.users.filter(user =>
+        Object.values(user).some(val =>
+          val != null && String(val).toLowerCase().includes(term)
+        )
+      );
+    }
+    this.updatePagination();
+  }
+
   fetchData() {
     if (!this.formHeading) return;
 
@@ -417,6 +438,7 @@ export class App implements OnInit {
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
         this.sortUsers();
+        this.applyFilter();
 
         // Build display fields (column headers)
         if (this.users.length > 0) {
