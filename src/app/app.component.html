@@ -113,7 +113,7 @@
         <formly-form [model]="model" [fields]="this.fields" [form]="this.form" cdkDropList [options]="this.options" [cdkDropListData]="fields" (cdkDropListDropped)="drop($event, fields)"></formly-form>
           <div class="d-flex justify-content-center" *ngIf="!isEdit()" (contextmenu)="showFormContextMenu($event)" #inputField>
             <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0" [disabled]="this.loading()">Submit</button>
-            <button type="button" class="btn border mt-3 ms-3" *ngIf="fields.length != 0 && hasModel" (click)="resetForm()">Reset</button>
+            <button type="button" class="btn border mt-3 ms-3" *ngIf="fields.length != 0 && hasModel || this.form.touched" (click)="resetForm()">Reset</button>
             <p *ngIf="fields.length === 0"><em>Start adding fields...</em></p>
           </div>
           <div class="d-flex justify-content-center gap-3" *ngIf="isEdit()">
@@ -141,7 +141,7 @@
                     style="cursor:pointer">
                   {{ f.label }}
                   <span *ngIf="sortColumn === f.key">
-                    {{ sortAscending ? '▲' : '▼' }}
+                    {{ sortAscending ? '▼' : '▲' }}
                   </span>
                 </th>
                 <th>Actions</th>
@@ -322,7 +322,7 @@
 <!-- Context Menu -->
 <div *ngIf="formMenuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
   <ul class="list-group">
-    <li class="list-group-item" (click)="onMenuClick('loadSavedForm')" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>
+    <li class="list-group-item" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>
     <li class="list-group-item" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</li>
     <li class="list-group-item" (click)="closeForm()">Close Form</li>
   </ul>
