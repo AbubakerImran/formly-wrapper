@@ -22,9 +22,11 @@ export class App implements OnInit {
   totalPages = 0;
   paginatedUsers: any[] = [];
 
-  get paginatedIds(): string {
-    if (!this.paginatedUsers || this.paginatedUsers.length === 0) return '';
-    return this.paginatedUsers.map(u => u.id).join(', ');
+  get showingRange(): string {
+    if (this.users.length === 0) return '0–0 of 0';
+    const start = (this.currentPage - 1) * this.pageSize + 1;
+    const end = Math.min(start + this.pageSize - 1, this.users.length);
+    return `${start} to ${end} of ${this.users.length} entries`;
   }
 
   constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) { }
