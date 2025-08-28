@@ -23,7 +23,8 @@ export class App implements OnInit {
   paginatedUsers: any[] = [];
 
   get showingRange(): string {
-    if (this.users.length === 0) return '0–0 of 0';
+    if (this.users.length === 0) return '0 entries';
+    if (this.users.length === 1) return '1 entries';
     const start = (this.currentPage - 1) * this.pageSize + 1;
     const end = Math.min(start + this.pageSize - 1, this.users.length);
     return `${start} to ${end} of ${this.users.length} entries`;
