@@ -4,18 +4,19 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { TooltipDirective } from './tooltip-component/tooltip.directive';
-import { FormService } from './form.service';
+import { TooltipDirective } from './tooltip.directive';
+import { FormService } from '../form.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { RouterOutlet, RouterLink } from "@angular/router";
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-component',
   standalone: true,
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, RouterOutlet, RouterLink],
+  templateUrl: '../templates/app.component.html',
+  styleUrl: '../styles/app.component.css',
 })
-export class App implements OnInit {
+export class AppComponent implements OnInit {
 
   pageSize = 3;
   currentPage = 1;

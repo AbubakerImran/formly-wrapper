@@ -4,12 +4,11 @@ import { CommonModule, NgIf } from '@angular/common';
 import { FormlyValidationMessage } from '@ngx-formly/core';
 import { isObservable, of } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { CdkDrag } from "@angular/cdk/drag-drop";
 
 @Component({
   selector: 'formly-horizontal-wrapper',
   templateUrl: 'vertical-wrapper.html',
-  styleUrls: ['../../app.component.css'], // Ensure the correct path
+  styleUrl: '../../styles/app.component.css', // Ensure the correct path
   standalone: true,
   imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule],
 })
