@@ -1,5 +1,5 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, HostListener, signal } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from "@angular/common";
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -110,7 +110,7 @@ export class CRUD {
       type: "radio",
       wrappers: ["form-field-modal"],
       defaultValue: () => {
-        return this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
+        return this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'ngform-field-horizontal';
 
       },
       props: {
@@ -121,8 +121,8 @@ export class CRUD {
         id: "wrapper",
         required: true,
         options: [
-          { value: "form-field-horizontal", label: "Horizontal Wrapper" },
-          { value: "form-field-vertical", label: "Vertical Wrapper" },
+          { value: "ngform-field-horizontal", label: "Horizontal Wrapper" },
+          { value: "ngform-field-vertical", label: "Vertical Wrapper" },
         ],
       },
       validation: {
@@ -221,7 +221,7 @@ export class CRUD {
             ...row,
             fieldGroup: row.fieldGroup?.map((field: any) => ({
               ...field,
-              wrappers: field.wrappers?.length ? field.wrappers : ['form-field-horizontal']
+              wrappers: field.wrappers?.length ? field.wrappers : ['ngform-field-horizontal']
             }))
           }));
           this.formHeading = formName;
@@ -338,7 +338,7 @@ export class CRUD {
     this.http.get<any>(`http://localhost:3000/forms/${name}`).subscribe({
       next: (form) => {
         if (!form) return;
-        const savedWrapper = form.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
+        const savedWrapper = form.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'ngform-field-horizontal';
         this.editFormModel = {
           formName: name,
           wrapper: savedWrapper
@@ -372,7 +372,7 @@ export class CRUD {
     }
     const oldName = this.editFormNameBefore || '';
     const newName = this.editFormModel.formName.trim();
-    const newWrapper = this.editFormModel.wrapper || 'form-field-horizontal';
+    const newWrapper = this.editFormModel.wrapper || 'ngform-field-horizontal';
     if (this.savedFormNames.includes(newName) && newName !== oldName) {
       alert("A form with this name already exists!");
       return;
@@ -457,7 +457,7 @@ export class CRUD {
       .sort((a, b) => a - b);
     let index = 1;
     for (const num of existingIndexes) if (num === index) index++; else break;
-    const currentWrapper = this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'form-field-horizontal';
+    const currentWrapper = this.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'ngform-field-horizontal';
     const newField: FormlyFieldConfig = {
       className: 'col-12',
       key: `${type}${index}`,

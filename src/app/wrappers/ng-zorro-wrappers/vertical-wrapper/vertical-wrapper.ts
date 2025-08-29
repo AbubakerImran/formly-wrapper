@@ -8,11 +8,11 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'formly-horizontal-wrapper',
   templateUrl: 'vertical-wrapper.html',
-  styleUrl: '../../styles/app.component.css', // Ensure the correct path
+  styleUrl: '../../../styles/app.component.css', // Ensure the correct path
   standalone: true,
   imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule],
 })
-export class FormlyVerticalWrapper extends FieldWrapper {
+export class NgZorroVerticalWrapper extends FieldWrapper {
   menuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
