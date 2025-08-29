@@ -1,14 +1,11 @@
-<div class="mb-3">
-  <div class="d-flex align-items-center">
+<nz-form-item>
     <!-- Label -->
-    <div class="col-2">
-      <label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">
-        {{ to.label }}
-      </label>
-    </div>
+    <nz-form-label [nzSpan]="6" *ngIf="to.label" [attr.for]="to['id']">
+    {{ to.label }}
+  </nz-form-label>
 
     <!-- Field -->
-    <div class="col-10">
+    <nz-form-control [nzSpan]="18" [nzErrorTip]="errorTpl" [nzValidateStatus]="formControl?.invalid && (formControl?.dirty || formControl?.touched) ? 'error' : 'success'">
       <ng-container [ngSwitch]="field.type">
 
         <!-- Input -->
@@ -46,18 +43,13 @@
           [id]="to['id']" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)" #inputField />
 
       </ng-container>
-    </div>
-  </div>
+    </nz-form-control>
+    </nz-form-item>
 
   <!-- Validation -->
-  <nz-form-item *ngIf="showError">
-    <nz-form-control [nzErrorTip]="errorTpl">
-      <ng-template #errorTpl>
-        <formly-validation-message [field]="field"></formly-validation-message>
-      </ng-template>
-    </nz-form-control>
-  </nz-form-item>
-</div>
+  <ng-template #errorTpl>
+    <formly-validation-message [field]="field"></formly-validation-message>
+  </ng-template>
 
 <!-- Context Menu -->
 <div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
