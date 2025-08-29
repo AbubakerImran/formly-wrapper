@@ -491,7 +491,7 @@ export class AppComponent implements OnInit {
     this.loading.set(true);
     this.options.formState.submitted = true;
     if (this.fields.length > 0) {
-      const newEntry = { 
+      const newEntry = {
         ...model
       };
       this.formService.createEntry(this.formHeading, newEntry).subscribe(() => {
@@ -553,7 +553,7 @@ export class AppComponent implements OnInit {
   editUser(id: number) {
     this.formService.getEntry(this.formHeading, id).subscribe({
       next: (entry) => {
-        this.model = { ...entry.data };   // ✅ entry.data contains form values
+        this.model = { ...entry.data };
         this.uid.set(id);
         this.isEdit.set(true);
       },

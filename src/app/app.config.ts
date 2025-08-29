@@ -7,6 +7,10 @@ import { FormlyHorizontalWrapper } from './wrappers/horizontal-wrapper/horizonta
 import { FormlyVerticalWrapper } from './wrappers/vertical-wrapper/vertical-wrapper';
 import { FormlyModalWrapper } from './wrappers/modal-wrapper/modal-wrapper';
 import { provideHttpClient } from '@angular/common/http';
+import { provideNzIcons } from 'ng-zorro-antd/icon';
+import { MailOutline, UserOutline } from '@ant-design/icons-angular/icons';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideNzI18n, en_US } from 'ng-zorro-antd/i18n';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +24,9 @@ export const appConfig: ApplicationConfig = {
         ]
       }
     ]),
+    provideNzIcons([MailOutline, UserOutline]),
+    provideAnimations(),
+    provideNzI18n(en_US),
     provideHttpClient(),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),

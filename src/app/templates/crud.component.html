@@ -1,29 +1,409 @@
-<form nz-form [formGroup]="validateForm" class="login-form" (ngSubmit)="submitForm()">
-  <nz-form-item>
-    <nz-form-control nzErrorTip="Please input your username!">
-      <nz-input-group nzPrefixIcon="user">
-        <input type="text" nz-input formControlName="username" placeholder="Username" />
-      </nz-input-group>
-    </nz-form-control>
-  </nz-form-item>
-  <nz-form-item>
-    <nz-form-control nzErrorTip="Please input your Password!">
-      <nz-input-group nzPrefixIcon="lock">
-        <input type="password" nz-input formControlName="password" placeholder="Password" />
-      </nz-input-group>
-    </nz-form-control>
-  </nz-form-item>
-  <div nz-row class="login-form-margin">
-    <div nz-col [nzSpan]="12">
-      <label nz-checkbox formControlName="remember">
-        <span>Remember me</span>
-      </label>
-    </div>
-    <div nz-col [nzSpan]="12">
-      <a class="login-form-forgot">Forgot password</a>
+<div id="notification" class="popup-notification hidden"></div>
+<div class="container-fluid d-flex bg-white shadow align-items-center justify-content-between rounded-bottom-2">
+  <h2 class="ms-3">Ng-Zorro Forms</h2>
+  <div class="d-flex p-3 gap-3 justify-content-end">
+    <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" appTooltip title="Edit form"><i class="fa-solid fa-file-code"></i></button>
+    <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()" appTooltip title="Close form"><i class="fa-solid fa-file-excel"></i></button>
+    <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal" data-bs-target="#savedFormsModal" appTooltip title="Open saved form"><i class="fa-solid fa-file"></i></button>
+    <button type="button" class="btn border-0" (click)="createNewForm()" appTooltip title="Create new form"><i class="fa-solid fa-file-circle-plus"></i></button>
+  </div>
+</div>  
+
+<div class="d-flex gap-5">
+  <div class="position-absolute start-0 bottom-0 bg-white shadow w-25 rounded-end-5 rounded-bottom-0"
+      style="flex: 1; height: 85vh; max-height: 85vh; overflow-y: auto; scrollbar-width: none;">
+    <div class="container p-3" *ngIf="modalStep() && showForm">
+      <h3>Form Tree</h3>
+      <ul class="tree-list">
+        <li>
+          <!-- Parent Div -->
+          <div class="tree-node d-flex align-items-center">
+            <span class="tag" (click)="toggle('parent')" style="cursor: pointer;">div</span>
+
+            <!-- Action buttons -->
+            <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formDivModal"
+              appTooltip title="Add new div" (click)="$event.stopPropagation();" style="font-size: 13px;">
+              <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
+            </button>
+            <button type="button" class="btn btn-sm border-0" (click)="$event.stopPropagation(); toggleGlobalFieldsModal()"
+              data-bs-toggle="modal" data-bs-target="#globalFieldsModal" appTooltip title="Edit all fields" style="font-size: 13px;">
+              <i class='fas fa-edit' style="align-self: center;"></i>
+            </button>
+            <button type="button" class="btn btn-sm border-0" appTooltip title="Delete all fields"
+              (click)="$event.stopPropagation(); deleteAllFields()">
+              <i class="fa-solid fa-trash-can" style="align-self: center;"></i>
+            </button>
+
+            <!-- Caret -->
+            <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('parent')"
+              [ngClass]="expanded['parent'] ? 'fa-caret-down' : 'fa-caret-right'"></i>
+          </div>
+
+          <!-- Child divs -->
+          <ul *ngIf="expanded['parent']"
+              cdkDropList
+              [cdkDropListData]="fields"
+              (cdkDropListDropped)="drop($event, fields)"
+              class="ul tree-children">
+
+            <li *ngFor="let field of fields; let i = index" cdkDrag (cdkDragStarted)="onDragStart()" (cdkDragEnded)="onDragEnd()">
+              <!-- Child div -->
+              <div class="tree-node d-flex align-items-center">
+                <span cdkDragHandle>⠿</span>
+                <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">&nbsp;div</span>
+                <button type="button"
+                  class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
+                  appTooltip title="Add new field" (click)="$event.stopPropagation(); setSelectedRowIndex(i);"
+                  style="font-size: 13px;">
+                  <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
+                </button>
+                <button type="button" class="btn btn-sm border-0" (click)="$event.stopPropagation(); openAllFieldsModal(i)"
+                  data-bs-toggle="modal" data-bs-target="#allFieldsModal" appTooltip title="Edit all fields" style="font-size: 13px;">
+                  <i class='fas fa-edit' style="align-self: center;"></i>
+                </button>
+                <button type="button" class="btn btn-sm border-0" appTooltip title="Delete all fields"
+                  (click)="$event.stopPropagation(); deleteFieldGroup(i)">
+                  <i class="fa-solid fa-trash-can" style="align-self: center;"></i>
+                </button>
+                <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('child-' + i)"
+                  [ngClass]="expanded['child-' + i] ? 'fa-caret-down' : 'fa-caret-right'"></i>
+              </div>
+
+              <!-- Fields inside child div -->
+              <ul *ngIf="expanded['child-' + i]"
+                  cdkDropList
+                  [cdkDropListData]="field.fieldGroup ?? []"
+                  (cdkDropListDropped)="drop($event, field.fieldGroup ?? [])"
+                  class="ul tree-children">
+
+                <li *ngFor="let childField of field.fieldGroup; let j = index" cdkDrag (cdkDragStarted)="onDragStart()" (cdkDragEnded)="onDragEnd()">
+                  <div class="tree-node">
+                    <span cdkDragHandle>⠿</span>
+                    {{ childField.type || 'input' }}: {{ childField.props?.label || '...' }}
+
+                    <button type="button" class="btn btn-sm border-0"
+                      (click)="$event.stopPropagation(); openRowEditFieldModal(i, j)"
+                      data-bs-toggle="modal" data-bs-target="#editFieldModal"
+                      appTooltip title="Edit field" style="font-size: 13px;">
+                      <i class='fas fa-edit'></i>
+                    </button>
+
+                    <button type="button" class="btn btn-sm border-0"
+                      (click)="$event.stopPropagation(); deleteRowField(i, j)"
+                      appTooltip title="Delete field">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
     </div>
   </div>
-  <button nz-button class="login-form-button login-form-margin" [nzType]="'primary'">Log in</button>
-  Or
-  <a>register now!</a>
-</form>
+  <div class="container position-absolute bottom-0 end-0 w-75">
+    <div class="d-flex flex-column gap-2 p-4 bg-white rounded-top-5 shadow" style="flex: 1; height: 85vh; max-height: 85vh; overflow-y: auto; scrollbar-width: none;">
+      <div *ngIf="formHeading">
+        <div class="d-flex justify-content-between" (contextmenu)="showFormContextMenu($event)" #inputField>
+          <h1>{{ formHeading }}</h1>
+          <button type="button" class="btn border-0" *ngIf="formChanged" (click)="saveForm()" appTooltip title="Save form" style="font-size: 26px;"><i class="fa-solid fa-floppy-disk"></i></button>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
+        <formly-form [model]="model" [fields]="this.fields" [form]="this.form" cdkDropList [options]="this.options" [cdkDropListData]="fields" (cdkDropListDropped)="drop($event, fields)"></formly-form>
+          <div class="d-flex justify-content-center" *ngIf="!isEdit()" (contextmenu)="showFormContextMenu($event)" #inputField>
+            <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0" [disabled]="this.isLoading">Submit</button>
+            <button type="button" class="btn border mt-3 ms-3" *ngIf="fields.length != 0 && hasModel || this.form.touched" (click)="resetForm()">Reset</button>
+            <p *ngIf="fields.length === 0"><em>Start adding fields...</em></p>
+          </div>
+          <div class="d-flex justify-content-center gap-3" *ngIf="isEdit()">
+            <button type="button" class="btn btn-warning" (click)="update(model)" [disabled]="!form.valid">Update</button>
+            <button type="button" class="btn border" (click)="cancel()">Cancel</button>
+          </div>
+        </form>
+        <div class="d-flex justify-content-between" *ngIf="users.length != 0">
+          <h4>Entries</h4>
+          <div class="mb-3 d-flex">
+            <input type="text"
+              class="form-control"
+              placeholder="Search..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="applyFilter()" />
+            <button class="btn btn-warning ms-2" type="button" (click)="resetSearch()">Reset</button>
+          </div>
+        </div>
+        <div class="table-responsive mt-3" (contextmenu)="showFormContextMenu($event)" #inputField>
+          <table class="table table-bordered">
+            <thead *ngIf="users.length != 0 && filteredUsers.length != 0">
+              <tr>
+                <th (click)="toggleSort('id')" style="cursor:pointer">
+                  UID
+                  <span *ngIf="sortColumn === 'id'">
+                    {{ sortAscending ? '▲' : '▼' }}
+                  </span>
+                </th>
+                <th *ngFor="let f of displayFields" 
+                    (click)="toggleSort(f.key)" 
+                    style="cursor:pointer">
+                  {{ f.label }}
+                  <span *ngIf="sortColumn === f.key">
+                    {{ sortAscending ? '▼' : '▲' }}
+                  </span>
+                </th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="filteredUsers.length === 0 && users.length != 0">
+                <td [attr.colspan]="displayFields.length + 2" class="text-center">
+                  No matching entries found.
+                </td>
+              </tr>
+              <tr *ngIf="users.length === 0">
+                <td [attr.colspan]="displayFields.length + 2" class="text-center">No users found.</td>
+              </tr>
+              <tr *ngFor="let user of paginatedUsers">
+                <td>{{ user.id }}</td>
+                <td *ngFor="let f of displayFields">{{ getValue(user, f.key) }}</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn border-0" appTooltip title="Edit entry" (click)="editUser(user.id)"><i class="fas fa-edit"></i></button>
+                    <button class="btn border-0" appTooltip title="Delete entry" (click)="deleteUser(user.id)"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="d-flex justify-content-between">
+            <!-- Pagination -->
+            <nav aria-label="..." *ngIf="totalPages > 1">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <a class="page-link" (click)="setPage(currentPage - 1)">Previous</a>
+                </li>
+
+                <li class="page-item"
+                    *ngFor="let page of [].constructor(totalPages); let i = index"
+                    [class.active]="currentPage === i + 1">
+                  <a class="page-link" (click)="setPage(i + 1)">{{ i + 1 }}</a>
+                </li>
+
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <a class="page-link" (click)="setPage(currentPage + 1)">Next</a>
+                </li>
+              </ul>
+            </nav>
+            <div class="d-flex align-items-center">
+              <h6>Total Entries: {{ users.length }} |</h6>
+              <h6>&nbsp;Showing <span>{{ showingRange }}</span></h6>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="formModalLabel">Choose Field Type</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row justify-content-center">
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('input')">Input</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('textarea')">Textarea</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('select')">Select</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal" (click)="addFixedField('radio')">Radio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="formDivModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row justify-content-center">
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-warning w-100 p-5 mt-3" data-bs-dismiss="modal" (click)="addFixedField('div')">Div</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit Form Name Modal -->
+<div class="modal fade" id="editFormNameModal" tabindex="-1" aria-labelledby="editFormNameModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="editFormNameModalLabel">Edit Form</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <form [formGroup]="editFormModal" class="p-4 container" (ngSubmit)="saveFormNameChange()">
+          <formly-form [model]="editFormModel" [fields]="editFormFields" [form]="editFormModal"></formly-form>
+          <div class="d-flex mt-3 gap-2">
+            <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+            <button type="button" class="btn btn-danger" (click)="deleteFormName()" data-bs-dismiss="modal">Delete Form</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="savedFormsModal" tabindex="-1" aria-labelledby="savedFormsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="savedFormsModalLabel">Saved Forms</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h5 class="mb-3">Saved Forms</h5>
+        <ul class="list-group">
+          <li *ngFor="let formName of savedFormNames" 
+              class="list-group-item d-flex justify-content-between align-items-center"
+              style="cursor: pointer;"
+              data-bs-dismiss="modal"
+              (click)="loadSavedForm(formName)"
+              (contextmenu)="showContextMenu($event, formName)"
+              #inputField
+              >
+            {{ formName }}
+            <button type="button" 
+                    class="btn border-0" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#editFormNameModal"
+                    (click)="openEditFormNameModal(formName); $event.stopPropagation()">
+              <i class='fas fa-edit'></i>
+            </button>
+          </li>
+          <li *ngIf="savedFormNames.length === 0" class="list-group-item text-muted">
+            No saved forms found.
+          </li>
+        </ul>
+        <div class="d-flex justify-content-center">
+          <button type="button" class="btn btn-primary mt-3" data-bs-dismiss="modal" (click)="createNewForm()">Create New Form</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- EDIT FIELD MODAL -->
+<div class="modal fade" id="editFieldModal" tabindex="-1" aria-labelledby="editFieldModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="editFieldModalLabel">Edit Field</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"
+                (click)="cancelFieldModal()"></button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="modalForm" (ngSubmit)="saveFieldEdit()" class="container">
+          <formly-form [form]="modalForm" [fields]="modalFields" [model]="modalModel"></formly-form>
+          
+          <div class="mt-4 d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary me-2" data-bs-dismiss="modal">Save</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="cancelFieldModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Context Menu -->
+<div *ngIf="formMenuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>
+    <li class="list-group-item" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</li>
+    <li class="list-group-item" (click)="closeForm()">Close Form</li>
+  </ul>
+</div>
+<div *ngIf="editMenuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('openEditFieldModal')" data-bs-toggle="modal" data-bs-target="#editFieldModal">Edit Field</li>
+    <li class="list-group-item" (click)="onMenuClick('deleteField')">Delete Field</li>
+  </ul>
+</div>
+<div *ngIf="menuVisible" tabindex="3" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal" data-bs-target="#editFormNameModal">Edit Form</li>
+    <li class="list-group-item" (click)="onMenuClick('deleteFormName')">Delete Form</li>
+  </ul>
+</div>
+<!-- All Fields Modal -->
+<div class="modal fade" id="allFieldsModal" tabindex="-1" aria-labelledby="allFieldsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content p-3">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="allFieldsModalLabel">Edit All Fields</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"
+                (click)="toggleAllFieldsModal()"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="allFieldsForm" (ngSubmit)="saveAllFieldsEdit()" class="container">
+          <formly-form [form]="allFieldsForm" [model]="allFieldsModel" [fields]="allFieldsFields"></formly-form>
+        </form>
+      </div>
+
+      <div class="text-center mb-4" *ngIf="fields.length === 0">
+        No fields available to edit.
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success" data-bs-dismiss="modal" (click)="saveAllFieldsEdit()">Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="toggleAllFieldsModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- GLobal Fields Modal -->
+<div class="modal fade" id="globalFieldsModal" tabindex="-1" aria-labelledby="globalFieldsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content p-3">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="globalFieldsModalLabel">Edit All Fields</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"
+                (click)="toggleGlobalFieldsModal()"></button>
+      </div>
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="allFieldsForm" class="container">
+          <formly-form [form]="globalFieldsForm" [model]="globalFieldsModel" [fields]="globalFieldsFields"></formly-form>
+        </form>
+      </div>
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal" (click)="saveGlobalFieldsEdit()">Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="toggleGlobalFieldsModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
