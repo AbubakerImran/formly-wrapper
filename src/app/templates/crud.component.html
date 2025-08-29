@@ -109,7 +109,7 @@
           <h1>{{ formHeading }}</h1>
           <button type="button" class="btn border-0" *ngIf="formChanged" (click)="saveForm()" appTooltip title="Save form" style="font-size: 26px;"><i class="fa-solid fa-floppy-disk"></i></button>
         </div>
-        <form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
+        <form nz-form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
         <formly-form [model]="model" [fields]="this.fields" [form]="this.form" cdkDropList [options]="this.options" [cdkDropListData]="fields" (cdkDropListDropped)="drop($event, fields)"></formly-form>
           <div class="d-flex justify-content-center" *ngIf="!isEdit()" (contextmenu)="showFormContextMenu($event)" #inputField>
             <button type="submit" class="btn btn-primary mt-3" *ngIf="fields.length != 0" [disabled]="this.isLoading">Submit</button>

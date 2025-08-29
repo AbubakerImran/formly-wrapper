@@ -7,13 +7,14 @@ import { FormlyFormOptions, FormlyFieldConfig, FormlyForm } from '@ngx-formly/co
 import { FormService } from '../form.service';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { TooltipDirective } from './tooltip.directive';
+import { NzFormModule } from 'ng-zorro-antd/form';
 
 @Component({
   selector: 'crud-component',
   standalone: true,
   templateUrl: '../templates/crud.component.html',
   styleUrl: '../styles/crud.component.css',
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule],
 })
 export class CRUD {
 
@@ -446,7 +447,7 @@ export class CRUD {
   }
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio' | 'div') {
-    const baseStyle = { borderRadius: '', color: '', backgroundColor: '', fontFamily: '', fontSize: '', fontWeight: '' };
+    const baseStyle = { borderRadius: '', color: '', backgroundColor: '', fontFamily: '', fontSize: '', fontWeight: '', width: '100%' };
     const labelBaseStyle = { backgroundColor: '', color: '', fontFamily: '', fontSize: '', fontWeight: '' };
 
     const existingIndexes = this.fields

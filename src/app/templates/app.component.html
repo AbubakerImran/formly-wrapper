@@ -1,11 +1,9 @@
 <div id="notification" class="popup-notification hidden"></div>
 <div class="container-fluid d-flex bg-white shadow align-items-center justify-content-between rounded-bottom-2">
-  <h2 class="ms-3">Angular Forms</h2>
+  <h2 class="ms-3">Bootstrap Forms</h2>
   <div class="d-flex p-3 gap-3 justify-content-end">
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" appTooltip title="Edit form"><i class="fa-solid fa-file-code"></i></button>
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()" appTooltip title="Close form"><i class="fa-solid fa-file-excel"></i></button>
-    <a routerLink="/crud">CRUD</a>
-    <router-outlet></router-outlet>
     <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal" data-bs-target="#savedFormsModal" appTooltip title="Open saved form"><i class="fa-solid fa-file"></i></button>
     <button type="button" class="btn border-0" (click)="createNewForm()" appTooltip title="Create new form"><i class="fa-solid fa-file-circle-plus"></i></button>
   </div>

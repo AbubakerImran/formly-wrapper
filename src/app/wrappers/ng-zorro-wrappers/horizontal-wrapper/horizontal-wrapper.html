@@ -1,90 +1,73 @@
 <div class="mb-3">
   <div class="d-flex align-items-center">
+    <!-- Label -->
     <div class="col-2">
-      <label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
+      <label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">
+        {{ to.label }}
+      </label>
     </div>
+
+    <!-- Field -->
     <div class="col-10">
       <ng-container [ngSwitch]="field.type">
-        <input
-          *ngSwitchCase="'text'"
-          type="text"
-          [ngClass]="to['class']"
-          [placeholder]="to.placeholder"
-          [formControl]="formControl"
-          [id]="to['id']"
-          [autocomplete]="to['autocomplete']"
-          [ngStyle]="to['style']"
-          (contextmenu)="showContextMenu($event)" 
-          #inputField
-        />
-        <textarea
-          *ngSwitchCase="'textarea'"
-          [ngClass]="to['class']"
-          [placeholder]="to.placeholder"
-          [formControl]="formControl"
-          [id]="to['id']"
-          [ngStyle]="to['style']"
-          (contextmenu)="showContextMenu($event)" 
-          #inputField
-        ></textarea>
-        <select
-          *ngSwitchCase="'select'"
-          [ngClass]="to['class']"
-          [formControl]="formControl"
-          [id]="to['id']"
-          [ngStyle]="to['style']"
-          (contextmenu)="showContextMenu($event)" 
-          #inputField
-        >
-            <ng-container *ngIf="options$ | async as options">
-              <option *ngFor="let option of options" [value]="option.value">
-                {{ option.label }}
-              </option>
-            </ng-container>
-        </select>
-        <div *ngSwitchCase="'radio'" class="form-check d-flex align-items-center">
+
+        <!-- Input -->
+        <input *ngSwitchCase="'text'" nz-input type="text" [placeholder]="to.placeholder" [formControl]="formControl"
+          [id]="to['id']" [autocomplete]="to['autocomplete']" [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" #inputField />
+
+        <!-- Textarea -->
+        <textarea *ngSwitchCase="'textarea'" nz-input [rows]="to['rows'] || 3" [placeholder]="to.placeholder"
+          [formControl]="formControl" [id]="to['id']" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)"
+          #inputField></textarea>
+
+        <!-- Select -->
+        <nz-select *ngSwitchCase="'select'" [formControl]="formControl" [id]="to['id']"
+          [nzPlaceHolder]="'Select an option'" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)"
+          #inputField>
           <ng-container *ngIf="options$ | async as options">
-            <div *ngFor="let option of options" class="form-check me-3">
-              <input
-                type="radio"
-                [ngClass]="to['class']"
-                [name]="to['id']"
-                [id]="to['id'] + '_' + option.value"
-                [value]="option.value"
-                [formControl]="formControl"
-                [ngStyle]="to['style']"
-                (contextmenu)="showContextMenu($event)" 
-                #inputField
-              />
-              <label class="form-check-label" [for]="to['id'] + '_' + option.value" (contextmenu)="showContextMenu($event)" #inputField>
-                {{ option.label }}
-              </label>
-            </div>
+            <nz-option *ngFor="let option of options" [nzValue]="option.value" [nzLabel]="option.label">
+            </nz-option>
           </ng-container>
-        </div>
-        <input
-          *ngSwitchDefault
-          type="text"
-          [ngClass]="to['class']"
-          [placeholder]="to.placeholder"
-          [formControl]="formControl"
-          [id]="to['id']"
-          [ngStyle]="to['style']"
-          (contextmenu)="showContextMenu($event)" 
-          #inputField
-        />
+        </nz-select>
+
+        <!-- Radio -->
+        <nz-radio-group *ngSwitchCase="'radio'" [formControl]="formControl" [ngStyle]="to['style']"
+          (contextmenu)="showContextMenu($event)" #inputField>
+          <ng-container *ngIf="options$ | async as options">
+            <label nz-radio *ngFor="let option of options" [nzValue]="option.value" class="me-3">
+              {{ option.label }}
+            </label>
+          </ng-container>
+        </nz-radio-group>
+
+        <!-- Default Input -->
+        <input *ngSwitchDefault nz-input type="text" [placeholder]="to.placeholder" [formControl]="formControl"
+          [id]="to['id']" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)" #inputField />
+
       </ng-container>
     </div>
   </div>
-  <div *ngIf="showError" class="text-danger mt-1 d-flex">
-    <div class="col-2"></div>
-    <formly-validation-message [field]="field"></formly-validation-message>
-  </div>
+
+  <!-- Validation -->
+  <nz-form-item *ngIf="showError">
+    <nz-form-control [nzErrorTip]="errorTpl">
+      <ng-template #errorTpl>
+        <formly-validation-message [field]="field"></formly-validation-message>
+      </ng-template>
+    </nz-form-control>
+  </nz-form-item>
 </div>
+
 <!-- Context Menu -->
 <div *ngIf="menuVisible" class="custom-menu" [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
   <ul class="list-group">
-    <li class="list-group-item" (click)="to['openEditFieldModal'](to['index'])" data-bs-toggle="modal" data-bs-target="#editFieldModal">Edit Field</li>
-    <li class="list-group-item" (click)="to['deleteField'](to['index'])">Delete Field</li>
+    <li class="list-group-item" (click)="to['openEditFieldModal'](to['index'])" data-bs-toggle="modal"
+      data-bs-target="#editFieldModal">
+      Edit Field
+    </li>
+    <li class="list-group-item" (click)="to['deleteField'](to['index'])">
+      Delete Field
+    </li>
   </ul>
 </div>

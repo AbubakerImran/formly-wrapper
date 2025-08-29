@@ -7,12 +7,11 @@ import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from 
 import { TooltipDirective } from './tooltip.directive';
 import { FormService } from '../form.service';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { RouterOutlet, RouterLink } from "@angular/router";
 
 @Component({
   selector: 'app-component',
   standalone: true,
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, RouterOutlet, RouterLink],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule],
   templateUrl: '../templates/app.component.html',
   styleUrl: '../styles/app.component.css',
 })
