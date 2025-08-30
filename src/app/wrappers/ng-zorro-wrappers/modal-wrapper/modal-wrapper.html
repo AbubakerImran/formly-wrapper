@@ -1,0 +1,37 @@
+<nz-form-item>
+  <nz-form-label [nzSpan]="24" *ngIf="to.label" [attr.for]="to['id']" class="text-start">
+    {{ to.label }}
+  </nz-form-label>
+  <nz-form-control [nzSpan]="24" [nzErrorTip]="errorTpl"
+    [nzValidateStatus]="formControl.invalid && (formControl.dirty || formControl.touched) ? 'error' : 'success'">
+    <ng-container [ngSwitch]="field.type">
+      <input *ngSwitchCase="'text'" nz-input type="text" [placeholder]="to.placeholder" [formControl]="formControl"
+        [id]="to['id']" [autocomplete]="to['autocomplete']" [ngStyle]="to['style']" />
+      <textarea *ngSwitchCase="'textarea'" nz-input [rows]="to['rows'] || 3" [placeholder]="to.placeholder"
+        [formControl]="formControl" [id]="to['id']" [ngStyle]="to['style']"></textarea>
+      <nz-select *ngSwitchCase="'select'" [formControl]="formControl" [id]="to['id']"
+        [nzPlaceHolder]="'Select an option'" [ngStyle]="to['style']">
+        <ng-container *ngIf="options$ | async as options">
+          <nz-option *ngFor="let option of options" [nzValue]="option.value" [nzLabel]="option.label">
+          </nz-option>
+        </ng-container>
+      </nz-select>
+      <nz-radio-group *ngSwitchCase="'radio'" [formControl]="formControl" [ngStyle]="to['style']">
+        <ng-container *ngIf="options$ | async as options">
+          <label nz-radio *ngFor="let option of options" [nzValue]="option.value" class="me-3">
+            {{ option.label }}
+          </label>
+        </ng-container>
+      </nz-radio-group>
+      <label *ngSwitchCase="'checkbox'" nz-checkbox [formControl]="formControl" [ngStyle]="to['style']">
+        {{ to['Label'] }}
+      </label>
+      <input *ngSwitchDefault nz-input type="text" [placeholder]="to.placeholder" [formControl]="formControl"
+        [id]="to['id']" [ngStyle]="to['style']" />
+    </ng-container>
+  </nz-form-control>
+</nz-form-item>
+
+<ng-template #errorTpl>
+  <formly-validation-message [field]="field"></formly-validation-message>
+</ng-template>
