@@ -3,16 +3,21 @@ import { FieldWrapper } from '@ngx-formly/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormlyValidationMessage } from '@ngx-formly/core';
 import { isObservable, of } from 'rxjs';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NzFormItemComponent, NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { NzOptionComponent, NzSelectModule } from 'ng-zorro-antd/select';
+import { NzColDirective } from 'ng-zorro-antd/grid';
 
 @Component({
-  selector: 'formly-horizontal-wrapper',
+  selector: 'formly-vertical-wrapper',
   templateUrl: 'vertical-wrapper.html',
-  styleUrl: '../../../styles/app.component.css', // Ensure the correct path
   standalone: true,
-  imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule],
+  imports: [NgIf, FormlyValidationMessage, CommonModule, FormsModule, ReactiveFormsModule, NzInputModule, NzSelectModule, NzOptionComponent, NzRadioModule, NzFormItemComponent, NzColDirective, NzFormModule],
 })
 export class NgZorroVerticalWrapper extends FieldWrapper {
+
   menuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
@@ -51,10 +56,7 @@ export class NgZorroVerticalWrapper extends FieldWrapper {
   }
 
   onDragStart() {
-    // set body cursor immediately (beats CSS scope issues)
     document.body.style.cursor = 'grabbing';
-
-    // sometimes the preview element appears a tick later — set it too
     setTimeout(() => {
       const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
       if (preview) preview.style.cursor = 'grabbing';
@@ -64,7 +66,6 @@ export class NgZorroVerticalWrapper extends FieldWrapper {
   }
 
   onDragEnd() {
-    // reset
     document.body.style.cursor = '';
     const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
     if (preview) preview.style.cursor = '';

@@ -1,9 +1,9 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FieldWrapper } from '@ngx-formly/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormlyValidationMessage } from '@ngx-formly/core';
 import { isObservable, of } from 'rxjs';
-import { FormControl, FormsModule, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzInputModule } from 'ng-zorro-antd/input'
 import { NzSelectModule, NzOptionComponent } from 'ng-zorro-antd/select'
 import { NzRadioModule } from 'ng-zorro-antd/radio'
@@ -14,14 +14,11 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 @Component({
   selector: 'formly-horizontal-wrapper',
   templateUrl: 'horizontal-wrapper.html',
-  styleUrl: '../../../styles/app.component.css', // Ensure the correct path
   standalone: true,
   imports: [NgIf, FormlyValidationMessage, CommonModule, FormsModule, ReactiveFormsModule, NzInputModule, NzSelectModule, NzOptionComponent, NzRadioModule, NzFormItemComponent, NzColDirective, NzFormModule],
 })
 export class NgZorroHorizontalWrapper extends FieldWrapper {
 
-  private fb = inject(NonNullableFormBuilder);
-  
   menuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
@@ -60,10 +57,7 @@ export class NgZorroHorizontalWrapper extends FieldWrapper {
   }
 
   onDragStart() {
-    // set body cursor immediately (beats CSS scope issues)
     document.body.style.cursor = 'grabbing';
-
-    // sometimes the preview element appears a tick later — set it too
     setTimeout(() => {
       const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
       if (preview) preview.style.cursor = 'grabbing';
@@ -73,7 +67,6 @@ export class NgZorroHorizontalWrapper extends FieldWrapper {
   }
 
   onDragEnd() {
-    // reset
     document.body.style.cursor = '';
     const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
     if (preview) preview.style.cursor = '';

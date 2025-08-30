@@ -56,7 +56,6 @@ export class CRUD {
   savedFormNames: string[] = [];
   displayFields: { key: string, label: string }[] = [];
 
-  // Main form
   form = new FormGroup({});
   model: any = {};
   options: FormlyFormOptions = {
@@ -67,23 +66,19 @@ export class CRUD {
   };
   fields: FormlyFieldConfig[] = [];
 
-  // Modal form
   modalForm = new FormGroup({});
   modalModel: any = {};
   modalOptions: FormlyFormOptions = {};
   modalFields: FormlyFieldConfig[] = [];
 
-  // All fields form
   allFieldsForm = new FormGroup({});
   allFieldsModel: any = {};
   allFieldsFields: FormlyFieldConfig[] = [];
 
-  // Global fields form
   globalFieldsForm = new FormGroup({});
   globalFieldsModel: any = {};
   globalFieldsFields: FormlyFieldConfig[] = [];
 
-  // Edit form
   editFormModal = new FormGroup({});
   editFormModel: any = {};
   editFormFields: FormlyFieldConfig[] = [
