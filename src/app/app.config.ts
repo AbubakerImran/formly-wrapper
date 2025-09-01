@@ -8,7 +8,7 @@ import { BootstrapVerticalWrapper } from './wrappers/bootstrap-wrappers/vertical
 import { FormlyModalWrapper } from './wrappers/bootstrap-wrappers/modal-wrapper/modal-wrapper';
 import { provideHttpClient } from '@angular/common/http';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
-import { MailOutline, UserOutline } from '@ant-design/icons-angular/icons';
+import { FileAddOutline, FileExcelOutline, PlusOutline } from '@ant-design/icons-angular/icons';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideNzI18n, en_US } from 'ng-zorro-antd/i18n';
 import { NgZorroVerticalWrapper } from './wrappers/ng-zorro-wrappers/vertical-wrapper/vertical-wrapper';
@@ -30,7 +30,7 @@ export const appConfig: ApplicationConfig = {
         ]
       }
     ]),
-    provideNzIcons([MailOutline, UserOutline]),
+    provideNzIcons([FileAddOutline, FileExcelOutline, PlusOutline]),
     provideAnimations(),
     provideNzI18n(en_US),
     provideHttpClient(),

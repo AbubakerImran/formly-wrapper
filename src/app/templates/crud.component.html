@@ -7,12 +7,12 @@
       (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" nz-tooltip
       nzTooltipTitle="Edit form" nzTooltipPlacement="bottom"><i nz-icon nzType="edit"></i></button>
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()"
-      nzTooltipTitle="Close form" nzTooltipPlacement="bottom" nz-tooltip><i class="fa-solid fa-file-excel"></i></button>
+      nzTooltipTitle="Close form" nzTooltipPlacement="bottom" nz-tooltip><i nz-icon nzType="file-excel"></i></button>
     <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal"
       data-bs-target="#savedFormsModal" nzTooltipTitle="Open saved form" nzTooltipPlacement="bottom" nz-tooltip><i
-        class="fa-solid fa-file"></i></button>
-    <button type="button" class="btn border-0" (click)="createNewForm()" nzTooltipTitle="Create new form"
-      nzTooltipPlacement="bottom" nz-tooltip><i class="fa-solid fa-file-circle-plus"></i></button>
+        nz-icon nzType="file"></i></button>
+    <button type="button" class="btn border-0" (click)="createNewForm()" nzTooltipTitle="Create form"
+      nzTooltipPlacement="bottom" nz-tooltip><i nz-icon nzType="file-add"></i></button>
   </div>
 </div>
 
@@ -28,7 +28,7 @@
             <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formDivModal"
               (click)="$event.stopPropagation();" style="font-size: 13px;" nz-tooltip nzTooltipTitle="Add new div"
               nzTooltipPlacement="top">
-              <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
+              <i nz-icon nzType="plus"></i>
             </button>
             <button type="button" class="btn btn-sm border-0"
               (click)="$event.stopPropagation(); toggleGlobalFieldsModal()" data-bs-toggle="modal"
@@ -53,7 +53,7 @@
                 <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
                   nz-tooltip nzTooltipTitle="Add new field" nzTooltipPlacement="top"
                   (click)="$event.stopPropagation(); setSelectedRowIndex(i);" style="font-size: 13px;">
-                  <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
+                  <i nz-icon nzType="plus"></i>
                 </button>
                 <button type="button" class="btn btn-sm border-0"
                   (click)="$event.stopPropagation(); openAllFieldsModal(i)" data-bs-toggle="modal"
