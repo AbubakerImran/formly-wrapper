@@ -256,7 +256,6 @@ export class CRUD {
     this.formService.getEntries(this.formHeading).subscribe({
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
-        this.sortUsers();
         this.applyFilter();
         if (this.users.length > 0) {
           const widest = this.users.reduce((max, u) =>
@@ -297,38 +296,40 @@ export class CRUD {
     this.updatePagination();
   }
 
-  sortUsers() {
-    const col = this.sortColumn;
-    this.filteredUsers.sort((a, b) => {
-      const valA = a[col];
-      const valB = b[col];
-      if (valA == null && valB == null) return 0;
-      if (valA == null) return this.sortAscending ? -1 : 1;
-      if (valB == null) return this.sortAscending ? 1 : -1;
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return this.sortAscending ? valA - valB : valB - valA;
-      }
-      const numA = Number(valA);
-      const numB = Number(valB);
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return this.sortAscending ? numA - numB : numB - numA;
-      }
-      return this.sortAscending
-        ? String(valA).localeCompare(String(valB))
-        : String(valB).localeCompare(String(valA));
-    });
+normalizeOrder(order: string | null): 'ascend' | 'descend' | null {
+  if (order === 'ascend' || order === 'descend') {
+    return order;
+  }
+  return null;
+}
+
+onSort(order: 'ascend' | 'descend' | null, column: string) {
+  if (!order) {
+    this.filteredUsers = [...this.users];
     this.updatePagination();
+    return;
   }
 
-  toggleSort(col: string) {
-    if (this.sortColumn === col) {
-      this.sortAscending = !this.sortAscending;
-    } else {
-      this.sortColumn = col;
-      this.sortAscending = true;
+  this.filteredUsers = [...this.users].sort((a, b) => {
+    const valA = a[column];
+    const valB = b[column];
+
+    if (valA == null && valB == null) return 0;
+    if (valA == null) return order === 'ascend' ? -1 : 1;
+    if (valB == null) return order === 'ascend' ? 1 : -1;
+
+    if (!isNaN(valA) && !isNaN(valB)) {
+      return order === 'ascend' ? valA - valB : valB - valA;
     }
-    this.sortUsers();
-  }
+
+    return order === 'ascend'
+      ? String(valA).localeCompare(String(valB))
+      : String(valB).localeCompare(String(valA));
+  });
+
+  this.updatePagination();
+}
+
 
   toggle(key: string) {
     this.expanded[key] = !this.expanded[key];
@@ -998,7 +999,6 @@ export class CRUD {
         )
       );
     }
-    this.sortUsers();
   }
 
   resetSearch() {

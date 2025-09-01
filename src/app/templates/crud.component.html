@@ -134,19 +134,14 @@
             [nzFrontPagination]="false" [nzPageIndex]="currentPage" [nzPageSize]="pageSize" [nzShowSizeChanger]="true"
             [nzTotal]="filteredUsers.length" (nzPageIndexChange)="setPage($event)"
             (nzPageSizeChange)="onPageSizeChange($event)">
-            <thead *ngIf="users.length > 0 && filteredUsers.length > 0">
+            <thead>
               <tr>
-                <th (click)="toggleSort('id')" style="cursor:pointer">
+                <th nzColumnKey="id" [nzSortFn]="true" (nzSortOrderChange)="onSort(normalizeOrder($event), 'id')">
                   UID
-                  <span *ngIf="sortColumn === 'id'">
-                    {{ sortAscending ? '▲' : '▼' }}
-                  </span>
                 </th>
-                <th *ngFor="let f of displayFields" (click)="toggleSort(f.key)" style="cursor:pointer">
+                <th *ngFor="let f of displayFields" [nzColumnKey]="f.key" [nzSortFn]="true"
+                  (nzSortOrderChange)="onSort(normalizeOrder($event), f.key)">
                   {{ f.label }}
-                  <span *ngIf="sortColumn === f.key">
-                    {{ sortAscending ? '▼' : '▲' }}
-                  </span>
                 </th>
                 <th>Actions</th>
               </tr>
