@@ -5,7 +5,7 @@
   <div class="d-flex p-3 gap-3 justify-content-end">
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0"
       (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" nz-tooltip
-      nzTooltipTitle="Edit form" nzTooltipPlacement="bottom"><i class="fa-solid fa-file-code"></i></button>
+      nzTooltipTitle="Edit form" nzTooltipPlacement="bottom"><i nz-icon nzType="edit"></i></button>
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()"
       nzTooltipTitle="Close form" nzTooltipPlacement="bottom" nz-tooltip><i class="fa-solid fa-file-excel"></i></button>
     <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal"
@@ -34,11 +34,11 @@
               (click)="$event.stopPropagation(); toggleGlobalFieldsModal()" data-bs-toggle="modal"
               data-bs-target="#globalFieldsModal" nz-tooltip nzTooltipTitle="Edit all fields" nzTooltipPlacement="top"
               style="font-size: 13px;">
-              <i class='fas fa-edit' style="align-self: center;"></i>
+              <i nz-icon nzType="edit"></i>
             </button>
             <button type="button" class="btn btn-sm border-0" nz-tooltip nzTooltipTitle="Delete all fields"
               nzTooltipPlacement="top" (click)="$event.stopPropagation(); deleteAllFields()">
-              <i class="fa-solid fa-trash-can" style="align-self: center;"></i>
+              <i nz-icon nzType="delete"></i>
             </button>
             <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('parent')"
               [ngClass]="expanded['parent'] ? 'fa-caret-down' : 'fa-caret-right'"></i>
@@ -59,11 +59,11 @@
                   (click)="$event.stopPropagation(); openAllFieldsModal(i)" data-bs-toggle="modal"
                   data-bs-target="#allFieldsModal" nz-tooltip nzTooltipTitle="Edit all fields" nzTooltipPlacement="top"
                   style="font-size: 13px;">
-                  <i class='fas fa-edit' style="align-self: center;"></i>
+                  <i nz-icon nzType="edit"></i>
                 </button>
                 <button type="button" class="btn btn-sm border-0" nz-tooltip nzTooltipTitle="Delete all fields"
                   nzTooltipPlacement="top" (click)="$event.stopPropagation(); deleteFieldGroup(i)">
-                  <i class="fa-solid fa-trash-can" style="align-self: center;"></i>
+                  <i nz-icon nzType="delete"></i>
                 </button>
                 <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('child-' + i)"
                   [ngClass]="expanded['child-' + i] ? 'fa-caret-down' : 'fa-caret-right'"></i>
@@ -79,12 +79,12 @@
                       (click)="$event.stopPropagation(); openRowEditFieldModal(i, j)" data-bs-toggle="modal"
                       data-bs-target="#editFieldModal" nz-tooltip nzTooltipTitle="Edit field" nzTooltipPlacement="top"
                       style="font-size: 13px;">
-                      <i class='fas fa-edit'></i>
+                      <i nz-icon nzType="edit"></i>
                     </button>
                     <button type="button" class="btn btn-sm border-0"
                       (click)="$event.stopPropagation(); deleteRowField(i, j)" nz-tooltip nzTooltipTitle="Delete field"
                       nzTooltipPlacement="top">
-                      <i class="fa-solid fa-trash-can"></i>
+                      <i nz-icon nzType="delete"></i>
                     </button>
                   </div>
                 </li>
@@ -139,11 +139,12 @@
           <nz-table #basicTable [nzBordered]="true" [nzData]="filteredUsers" [nzLoading]="isLoading"
             [nzFrontPagination]="false" [nzPageIndex]="currentPage" [nzPageSize]="pageSize" [nzShowSizeChanger]="true"
             [nzTotal]="filteredUsers.length" (nzPageIndexChange)="setPage($event)"
-            [nzPageSizeOptions]="[3, 5, 7, 10, 15]" (nzPageSizeChange)="onPageSizeChange($event)">
+            [nzPageSizeOptions]="[3, 5, 7, 10, 15]" (nzPageSizeChange)="onPageSizeChange($event)"
+            [nzShowTotal]="totalTemplate">
+
             <thead *ngIf="users.length != 0">
               <tr>
-                <th nzColumnKey="id" [nzSortFn]="true" (nzSortOrderChange)="onSort(normalizeOrder($event), 'id')">
-                  UID
+                <th nzColumnKey="id" [nzSortFn]="true" (nzSortOrderChange)="onSort(normalizeOrder($event), 'id')">UID
                 </th>
                 <th *ngFor="let f of displayFields" [nzColumnKey]="f.key" [nzSortFn]="true"
                   (nzSortOrderChange)="onSort(normalizeOrder($event), f.key)">
@@ -152,6 +153,7 @@
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               <tr *ngFor="let user of paginatedUsers">
                 <td>{{ user.id }}</td>
@@ -169,6 +171,9 @@
               </tr>
             </tbody>
           </nz-table>
+          <ng-template #totalTemplate let-total>
+            Showing {{ startIndex }} to {{ endIndex }} of {{ total }} entries
+          </ng-template>
         </div>
       </div>
     </div>
@@ -239,7 +244,8 @@
           <formly-form [model]="editFormModel" [fields]="editFormFields" [form]="editFormModal"></formly-form>
           <div class="d-flex mt-3 gap-2">
             <button type="submit" nz-button nzType="primary" data-bs-dismiss="modal">Save</button>
-            <button type="button" nz-button nzDanger (click)="deleteFormName()" data-bs-dismiss="modal">Delete
+            <button type="button" nz-button nzDanger (click)="deleteFormName(formHeading)"
+              data-bs-dismiss="modal">Delete
               Form</button>
           </div>
         </form>
@@ -263,11 +269,17 @@
             data-bs-dismiss="modal" (click)="loadSavedForm(formName)" (contextmenu)="showContextMenu($event, formName)"
             #inputField>
             {{ formName }}
-            <button type="button" class="btn border-0" data-bs-toggle="modal" data-bs-target="#editFormNameModal"
-              (click)="openEditFormNameModal(formName); $event.stopPropagation()" nz-tooltip nzTooltipTitle="Edit form"
-              nzTooltipPlacement="top">
-              <i class='fas fa-edit'></i>
-            </button>
+            <div>
+              <button type="button" class="btn border-0" data-bs-toggle="modal" data-bs-target="#editFormNameModal"
+                (click)="openEditFormNameModal(formName); $event.stopPropagation()" nz-tooltip
+                nzTooltipTitle="Edit form" nzTooltipPlacement="top">
+                <i nz-icon nzType="edit"></i>
+              </button>
+              <button type="button" class="btn border-0" (click)="deleteFormName(formName); $event.stopPropagation()"
+                nz-tooltip nzTooltipTitle="Delete form" nzTooltipPlacement="top">
+                <i nz-icon nzType="delete"></i>
+              </button>
+            </div>
           </li>
           <li *ngIf="savedFormNames.length === 0" class="list-group-item text-muted">
             No saved forms found.

@@ -146,6 +146,14 @@ export class CRUD {
     return this.model && Object.keys(this.model).length > 0;
   }
 
+  get startIndex(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+
+  get endIndex(): number {
+    return Math.min(this.currentPage * this.pageSize, this.filteredUsers.length);
+  }
+
   ngOnInit() {
     this.fields = [];
     this.model = {};
@@ -405,8 +413,8 @@ export class CRUD {
     });
   }
 
-  deleteFormName() {
-    const formName = this.editFormModel.formName?.trim();
+  deleteFormName(formName: string) {
+    formName = formName;
     if (!formName) {
       alert("Form name is missing!");
       return;
@@ -445,7 +453,7 @@ export class CRUD {
         field.props!['deleteField'] = () => this.deleteRowField(rowIndex, colIndex);
         field.props!['loadSavedForm'] = () => this.loadSavedForm(this.formHeading);
         field.props!['openEditFormNameModal'] = () => this.openEditFormNameModal(this.formHeading);
-        field.props!['deleteFormName'] = () => this.deleteFormName();
+        field.props!['deleteFormName'] = () => this.deleteFormName(this.formHeading);
         globalIndex++;
       });
     });
@@ -1132,7 +1140,7 @@ export class CRUD {
       this.openEditFormNameModal(this.selectedContextFormName);
     } else if (action === 'deleteFormName') {
       this.editFormModel.formName = this.selectedContextFormName;
-      this.deleteFormName();
+      this.deleteFormName(this.formHeading);
     } else if (action === 'loadSavedForm') {
       this.loadSavedForm(this.selectedContextFormName);
     } else if (action === 'openEditFieldModal') {
