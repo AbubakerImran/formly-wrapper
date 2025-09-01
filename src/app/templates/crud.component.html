@@ -315,8 +315,8 @@
         <form [formGroup]="modalForm" (ngSubmit)="saveFieldEdit()" class="container">
           <formly-form [form]="modalForm" [fields]="modalFields" [model]="modalModel"></formly-form>
           <div class="mt-4 d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary me-2" data-bs-dismiss="modal">Save</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+            <button type="submit" nz-button nzType="primary" class="me-2" data-bs-dismiss="modal">Save</button>
+            <button type="button" nz-button nzType="default" data-bs-dismiss="modal"
               (click)="cancelFieldModal()">Cancel</button>
           </div>
         </form>
@@ -370,9 +370,9 @@
         No fields available to edit.
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-success" data-bs-dismiss="modal"
+        <button type="submit" nz-button nzType="primary" data-bs-dismiss="modal"
           (click)="saveAllFieldsEdit()">Save</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+        <button type="button" nz-button nzType="default" data-bs-dismiss="modal"
           (click)="toggleAllFieldsModal()">Cancel</button>
       </div>
     </div>
@@ -395,9 +395,9 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-bs-dismiss="modal"
+        <button type="button" nz-button nzType="primary" data-bs-dismiss="modal"
           (click)="saveGlobalFieldsEdit()">Save</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+        <button type="button" nz-button nzType="default" data-bs-dismiss="modal"
           (click)="toggleGlobalFieldsModal()">Cancel</button>
       </div>
     </div>
