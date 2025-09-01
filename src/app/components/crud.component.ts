@@ -11,13 +11,14 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTableModule, } from 'ng-zorro-antd/table';
 
 @Component({
   selector: 'crud-component',
   standalone: true,
   templateUrl: '../templates/crud.component.html',
   styleUrl: '../styles/crud.component.css',
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule, NzTableModule],
 })
 export class CRUD {
 
@@ -35,7 +36,6 @@ export class CRUD {
   editStr = 'Heading';
   searchTerm: string = '';
   editFormNameBefore = '';
-  sortColumn: string = 'id';
   selectedContextFormName = '';
   pageSize = 3;
   totalPages = 0;
@@ -45,7 +45,6 @@ export class CRUD {
   formChanged = false;
   formMenuVisible = false;
   editMenuVisible = false;
-  sortAscending: boolean = true;
   menuPosition = { x: 0, y: 0 };
   editingFieldIndex: number | null = null;
   selectedFieldIndex: number | null = null;
@@ -144,6 +143,25 @@ export class CRUD {
     return this.model && Object.keys(this.model).length > 0;
   }
 
+  compareFn(col: string) {
+    return (a: any, b: any): number => {
+      const valA = a[col];
+      const valB = b[col];
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return -1;
+      if (valB == null) return 1;
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return valA - valB;
+      }
+      const numA = Number(valA);
+      const numB = Number(valB);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      return String(valA).localeCompare(String(valB));
+    };
+  }
+
   ngOnInit() {
     this.fields = [];
     this.model = {};
@@ -168,8 +186,8 @@ export class CRUD {
       .subscribe({
         next: (forms) => {
           this.savedFormNames = forms
-          .filter(f => f.template === 'ngzorro')
-          .map(f => f.name);
+            .filter(f => f.template === 'ngzorro')
+            .map(f => f.name);
         },
         error: (err) => {
           console.error('❌ Failed to load forms:', err);
@@ -255,7 +273,6 @@ export class CRUD {
     this.formService.getEntries(this.formHeading).subscribe({
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
-        this.sortUsers();
         this.applyFilter();
         if (this.users.length > 0) {
           const widest = this.users.reduce((max, u) =>
@@ -264,64 +281,13 @@ export class CRUD {
           const keys = Object.keys(widest).filter(k => k !== 'id');
           this.displayFields = keys.map(k => ({ key: k, label: k }));
         }
-        this.updatePagination();
       },
       error: (err) => {
         console.error("❌ Error fetching entries:", err);
         this.users = [];
         this.displayFields = [];
-        this.updatePagination();
       }
     });
-  }
-
-  updatePagination() {
-    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize) || 1;
-    if (this.currentPage > this.totalPages) {
-      this.currentPage = this.totalPages;
-    }
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.paginatedUsers = this.filteredUsers.slice(start, end);
-  }
-
-  setPage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.updatePagination();
-  }
-
-  sortUsers() {
-    const col = this.sortColumn;
-    this.filteredUsers.sort((a, b) => {
-      const valA = a[col];
-      const valB = b[col];
-      if (valA == null && valB == null) return 0;
-      if (valA == null) return this.sortAscending ? -1 : 1;
-      if (valB == null) return this.sortAscending ? 1 : -1;
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return this.sortAscending ? valA - valB : valB - valA;
-      }
-      const numA = Number(valA);
-      const numB = Number(valB);
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return this.sortAscending ? numA - numB : numB - numA;
-      }
-      return this.sortAscending
-        ? String(valA).localeCompare(String(valB))
-        : String(valB).localeCompare(String(valA));
-    });
-    this.updatePagination();
-  }
-
-  toggleSort(col: string) {
-    if (this.sortColumn === col) {
-      this.sortAscending = !this.sortAscending;
-    } else {
-      this.sortColumn = col;
-      this.sortAscending = true;
-    }
-    this.sortUsers();
   }
 
   toggle(key: string) {
@@ -655,7 +621,7 @@ export class CRUD {
         props: { label: 'Options (comma separated)', required: true }
       });
     }
-    this.modalFields.push( { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } } );
+    this.modalFields.push({ key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } });
     this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
     this.modalFields.push({
       fieldGroupClassName: 'row',
@@ -992,7 +958,6 @@ export class CRUD {
         )
       );
     }
-    this.sortUsers();
   }
 
   resetSearch() {
