@@ -147,11 +147,6 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="filteredUsers.length === 0 && users.length > 0">
-                <td [attr.colspan]="displayFields.length + 2" class="text-center">
-                  No matching entries found.
-                </td>
-              </tr>
               <tr *ngIf="users.length === 0">
                 <td [attr.colspan]="displayFields.length + 2" class="text-center">
                   No users found.

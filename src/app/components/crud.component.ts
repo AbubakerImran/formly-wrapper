@@ -169,8 +169,8 @@ export class CRUD {
       .subscribe({
         next: (forms) => {
           this.savedFormNames = forms
-          .filter(f => f.template === 'ngzorro')
-          .map(f => f.name);
+            .filter(f => f.template === 'ngzorro')
+            .map(f => f.name);
         },
         error: (err) => {
           console.error('❌ Failed to load forms:', err);
@@ -296,39 +296,39 @@ export class CRUD {
     this.updatePagination();
   }
 
-normalizeOrder(order: string | null): 'ascend' | 'descend' | null {
-  if (order === 'ascend' || order === 'descend') {
-    return order;
-  }
-  return null;
-}
-
-onSort(order: 'ascend' | 'descend' | null, column: string) {
-  if (!order) {
-    this.filteredUsers = [...this.users];
-    this.updatePagination();
-    return;
+  normalizeOrder(order: string | null): 'ascend' | 'descend' | null {
+    if (order === 'ascend' || order === 'descend') {
+      return order;
+    }
+    return null;
   }
 
-  this.filteredUsers = [...this.users].sort((a, b) => {
-    const valA = a[column];
-    const valB = b[column];
-
-    if (valA == null && valB == null) return 0;
-    if (valA == null) return order === 'ascend' ? -1 : 1;
-    if (valB == null) return order === 'ascend' ? 1 : -1;
-
-    if (!isNaN(valA) && !isNaN(valB)) {
-      return order === 'ascend' ? valA - valB : valB - valA;
+  onSort(order: 'ascend' | 'descend' | null, column: string) {
+    if (!order) {
+      this.filteredUsers = [...this.users];
+      this.updatePagination();
+      return;
     }
 
-    return order === 'ascend'
-      ? String(valA).localeCompare(String(valB))
-      : String(valB).localeCompare(String(valA));
-  });
+    this.filteredUsers = [...this.users].sort((a, b) => {
+      const valA = a[column];
+      const valB = b[column];
 
-  this.updatePagination();
-}
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return order === 'ascend' ? -1 : 1;
+      if (valB == null) return order === 'ascend' ? 1 : -1;
+
+      if (!isNaN(valA) && !isNaN(valB)) {
+        return order === 'ascend' ? valA - valB : valB - valA;
+      }
+
+      return order === 'ascend'
+        ? String(valA).localeCompare(String(valB))
+        : String(valB).localeCompare(String(valA));
+    });
+
+    this.updatePagination();
+  }
 
 
   toggle(key: string) {
@@ -662,7 +662,7 @@ onSort(order: 'ascend' | 'descend' | null, column: string) {
         props: { label: 'Options (comma separated)', required: true }
       });
     }
-    this.modalFields.push( { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } } );
+    this.modalFields.push({ key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } });
     this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
     this.modalFields.push({
       fieldGroupClassName: 'row',
@@ -989,21 +989,25 @@ onSort(order: 'ascend' | 'descend' | null, column: string) {
   }
 
   applyFilter() {
-    const term = this.searchTerm.toLowerCase();
+    const term = this.searchTerm.trim().toLowerCase();
     if (!term) {
       this.filteredUsers = [...this.users];
     } else {
       this.filteredUsers = this.users.filter(user =>
-        Object.values(user).some(val =>
-          val != null && String(val).toLowerCase().includes(term)
+        Object.values(user).some(v =>
+          v != null && v.toString().toLowerCase().includes(term)
         )
       );
     }
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   resetSearch() {
     this.searchTerm = '';
-    this.applyFilter();
+    this.filteredUsers = [...this.users];
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   onSubmit(model: any) {
