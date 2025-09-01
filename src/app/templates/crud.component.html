@@ -120,7 +120,8 @@
           <h4>Entries</h4>
           <div class="mb-3 d-flex">
             <nz-input-group [nzSuffix]="suffixIconSearch">
-              <input type="text" nz-input placeholder="Search..." [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()" />
+              <input type="text" nz-input placeholder="Search..." [(ngModel)]="searchTerm"
+                (ngModelChange)="applyFilter()" />
             </nz-input-group>
             <ng-template #suffixIconSearch>
               <nz-icon nzType="search" />
@@ -129,8 +130,11 @@
           </div>
         </div>
         <div class="table-responsive mt-3" (contextmenu)="showFormContextMenu($event)" #inputField>
-          <table class="table table-bordered">
-            <thead *ngIf="users.length != 0 && filteredUsers.length != 0">
+          <nz-table #basicTable [nzBordered]="true" [nzData]="filteredUsers" [nzLoading]="isLoading"
+            [nzFrontPagination]="false" [nzPageIndex]="currentPage" [nzPageSize]="pageSize" [nzShowSizeChanger]="true"
+            [nzTotal]="filteredUsers.length" (nzPageIndexChange)="setPage($event)"
+            (nzPageSizeChange)="onPageSizeChange($event)">
+            <thead *ngIf="users.length > 0 && filteredUsers.length > 0">
               <tr>
                 <th (click)="toggleSort('id')" style="cursor:pointer">
                   UID
@@ -148,48 +152,30 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="filteredUsers.length === 0 && users.length != 0">
+              <tr *ngIf="filteredUsers.length === 0 && users.length > 0">
                 <td [attr.colspan]="displayFields.length + 2" class="text-center">
                   No matching entries found.
                 </td>
               </tr>
               <tr *ngIf="users.length === 0">
-                <td [attr.colspan]="displayFields.length + 2" class="text-center">No users found.</td>
+                <td [attr.colspan]="displayFields.length + 2" class="text-center">
+                  No users found.
+                </td>
               </tr>
               <tr *ngFor="let user of paginatedUsers">
                 <td>{{ user.id }}</td>
                 <td *ngFor="let f of displayFields">{{ getValue(user, f.key) }}</td>
                 <td>
-                  <div class="d-flex gap-2">
-                    <button class="btn border-0" appTooltip title="Edit entry" (click)="editUser(user.id)"><i
-                        class="fas fa-edit"></i></button>
-                    <button class="btn border-0" appTooltip title="Delete entry" (click)="deleteUser(user.id)"><i
-                        class="fa-solid fa-trash-can"></i></button>
-                  </div>
+                  <button nz-button nzType="link" (click)="editUser(user.id)">
+                    <i nz-icon nzType="edit"></i>
+                  </button>
+                  <button nz-button nzType="link" (click)="deleteUser(user.id)">
+                    <i nz-icon nzType="delete"></i>
+                  </button>
                 </td>
               </tr>
             </tbody>
-          </table>
-          <div class="d-flex justify-content-between">
-            <nav aria-label="..." *ngIf="totalPages > 1">
-              <ul class="pagination justify-content-center">
-                <li class="page-item" [class.disabled]="currentPage === 1">
-                  <a class="page-link" (click)="setPage(currentPage - 1)">Previous</a>
-                </li>
-                <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i = index"
-                  [class.active]="currentPage === i + 1">
-                  <a class="page-link" (click)="setPage(i + 1)">{{ i + 1 }}</a>
-                </li>
-                <li class="page-item" [class.disabled]="currentPage === totalPages">
-                  <a class="page-link" (click)="setPage(currentPage + 1)">Next</a>
-                </li>
-              </ul>
-            </nav>
-            <div class="d-flex align-items-center">
-              <h6>Total Entries: {{ users.length }} |</h6>
-              <h6>&nbsp;Showing <span>{{ showingRange }}</span></h6>
-            </div>
-          </div>
+          </nz-table>
         </div>
       </div>
     </div>

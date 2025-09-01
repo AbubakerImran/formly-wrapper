@@ -11,13 +11,14 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTableModule } from 'ng-zorro-antd/table';
 
 @Component({
   selector: 'crud-component',
   standalone: true,
   templateUrl: '../templates/crud.component.html',
   styleUrl: '../styles/crud.component.css',
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule],
+  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule, NzTableModule],
 })
 export class CRUD {
 
@@ -286,8 +287,13 @@ export class CRUD {
   }
 
   setPage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
+    this.updatePagination();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize = size;
+    this.currentPage = 1;
     this.updatePagination();
   }
 
