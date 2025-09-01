@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
   selector: 'crud-component',
@@ -23,7 +24,7 @@ import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 })
 export class CRUD {
 
-  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient) { }
+  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient, private notification: NzNotificationService) { }
 
   uid = signal(0);
   type = signal('');
@@ -161,16 +162,8 @@ export class CRUD {
     this.loadSavedFormNames();
   }
 
-  showNotification(message: string | null) {
-    const popup = document.getElementById('notification');
-    if (!popup) return;
-    popup.textContent = message ?? '';
-    popup.classList.remove('hidden');
-    popup.classList.add('show');
-    setTimeout(() => {
-      popup.classList.remove('show');
-      setTimeout(() => popup.classList.add('hidden'), 100);
-    }, 1000);
+  createNotification(type: string, title: string, message: string) {
+    this.notification.create(type, title, message, {nzDuration: 1000});
   }
 
   loadSavedFormNames() {
@@ -182,7 +175,7 @@ export class CRUD {
             .map(f => f.name);
         },
         error: (err) => {
-          console.error('❌ Failed to load forms:', err);
+          this.createNotification('error', 'Failed to load forms!', err.message)
           this.savedFormNames = [];
         }
       });
@@ -209,15 +202,15 @@ export class CRUD {
               this.model = {};
               this.loadSavedFormNames();
               this.fetchData();
-              this.showNotification("Form created successfully!");
+              this.createNotification('success', '', "Form created successfully!");
             },
             error: (err) => {
-              console.error("❌ Failed to create form:", err);
+              this.createNotification('error', "Failed to create form", err.message);
             }
           });
       },
       error: (err) => {
-        console.error("❌ Failed to load forms:", err);
+        this.createNotification('error', "Failed to load forms", err.message);
       }
     });
   }
@@ -255,7 +248,7 @@ export class CRUD {
         }
       },
       error: (err) => {
-        console.error("❌ Failed to load form:", err);
+        this.createNotification('error', "Failed to load form", err.message);
       }
     });
   }
@@ -277,7 +270,7 @@ export class CRUD {
         this.onSort('ascend', 'id');
       },
       error: (err) => {
-        console.error("❌ Error fetching entries:", err);
+        this.createNotification('error', "Error fetching entries", err.message);
         this.users = [];
         this.displayFields = [];
         this.updatePagination();
@@ -373,8 +366,7 @@ export class CRUD {
         this.editFormNameBefore = name;
       },
       error: (err) => {
-        console.error("❌ Failed to load form for editing:", err);
-        this.showNotification("Failed to load form data!");
+        this.createNotification('error', "Failed to load form data!", err.message);
       }
     });
   }
@@ -403,12 +395,11 @@ export class CRUD {
         this.formHeading = newName;
         this.showForm = newName;
         this.loadSavedFormNames();
-        this.showNotification("Successfully updated form info!");
+        this.createNotification('success', '', "Successfully updated form info!");
         this.loadSavedForm(newName);
       },
       error: (err) => {
-        console.error("❌ Failed to rename form:", err);
-        this.showNotification("Error updating form info!");
+        this.createNotification('error', "Error updating form info!", err.message);
       }
     });
   }
@@ -435,11 +426,11 @@ export class CRUD {
             this.showForm = '';
           }
           this.loadSavedFormNames();
-          this.showNotification("Form deleted successfully!");
+          this.createNotification('success', '', "Form deleted successfully!");
         },
         error: (err) => {
           console.error("❌ Failed to delete form:", err);
-          this.showNotification("Error deleting form!");
+          this.createNotification('error', "Error deleting form!", err.message);
         }
       });
   }
@@ -533,7 +524,7 @@ export class CRUD {
     this.reattachFieldFunctions();
     this.cancelFieldModal();
     this.formChanged = true;
-    this.showNotification('Field added (not saved yet)!');
+    this.createNotification('warning', 'Field added', 'Save form to persist this field!');
   }
 
   cancelFieldModal() {
@@ -559,7 +550,7 @@ export class CRUD {
     this.fields = [...this.fields];
     this.reattachFieldFunctions();
     this.formChanged = true;
-    this.showNotification('Field successfully deleted!');
+    this.createNotification('success', '', 'Field successfully deleted!');
   }
 
   drop(event: CdkDragDrop<FormlyFieldConfig[]>, list: FormlyFieldConfig[]) {
@@ -609,13 +600,12 @@ export class CRUD {
       next: () => {
         this.formChanged = false;
         this.loadSavedFormNames();
-        this.showNotification("Form saved successfully!");
+        this.createNotification('success', '', "Form saved successfully!");
 
         this.loadSavedForm(this.formHeading);
       },
       error: (err) => {
-        console.error("❌ Failed to save form:", err);
-        this.showNotification("Failed to save form!");
+        this.createNotification('error', "Failed to save form!", err.message);
       }
     });
   }
@@ -779,7 +769,7 @@ export class CRUD {
     this.modalStep.set('select');
     this.modalForm.reset();
     this.modalModel = {};
-    this.showNotification('Field updated (remember to Save Form)!');
+    this.createNotification('warning', 'Field updated', 'Remember to save form to persist this change!');
   }
 
   updateFieldKey(oldKey: string, newKey: string) {
@@ -899,7 +889,7 @@ export class CRUD {
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.allFieldsModalOpen.set(false);
-    this.showNotification('Field group updated (remember to Save Form)!');
+    this.createNotification('warning', 'Field group updated', 'Remember to save form to persist changes!');
   }
 
   toggleGlobalFieldsModal() {
@@ -975,7 +965,7 @@ export class CRUD {
     this.reattachFieldFunctions();
     this.formChanged = true;
     this.globalFieldsModalOpen.set(false);
-    this.showNotification('All fields updated (remember to Save Form)!');
+    this.createNotification('success', 'All fields updated', 'Remember to save form to persist changes!');
   }
 
   deleteFieldGroup(index: number) {
@@ -983,7 +973,7 @@ export class CRUD {
     this.fields.splice(index, 1);
     this.fields = [...this.fields];
     this.formChanged = true;
-    this.showNotification("Field group deleted (remember to Save Form)!");
+    this.createNotification('success', "Field group deleted", 'Remember to save form to persist changes!');
   }
 
   deleteAllFields() {
@@ -995,7 +985,7 @@ export class CRUD {
     this.displayFields = [];
     this.fields = [...this.fields];
     this.formChanged = true;
-    this.showNotification("All fields deleted (remember to Save Form)!");
+    this.createNotification('success', "All fields deleted", 'Remember to save form to persist changes!');
   }
 
   applyFilter() {
@@ -1039,7 +1029,7 @@ export class CRUD {
         this.resetForm();
         this.fetchData();
         this.isEdit.set(false);
-        this.showNotification('Successfully submitted!');
+        this.createNotification('success', 'Submitted', 'Data entered successfully!');
       });
     }
     this.isLoading = false;
@@ -1053,8 +1043,7 @@ export class CRUD {
         this.isEdit.set(true);
       },
       error: (err) => {
-        console.error("❌ Failed to fetch entry:", err);
-        this.showNotification('❌ Could not load entry for editing.');
+        this.createNotification('error', 'Failed to load entry for editing!', err.message);
       }
     });
   }
@@ -1076,11 +1065,10 @@ export class CRUD {
           this.fetchData();
           this.isEdit.set(false);
           this.resetForm();
-          this.showNotification('✅ Successfully updated info!');
+          this.createNotification('success', '', 'Successfully updated info!');
         },
         error: (err) => {
-          console.error("❌ Update failed:", err);
-          this.showNotification('❌ Failed to update entry!');
+          this.createNotification('error', 'Failed to update entry!', err.message);
         }
       });
     }
@@ -1098,11 +1086,10 @@ export class CRUD {
       .subscribe({
         next: () => {
           this.fetchData();
-          this.showNotification('Successfully deleted info!');
+          this.createNotification('success', '', 'Successfully deleted info!');
         },
         error: (err: any) => {
-          console.error('❌ Failed to delete entry:', err);
-          this.showNotification('Failed to delete entry!');
+          this.createNotification('error', 'Failed to delete entry!', err.message);
         }
       });
   }
