@@ -5,7 +5,7 @@
   <nz-form-control [nzSpan]="24" [nzErrorTip]="errorTpl"
     [nzValidateStatus]="formControl.invalid && (formControl.dirty || formControl.touched) ? 'error' : 'success'">
     <ng-container [ngSwitch]="field.type">
-      <input *ngSwitchCase="'text'" nz-input type="text" [placeholder]="to.placeholder" [formControl]="formControl"
+      <input *ngSwitchCase="'input'" nz-input type="text" [placeholder]="to.placeholder" [formControl]="formControl"
         [id]="to['id']" [autocomplete]="to['autocomplete']" [ngStyle]="to['style']" />
       <textarea *ngSwitchCase="'textarea'" nz-input [rows]="to['rows'] || 3" [placeholder]="to.placeholder"
         [formControl]="formControl" [id]="to['id']" [ngStyle]="to['style']"></textarea>

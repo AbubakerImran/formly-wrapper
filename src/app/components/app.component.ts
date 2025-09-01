@@ -723,11 +723,12 @@ export class AppComponent implements OnInit {
         fieldGroup: [
           { key: 'key', type: 'input', className: 'col-md-6', props: { label: 'Key', required: true } },
           { key: 'label', type: 'input', className: 'col-md-6', props: { label: 'Label', required: true } },
-          { key: 'placeholder', type: 'input', className: 'col-md-6', props: { label: 'Placeholder' } },
+          ...(type === 'input' || type === 'textarea'
+            ? [{ key: 'placeholder', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Placeholder' } }]
+            : []),
           { key: 'class', type: 'input', className: 'col-md-6', props: { label: 'Class' } },
           { key: 'labelClass', type: 'input', className: 'col-md-6', props: { label: 'Label Class' } },
           { key: 'className', type: 'input', className: 'col-md-6', props: { label: 'Class Name' } },
-          { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } },
         ]
       }
     ];
@@ -740,7 +741,7 @@ export class AppComponent implements OnInit {
         props: { label: 'Options (comma separated)', required: true }
       });
     }
-
+    this.modalFields.push( { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } } );
     // Input Style
     this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
     this.modalFields.push({

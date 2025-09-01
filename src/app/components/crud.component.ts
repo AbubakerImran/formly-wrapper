@@ -630,13 +630,14 @@ export class CRUD {
       {
         fieldGroupClassName: 'row',
         fieldGroup: [
-          { key: 'key', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Key', required: true } },
-          { key: 'label', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Label', required: true } },
-          { key: 'placeholder', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Placeholder' } },
-          { key: 'class', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Class' } },
-          { key: 'labelClass', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Label Class' } },
-          { key: 'className', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Class Name' } },
-          { key: 'required', type: 'checkbox', className: 'col-md-6', wrappers: ['ngform-field-modal'], props:{ Label: 'Required' } },
+          { key: 'key', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Key', required: true } },
+          { key: 'label', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Label', required: true } },
+          ...(type === 'input' || type === 'textarea'
+            ? [{ key: 'placeholder', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Placeholder' } }]
+            : []),
+          { key: 'class', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Class' } },
+          { key: 'labelClass', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Label Class' } },
+          { key: 'className', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Class Name' } },
         ]
       }
     ];
@@ -649,6 +650,7 @@ export class CRUD {
         props: { label: 'Options (comma separated)', required: true }
       });
     }
+    this.modalFields.push( { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } } );
     this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
     this.modalFields.push({
       fieldGroupClassName: 'row',
@@ -830,7 +832,7 @@ export class CRUD {
               ? { key: `options_${i}`, type: 'input', className: 'col-3', wrappers: ['ngform-field-modal'], props: { label: `Options` } }
               : { key: `placeholder_${i}`, type: 'input', className: 'col-3', wrappers: ['ngform-field-modal'], props: { label: `Placeholder` } },
             { key: `className_${i}`, type: 'input', className: 'col-3', wrappers: ['ngform-field-modal'], props: { label: `Class Name` } },
-            { key: `required_${i}`, type: 'checkbox', className: 'col-3', wrappers: ['ngform-field-modal'], props:{ Label: 'Required' } }
+            { key: `required_${i}`, type: 'checkbox', className: 'col-3', wrappers: ['ngform-field-modal'], props: { Label: 'Required' } }
           ]
         };
       });
@@ -907,7 +909,7 @@ export class CRUD {
                 ? { key: `options_${i}`, type: 'input', className: 'col-3', wrappers: ['ngform-field-modal'], props: { label: `Options` } }
                 : { key: `placeholder_${i}`, type: 'input', className: 'col-3', wrappers: ['ngform-field-modal'], props: { label: `Placeholder` } },
               { key: `className_${i}`, type: 'input', className: 'col-3', wrappers: ['ngform-field-modal'], props: { label: `Class Name` } },
-              { key: `required_${i}`, type: 'checkbox', className: 'col-3', wrappers: ['ngform-field-modal'], props:{ Label: 'Required' } }
+              { key: `required_${i}`, type: 'checkbox', className: 'col-3', wrappers: ['ngform-field-modal'], props: { Label: 'Required' } }
             ]
           };
         }) || []
