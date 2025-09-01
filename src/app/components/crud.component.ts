@@ -1,6 +1,6 @@
 import { Component, HostListener, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from "@angular/common";
+import { CommonModule, NgIf } from "@angular/common";
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormlyFormOptions, FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
@@ -12,13 +12,14 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
 @Component({
   selector: 'crud-component',
   standalone: true,
   templateUrl: '../templates/crud.component.html',
   styleUrl: '../styles/crud.component.css',
-  imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule, NzTableModule],
+  imports: [NgIf, FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule, NzTableModule, NzTooltipModule],
 })
 export class CRUD {
 

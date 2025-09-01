@@ -4,14 +4,15 @@
   <h2 class="ms-3">Ng-Zorro Forms</h2>
   <div class="d-flex p-3 gap-3 justify-content-end">
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0"
-      (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" appTooltip
-      title="Edit form"><i class="fa-solid fa-file-code"></i></button>
+      (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal" data-bs-target="#editFormNameModal" nz-tooltip
+      nzTooltipTitle="Edit form" nzTooltipPlacement="bottom"><i class="fa-solid fa-file-code"></i></button>
     <button type="button" class="btn border-0" *ngIf="showForm && savedFormNames.length != 0" (click)="closeForm()"
-      appTooltip title="Close form"><i class="fa-solid fa-file-excel"></i></button>
+      nzTooltipTitle="Close form" nzTooltipPlacement="bottom" nz-tooltip><i class="fa-solid fa-file-excel"></i></button>
     <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal"
-      data-bs-target="#savedFormsModal" appTooltip title="Open saved form"><i class="fa-solid fa-file"></i></button>
-    <button type="button" class="btn border-0" (click)="createNewForm()" appTooltip title="Create new form"><i
-        class="fa-solid fa-file-circle-plus"></i></button>
+      data-bs-target="#savedFormsModal" nzTooltipTitle="Open saved form" nzTooltipPlacement="bottom" nz-tooltip><i
+        class="fa-solid fa-file"></i></button>
+    <button type="button" class="btn border-0" (click)="createNewForm()" nzTooltipTitle="Create new form"
+      nzTooltipPlacement="bottom" nz-tooltip><i class="fa-solid fa-file-circle-plus"></i></button>
   </div>
 </div>
 
@@ -25,16 +26,18 @@
           <div class="tree-node d-flex align-items-center">
             <span class="tag" (click)="toggle('parent')" style="cursor: pointer;">div</span>
             <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formDivModal"
-              appTooltip title="Add new div" (click)="$event.stopPropagation();" style="font-size: 13px;">
+              (click)="$event.stopPropagation();" style="font-size: 13px;" nz-tooltip nzTooltipTitle="Add new div"
+              nzTooltipPlacement="top">
               <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
             </button>
             <button type="button" class="btn btn-sm border-0"
               (click)="$event.stopPropagation(); toggleGlobalFieldsModal()" data-bs-toggle="modal"
-              data-bs-target="#globalFieldsModal" appTooltip title="Edit all fields" style="font-size: 13px;">
+              data-bs-target="#globalFieldsModal" nz-tooltip nzTooltipTitle="Edit all fields" nzTooltipPlacement="top"
+              style="font-size: 13px;">
               <i class='fas fa-edit' style="align-self: center;"></i>
             </button>
-            <button type="button" class="btn btn-sm border-0" appTooltip title="Delete all fields"
-              (click)="$event.stopPropagation(); deleteAllFields()">
+            <button type="button" class="btn btn-sm border-0" nz-tooltip nzTooltipTitle="Delete all fields"
+              nzTooltipPlacement="top" (click)="$event.stopPropagation(); deleteAllFields()">
               <i class="fa-solid fa-trash-can" style="align-self: center;"></i>
             </button>
             <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('parent')"
@@ -48,17 +51,18 @@
                 <span cdkDragHandle>⠿</span>
                 <span class="tag" (click)="toggle('child-' + i)" style="cursor: pointer;">&nbsp;div</span>
                 <button type="button" class="btn btn-sm border-0" data-bs-toggle="modal" data-bs-target="#formModal"
-                  appTooltip title="Add new field" (click)="$event.stopPropagation(); setSelectedRowIndex(i);"
-                  style="font-size: 13px;">
+                  nz-tooltip nzTooltipTitle="Add new field" nzTooltipPlacement="top"
+                  (click)="$event.stopPropagation(); setSelectedRowIndex(i);" style="font-size: 13px;">
                   <i class="fa-regular fa-square-plus" style="align-self: center;"></i>
                 </button>
                 <button type="button" class="btn btn-sm border-0"
                   (click)="$event.stopPropagation(); openAllFieldsModal(i)" data-bs-toggle="modal"
-                  data-bs-target="#allFieldsModal" appTooltip title="Edit all fields" style="font-size: 13px;">
+                  data-bs-target="#allFieldsModal" nz-tooltip nzTooltipTitle="Edit all fields" nzTooltipPlacement="top"
+                  style="font-size: 13px;">
                   <i class='fas fa-edit' style="align-self: center;"></i>
                 </button>
-                <button type="button" class="btn btn-sm border-0" appTooltip title="Delete all fields"
-                  (click)="$event.stopPropagation(); deleteFieldGroup(i)">
+                <button type="button" class="btn btn-sm border-0" nz-tooltip nzTooltipTitle="Delete all fields"
+                  nzTooltipPlacement="top" (click)="$event.stopPropagation(); deleteFieldGroup(i)">
                   <i class="fa-solid fa-trash-can" style="align-self: center;"></i>
                 </button>
                 <i class="fa" style="width: 10px; cursor: pointer;" (click)="toggle('child-' + i)"
@@ -73,11 +77,13 @@
                     {{ childField.type || 'input' }}: {{ childField.props?.label || '...' }}
                     <button type="button" class="btn btn-sm border-0"
                       (click)="$event.stopPropagation(); openRowEditFieldModal(i, j)" data-bs-toggle="modal"
-                      data-bs-target="#editFieldModal" appTooltip title="Edit field" style="font-size: 13px;">
+                      data-bs-target="#editFieldModal" nz-tooltip nzTooltipTitle="Edit field" nzTooltipPlacement="top"
+                      style="font-size: 13px;">
                       <i class='fas fa-edit'></i>
                     </button>
                     <button type="button" class="btn btn-sm border-0"
-                      (click)="$event.stopPropagation(); deleteRowField(i, j)" appTooltip title="Delete field">
+                      (click)="$event.stopPropagation(); deleteRowField(i, j)" nz-tooltip nzTooltipTitle="Delete field"
+                      nzTooltipPlacement="top">
                       <i class="fa-solid fa-trash-can"></i>
                     </button>
                   </div>
@@ -133,8 +139,8 @@
           <nz-table #basicTable [nzBordered]="true" [nzData]="filteredUsers" [nzLoading]="isLoading"
             [nzFrontPagination]="false" [nzPageIndex]="currentPage" [nzPageSize]="pageSize" [nzShowSizeChanger]="true"
             [nzTotal]="filteredUsers.length" (nzPageIndexChange)="setPage($event)"
-            (nzPageSizeChange)="onPageSizeChange($event)">
-            <thead>
+            [nzPageSizeOptions]="[3, 5, 7, 10, 15]" (nzPageSizeChange)="onPageSizeChange($event)">
+            <thead *ngIf="users.length != 0">
               <tr>
                 <th nzColumnKey="id" [nzSortFn]="true" (nzSortOrderChange)="onSort(normalizeOrder($event), 'id')">
                   UID
@@ -147,19 +153,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="users.length === 0">
-                <td [attr.colspan]="displayFields.length + 2" class="text-center">
-                  No users found.
-                </td>
-              </tr>
               <tr *ngFor="let user of paginatedUsers">
                 <td>{{ user.id }}</td>
                 <td *ngFor="let f of displayFields">{{ getValue(user, f.key) }}</td>
                 <td>
-                  <button nz-button nzType="link" (click)="editUser(user.id)">
+                  <button nz-button nzType="link" (click)="editUser(user.id)" nz-tooltip nzTooltipTitle="Edit user"
+                    nzTooltipPlacement="top">
                     <i nz-icon nzType="edit"></i>
                   </button>
-                  <button nz-button nzType="link" (click)="deleteUser(user.id)">
+                  <button nz-button nzType="link" (click)="deleteUser(user.id)" nz-tooltip nzTooltipTitle="Delete user"
+                    nzTooltipPlacement="top">
                     <i nz-icon nzType="delete"></i>
                   </button>
                 </td>
@@ -261,7 +264,8 @@
             #inputField>
             {{ formName }}
             <button type="button" class="btn border-0" data-bs-toggle="modal" data-bs-target="#editFormNameModal"
-              (click)="openEditFormNameModal(formName); $event.stopPropagation()">
+              (click)="openEditFormNameModal(formName); $event.stopPropagation()" nz-tooltip nzTooltipTitle="Edit form"
+              nzTooltipPlacement="top">
               <i class='fas fa-edit'></i>
             </button>
           </li>
