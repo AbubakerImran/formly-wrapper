@@ -230,7 +230,9 @@ export class AppComponent implements OnInit {
     this.http.get<any[]>(`http://localhost:3000/forms`)
       .subscribe({
         next: (forms) => {
-          this.savedFormNames = forms.map(f => f.name);
+          this.savedFormNames = forms
+          .filter(f => f.template === 'bootstrap')
+          .map(f => f.name);
         },
         error: (err) => {
           console.error('❌ Failed to load forms:', err);
@@ -300,7 +302,7 @@ export class AppComponent implements OnInit {
         }
 
         // 🔹 Call backend to actually create the form
-        this.http.post<any>(`http://localhost:3000/forms`, { name: newFormName, fields: [] })
+        this.http.post<any>(`http://localhost:3000/forms`, { name: newFormName, template: 'bootstrap', fields: [] })
           .subscribe({
             next: (createdForm) => {
               this.formHeading = createdForm.name;

@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class FormService {
-  private apiUrl = 'http://localhost:3000/forms';
 
   constructor(private http: HttpClient) {}
 
