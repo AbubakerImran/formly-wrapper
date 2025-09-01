@@ -266,6 +266,7 @@ export class CRUD {
           this.displayFields = keys.map(k => ({ key: k, label: k }));
         }
         this.updatePagination();
+        this.onSort('ascend', 'id');
       },
       error: (err) => {
         console.error("❌ Error fetching entries:", err);
