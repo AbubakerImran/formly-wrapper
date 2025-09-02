@@ -12,7 +12,7 @@
         [formControl]="formControl" [id]="to['id']" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)"
         #inputField></textarea>
       <nz-select *ngSwitchCase="'select'" [formControl]="formControl" [id]="to['id']"
-        [nzPlaceHolder]="'Select an option'" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)"
+        [nzPlaceHolder]="'Select an option...'" [ngStyle]="to['style']" (contextmenu)="showContextMenu($event)"
         #inputField>
         <ng-container *ngIf="options$ | async as options">
           <nz-option *ngFor="let option of options" [nzValue]="option.value" [nzLabel]="option.label">

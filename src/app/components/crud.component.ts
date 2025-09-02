@@ -14,17 +14,19 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 
 @Component({
   selector: 'crud-component',
   standalone: true,
   templateUrl: '../templates/crud.component.html',
   styleUrl: '../styles/crud.component.css',
-  imports: [NgIf, FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule, NzTableModule, NzTooltipModule],
+  imports: [NgIf, FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule, NzFormModule, NzButtonModule, NzInputModule, NzIconModule, NzTableModule, NzTooltipModule, NzPopconfirmModule],
 })
 export class CRUD {
 
-  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient, private notification: NzNotificationService) { }
+  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient, private notification: NzNotificationService, private nzMessageService: NzMessageService) { }
 
   uid = signal(0);
   type = signal('');
@@ -163,7 +165,7 @@ export class CRUD {
   }
 
   createNotification(type: string, title: string, message: string) {
-    this.notification.create(type, title, message, {nzDuration: 1000});
+    this.notification.create(type, title, message, { nzDuration: 1000 });
   }
 
   loadSavedFormNames() {
@@ -372,10 +374,6 @@ export class CRUD {
   }
 
   saveFormNameChange() {
-    if (this.formChanged) {
-      if (!confirm("Are you sure to update the form info? changes will be lost!"))
-        return
-    }
     if (!this.editFormModel.formName) {
       alert("Form name is empty!");
       return;
@@ -406,13 +404,7 @@ export class CRUD {
 
   deleteFormName(formName: string) {
     formName = formName;
-    if (!formName) {
-      alert("Form name is missing!");
-      return;
-    }
-    if (!confirm(`Are you sure you want to delete form "${formName}"?`)) {
-      return;
-    }
+    if (!formName) { alert("Form name is missing!"); return; }
     this.http.delete(`http://localhost:3000/forms/${formName}`)
       .subscribe({
         next: () => {
@@ -485,7 +477,6 @@ export class CRUD {
         labelStyle: labelBaseStyle,
         ...(type === 'select' ? {
           options: [
-            { label: 'Select an option...', value: '', disabled: true },
             { label: 'Option 1', value: 'Option 1' },
             { label: 'Option 2', value: 'Option 2' }
           ]
@@ -499,7 +490,6 @@ export class CRUD {
       },
       validation: { messages: { required: "This field is required!" } }
     };
-    if (type === 'select') newField.defaultValue = '';
     if (type === 'div') {
       this.fields.push({
         fieldGroupClassName: 'row',
@@ -536,7 +526,6 @@ export class CRUD {
   }
 
   deleteRowField(rowIndex: number, fieldIndex: number) {
-    if (!confirm("Are you sure you want to delete this field?")) return;
     const row = this.fields[rowIndex];
     if (!row?.fieldGroup) return;
     const field = row.fieldGroup[fieldIndex];
@@ -969,7 +958,6 @@ export class CRUD {
   }
 
   deleteFieldGroup(index: number) {
-    if (!confirm("Delete this div and its fields?")) return;
     this.fields.splice(index, 1);
     this.fields = [...this.fields];
     this.formChanged = true;
@@ -978,7 +966,6 @@ export class CRUD {
 
   deleteAllFields() {
     if (!this.formHeading) return;
-    if (!confirm("Are you sure you want to delete all fields?")) return;
     this.fields = [];
     this.form = new FormGroup({});
     this.model = {};
@@ -1081,7 +1068,6 @@ export class CRUD {
   }
 
   deleteUser(id: number) {
-    if (!confirm("Are you sure you want to delete this record?")) return;
     this.http.delete(`http://localhost:3000/forms/${this.formHeading}/entries/${id}`)
       .subscribe({
         next: () => {
