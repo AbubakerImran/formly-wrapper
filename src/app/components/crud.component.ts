@@ -226,7 +226,12 @@ export class CRUD {
             ...row,
             fieldGroup: row.fieldGroup?.map((field: any) => ({
               ...field,
-              wrappers: field.wrappers?.length ? field.wrappers : ['ngform-field-horizontal']
+              wrappers: field.wrappers?.length ? field.wrappers : ['ngform-field-horizontal'],
+              props: {
+                ...field.props,
+                style: field.props?.style || {},
+                labelStyle: field.props?.labelStyle || {}
+              }
             }))
           }));
           this.formHeading = formName;
@@ -446,9 +451,6 @@ export class CRUD {
   }
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio' | 'div') {
-    const baseStyle = { borderRadius: '', color: '', backgroundColor: '', fontFamily: '', fontSize: '', fontWeight: '', width: '100%' };
-    const labelBaseStyle = { backgroundColor: '', color: '', fontFamily: '', fontSize: '', fontWeight: '' };
-
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
       .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
@@ -472,8 +474,8 @@ export class CRUD {
         required: true,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
-        style: baseStyle,
-        labelStyle: labelBaseStyle,
+        style: { width: '100%' },
+        labelStyle: {},
         ...(type === 'select' ? {
           options: [
             { label: 'Option 1', value: 'Option 1' },
@@ -623,8 +625,8 @@ export class CRUD {
       options: Array.isArray(field.props?.options)
         ? field.props.options.map((o: any) => o.label).join(', ')
         : '',
-      style: { ...style },
-      labelStyle: { ...labelStyle }
+      style: JSON.stringify(style),
+      labelStyle: JSON.stringify(labelStyle)
     };
     this.modalFields = [
       {
@@ -650,29 +652,11 @@ export class CRUD {
         props: { label: 'Options (comma separated)', required: true }
       });
     }
-    this.modalFields.push({ key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } });
-    this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
-    this.modalFields.push({
-      fieldGroupClassName: 'row',
-      fieldGroup: Object.keys(style).map(sk => ({
-        key: `style.${sk}`,
-        type: 'input',
-        className: 'col-md-6',
-        wrappers: ['ngform-field-modal'],
-        props: { label: sk }
-      }))
-    });
-    this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Label Style</h4>' });
-    this.modalFields.push({
-      fieldGroupClassName: 'row',
-      fieldGroup: Object.keys(labelStyle).map(sk => ({
-        key: `labelStyle.${sk}`,
-        type: 'input',
-        className: 'col-md-6',
-        wrappers: ['ngform-field-modal'],
-        props: { label: sk }
-      }))
-    });
+    this.modalFields[0].fieldGroup?.push({ key: 'required', type: 'checkbox', className: 'col-12', props: { label: 'Required' } });
+    this.modalFields[0].fieldGroup?.push(
+      { key: 'style', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Input Style' } },
+      { key: 'labelStyle', type: 'input', className: 'col-6', wrappers: ['ngform-field-modal'], props: { label: 'Label Style' } }
+    );
     this.modalForm = this.fb.group({});
   }
 
@@ -704,28 +688,10 @@ export class CRUD {
     if (oldKey && newKey && oldKey !== newKey) {
       this.updateFieldKey(oldKey, newKey);
     }
-    const updatedStyle: any = {};
-    Object.keys(field.props?.['style'] || {}).forEach(k => {
-      let val = this.modalModel.style?.[k] || '';
-      if ((k === 'borderRadius' || k === 'fontSize') && val !== '') {
-        const num = val.toString().trim();
-        if (/^\d+$/.test(num)) {
-          val = `${num}px`;
-        }
-      }
-      updatedStyle[k] = val;
-    });
-    const updatedLabelStyle: any = {};
-    Object.keys(field.props?.['labelStyle'] || {}).forEach(k => {
-      let val = this.modalModel.labelStyle?.[k] || '';
-      if (k === 'fontSize' && val !== '') {
-        const num = val.toString().trim();
-        if (/^\d+$/.test(num)) {
-          val = `${num}px`;
-        }
-      }
-      updatedLabelStyle[k] = val;
-    });
+    let updatedStyle = {};
+    let updatedLabelStyle = {};
+    try { updatedStyle = JSON.parse(this.modalModel.style || '{}'); } catch { }
+    try { updatedLabelStyle = JSON.parse(this.modalModel.labelStyle || '{}'); } catch { }
     const updatedField: FormlyFieldConfig = {
       ...field,
       key: newKey,
