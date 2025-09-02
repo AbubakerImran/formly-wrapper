@@ -250,7 +250,7 @@
           <div class="d-flex mt-3 gap-2">
             <button type="button" nz-button nzType="primary" nz-popconfirm
               nzPopconfirmTitle="Are you sure to update form info? unsaved field changes will be lost!"
-              (nzOnConfirm)="saveFormNameChange()" [nzCondition]="!formChanged">Save</button>
+              (nzOnConfirm)="saveFormNameChange()" [nzCondition]="!formChanged" data-bs-dismiss="modal">Save</button>
             <button type="button" nz-button nzDanger nz-popconfirm
               nzPopconfirmTitle='Are you sure you want to delete this form?'
               (nzOnConfirm)="deleteFormName(formHeading)">Delete
