@@ -625,8 +625,8 @@ export class CRUD {
       options: Array.isArray(field.props?.options)
         ? field.props.options.map((o: any) => o.label).join(', ')
         : '',
-      style: JSON.stringify(style),
-      labelStyle: JSON.stringify(labelStyle)
+      style: Object.entries(style).map(([k, v]) => `${k}:${v}`).join('; '),
+      labelStyle: Object.entries(labelStyle).map(([k, v]) => `${k}:${v}`).join('; ')
     };
     this.modalFields = [
       {
@@ -660,6 +660,19 @@ export class CRUD {
     this.modalForm = this.fb.group({});
   }
 
+  parseKeyValue(str: string): Record<string, string> {
+    if (!str) return {};
+    return str.split(/;|,/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .reduce((acc: any, pair) => {
+        const [k, v] = pair.split(':').map(p => p.trim());
+        if (k && v !== undefined) acc[k] = v;
+        return acc;
+      }, {});
+  }
+
+
   saveFieldEdit() {
     if (this.editingFieldIndex === null) return;
     if (this.modalForm.invalid) {
@@ -688,10 +701,9 @@ export class CRUD {
     if (oldKey && newKey && oldKey !== newKey) {
       this.updateFieldKey(oldKey, newKey);
     }
-    let updatedStyle = {};
-    let updatedLabelStyle = {};
-    try { updatedStyle = JSON.parse(this.modalModel.style || '{}'); } catch { }
-    try { updatedLabelStyle = JSON.parse(this.modalModel.labelStyle || '{}'); } catch { }
+    const updatedStyle = this.parseKeyValue(this.modalModel.style);
+    const updatedLabelStyle = this.parseKeyValue(this.modalModel.labelStyle);
+
     const updatedField: FormlyFieldConfig = {
       ...field,
       key: newKey,

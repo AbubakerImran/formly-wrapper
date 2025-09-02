@@ -1,5 +1,5 @@
 <nz-form-item>
-  <nz-form-label [nzSpan]="4" *ngIf="to.label" [attr.for]="to['id']" class="text-start">
+  <nz-form-label [nzSpan]="4" *ngIf="to.label" [ngStyle]="to['labelStyle']" [attr.for]="to['id']" class="text-start">
     {{ to.label }}
   </nz-form-label>
   <nz-form-control [nzSpan]="22" [nzErrorTip]="errorTpl"

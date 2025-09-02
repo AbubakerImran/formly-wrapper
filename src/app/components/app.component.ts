@@ -599,9 +599,6 @@ export class AppComponent implements OnInit {
   }
 
   addFixedField(type: 'input' | 'textarea' | 'select' | 'radio' | 'div') {
-    const baseStyle = { borderRadius: '', color: '', backgroundColor: '', fontFamily: '', fontSize: '', fontWeight: '' };
-    const labelBaseStyle = { backgroundColor: '', color: '', fontFamily: '', fontSize: '', fontWeight: '' };
-
     const existingIndexes = this.fields
       .flatMap(f => f.fieldGroup || [])
       .filter(f => typeof f.key === 'string' && f.key.startsWith(type))
@@ -628,8 +625,8 @@ export class AppComponent implements OnInit {
         required: true,
         labelClass: type === 'radio' ? 'form-check-label' : 'form-label',
         labelFor: `${type}${index}`,
-        style: baseStyle,
-        labelStyle: labelBaseStyle,
+        style: {},
+        labelStyle: {},
         ...(type === 'select' ? {
           options: [
             { label: 'Select an option...', value: '', disabled: true },
@@ -714,8 +711,8 @@ export class AppComponent implements OnInit {
       options: Array.isArray(field.props?.options)
         ? field.props.options.map((o: any) => o.label).join(', ')
         : '',
-      style: { ...style },
-      labelStyle: { ...labelStyle }
+      style: Object.entries(style).map(([k, v]) => `${k}:${v}`).join('; '),
+      labelStyle: Object.entries(labelStyle).map(([k, v]) => `${k}:${v}`).join('; ')
     };
 
     // Start base field group
@@ -723,14 +720,14 @@ export class AppComponent implements OnInit {
       {
         fieldGroupClassName: 'row',
         fieldGroup: [
-          { key: 'key', type: 'input', className: 'col-md-6', props: { label: 'Key', required: true } },
-          { key: 'label', type: 'input', className: 'col-md-6', props: { label: 'Label', required: true } },
+          { key: 'key', type: 'input', className: 'col-6', props: { label: 'Key', required: true } },
+          { key: 'label', type: 'input', className: 'col-6', props: { label: 'Label', required: true } },
           ...(type === 'input' || type === 'textarea'
-            ? [{ key: 'placeholder', type: 'input', className: 'col-md-6', wrappers: ['ngform-field-modal'], props: { label: 'Placeholder' } }]
+            ? [{ key: 'placeholder', type: 'input', className: 'col-6', props: { label: 'Placeholder' } }]
             : []),
-          { key: 'class', type: 'input', className: 'col-md-6', props: { label: 'Class' } },
-          { key: 'labelClass', type: 'input', className: 'col-md-6', props: { label: 'Label Class' } },
-          { key: 'className', type: 'input', className: 'col-md-6', props: { label: 'Class Name' } },
+          { key: 'class', type: 'input', className: 'col-6', props: { label: 'Class' } },
+          { key: 'labelClass', type: 'input', className: 'col-6', props: { label: 'Label Class' } },
+          { key: 'className', type: 'input', className: 'col-6', props: { label: 'Class Name' } },
         ]
       }
     ];
@@ -743,32 +740,24 @@ export class AppComponent implements OnInit {
         props: { label: 'Options (comma separated)', required: true }
       });
     }
-    this.modalFields.push( { key: 'required', type: 'checkbox', className: 'col-md-6', props: { label: 'Required' } } );
-    // Input Style
-    this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Input Style</h4>' });
-    this.modalFields.push({
-      fieldGroupClassName: 'row',
-      fieldGroup: Object.keys(style).map(sk => ({
-        key: `style.${sk}`,
-        type: 'input',
-        className: 'col-md-6',
-        props: { label: sk }
-      }))
-    });
-
-    // Label Style
-    this.modalFields.push({ template: '<h4 class="mt-3 mb-2">Label Style</h4>' });
-    this.modalFields.push({
-      fieldGroupClassName: 'row',
-      fieldGroup: Object.keys(labelStyle).map(sk => ({
-        key: `labelStyle.${sk}`,
-        type: 'input',
-        className: 'col-md-6',
-        props: { label: sk }
-      }))
-    });
-
+    this.modalFields[0].fieldGroup?.push( { key: 'required', type: 'checkbox', className: 'col-12', props: { label: 'Required' } } );
+    this.modalFields[0].fieldGroup?.push(
+      { key: 'style', type: 'input', className: 'col-6', props: { label: 'Input Style' } },
+      { key: 'labelStyle', type: 'input', className: 'col-6', props: { label: 'Label Style' } }
+    );
     this.modalForm = this.fb.group({});
+  }
+
+  parseKeyValue(str: string): Record<string, string> {
+    if (!str) return {};
+    return str.split(/;|,/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .reduce((acc: any, pair) => {
+        const [k, v] = pair.split(':').map(p => p.trim());
+        if (k && v !== undefined) acc[k] = v;
+        return acc;
+      }, {});
   }
 
   saveFieldEdit() {
@@ -808,31 +797,8 @@ export class AppComponent implements OnInit {
     if (oldKey && newKey && oldKey !== newKey) {
       this.updateFieldKey(oldKey, newKey);
     }
-
-    // build updatedField
-    const updatedStyle: any = {};
-    Object.keys(field.props?.['style'] || {}).forEach(k => {
-      let val = this.modalModel.style?.[k] || '';
-      if ((k === 'borderRadius' || k === 'fontSize') && val !== '') {
-        const num = val.toString().trim();
-        if (/^\d+$/.test(num)) {
-          val = `${num}px`;
-        }
-      }
-      updatedStyle[k] = val;
-    });
-
-    const updatedLabelStyle: any = {};
-    Object.keys(field.props?.['labelStyle'] || {}).forEach(k => {
-      let val = this.modalModel.labelStyle?.[k] || '';
-      if (k === 'fontSize' && val !== '') {
-        const num = val.toString().trim();
-        if (/^\d+$/.test(num)) {
-          val = `${num}px`;
-        }
-      }
-      updatedLabelStyle[k] = val;
-    });
+    const updatedStyle = this.parseKeyValue(this.modalModel.style);
+    const updatedLabelStyle = this.parseKeyValue(this.modalModel.labelStyle);
 
     const updatedField: FormlyFieldConfig = {
       ...field,

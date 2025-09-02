@@ -4,6 +4,9 @@
 .custom-menu li:hover { background: #f1f1f1; }
 
 /* Popup Notification */
+.popup-notification { position: fixed; bottom: 30px; right: 30px; background-color: #3e8e41; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); font-size: 16px; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease; z-index: 2000; }
+.popup-notification.show { opacity: 1; transform: translateY(0); }
+
 .hidden { display: none; }
 #drag { cursor: grab; }
 #drag:active { cursor: grabbing; }

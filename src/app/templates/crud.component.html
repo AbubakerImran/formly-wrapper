@@ -115,7 +115,8 @@
             <button type="submit" nz-button nzType="primary" class="mt-3" *ngIf="fields.length > 0"
               [disabled]="this.isLoading">Submit</button>
             <button type="button" nz-button nzType="default" class="mt-3 ms-3"
-              *ngIf="fields.length != 0 && hasModel || this.form.touched || fields.length > 1" (click)="resetForm()">Reset</button>
+              *ngIf="fields.length != 0 && hasModel || this.form.touched || fields.length > 1"
+              (click)="resetForm()">Reset</button>
             <p *ngIf="fields.length === 0"><em>Start adding fields...</em></p>
           </div>
           <div class="d-flex justify-content-center gap-3" *ngIf="isEdit()">
@@ -137,7 +138,8 @@
             <button class="bg-warning ms-2" nz-button type="button" (click)="resetSearch()">Reset</button>
           </div>
         </div>
-        <div class="table-responsive mt-3" *ngIf="fields.length > 0" (contextmenu)="showFormContextMenu($event)" #inputField>
+        <div class="table-responsive mt-3" *ngIf="fields.length > 0" (contextmenu)="showFormContextMenu($event)"
+          #inputField>
           <nz-table #basicTable [nzBordered]="true" [nzData]="filteredUsers" [nzLoading]="isLoading"
             [nzFrontPagination]="false" [nzPageIndex]="currentPage" [nzPageSize]="pageSize" [nzShowSizeChanger]="true"
             [nzTotal]="filteredUsers.length" (nzPageIndexChange)="setPage($event)"
@@ -272,9 +274,10 @@
         <ul class="list-group">
           <li *ngFor="let formName of savedFormNames"
             class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;"
-            data-bs-dismiss="modal" (click)="loadSavedForm(formName)" (contextmenu)="showContextMenu($event, formName)"
-            #inputField>
-            {{ formName }}
+            (click)="loadSavedForm(formName)" (contextmenu)="showContextMenu($event, formName)" #inputField>
+            <div data-bs-dismiss="modal" style="width: 80%;">
+              {{ formName }}
+            </div>
             <div>
               <button type="button" class="btn border-0" data-bs-toggle="modal" data-bs-target="#editFormNameModal"
                 (click)="openEditFormNameModal(formName); $event.stopPropagation()" nz-tooltip
