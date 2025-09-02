@@ -14,7 +14,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 
 @Component({
@@ -26,7 +25,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 })
 export class CRUD {
 
-  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient, private notification: NzNotificationService, private nzMessageService: NzMessageService) { }
+  constructor(private fb: FormBuilder, private formService: FormService, private http: HttpClient, private notification: NzNotificationService) { }
 
   uid = signal(0);
   type = signal('');
