@@ -466,6 +466,7 @@ export class CRUD {
       type: (type === 'div' ? 'input' : type),
       wrappers: [currentWrapper],
       props: {
+        oldKey: `${type}${index}`,
         label: `${type}${index}`,
         id: `${type}${index}`,
         ...(type === 'textarea' || type === 'input' || type === 'div' ? { placeholder: `${type}${index}` } : {}),
@@ -699,17 +700,20 @@ export class CRUD {
     const oldKey = field.key as string;
     const newKey = this.modalModel.key;
     if (oldKey && newKey && oldKey !== newKey) {
-      this.updateFieldKey(oldKey, newKey);
+      field.props = {
+        ...field.props,
+        oldKey
+      };
     }
     const updatedStyle = this.parseKeyValue(this.modalModel.style);
     const updatedLabelStyle = this.parseKeyValue(this.modalModel.labelStyle);
-
     const updatedField: FormlyFieldConfig = {
       ...field,
       key: newKey,
       className: this.modalModel.className,
       props: {
         ...field.props,
+        oldKey: field.props?.['oldKey'] ?? (oldKey !== newKey ? oldKey : undefined),
         label: this.modalModel.label,
         class: this.modalModel.class,
         id: newKey,
@@ -720,12 +724,12 @@ export class CRUD {
         options: this.modalModel.options
           ? this.modalModel.options.split(',').map((opt: string) => ({
             label: opt.trim(),
-            value: opt.trim()
+            value: opt.trim(),
           }))
           : field.props?.options,
         style: updatedStyle,
-        labelStyle: updatedLabelStyle
-      }
+        labelStyle: updatedLabelStyle,
+      },
     };
     row.fieldGroup![targetFieldIndex] = updatedField;
     this.fields = [...this.fields];
@@ -826,8 +830,17 @@ export class CRUD {
     let counter = 0;
     const updatedGroup = this.fields[this.selectedGroupIndex].fieldGroup?.map(field => {
       const i = counter++;
+      const oldKey = field.key;
+      const newKey = this.allFieldsModel[`key_${i}`] ?? field.key;
+      if (oldKey && newKey && oldKey !== newKey) {
+        field.props = {
+          ...field.props,
+          oldKey
+        };
+      }
       const updatedProps: any = {
         ...field.props,
+        oldKey: field.props?.['oldKey'] ?? (oldKey !== newKey ? oldKey : undefined),
         label: this.allFieldsModel[`label_${i}`] ?? field.props?.label,
         class: this.allFieldsModel[`class_${i}`] ?? field.props?.['class'],
         required: !!this.allFieldsModel[`required_${i}`]
@@ -842,7 +855,7 @@ export class CRUD {
       }
       return {
         ...field,
-        key: this.allFieldsModel[`key_${i}`] ?? field.key,
+        key: newKey,
         className: this.allFieldsModel[`className_${i}`] ?? field.className,
         props: updatedProps
       };
@@ -871,7 +884,6 @@ export class CRUD {
           this.globalFieldsModel[`placeholder_${i}`] = f.props?.placeholder;
           this.globalFieldsModel[`class_${i}`] = f.props?.['class'];
           this.globalFieldsModel[`required_${i}`] = f.props?.required;
-
           if (f.type === 'select' || f.type === 'radio') {
             this.globalFieldsModel[`options_${i}`] = Array.isArray(f.props?.options)
               ? f.props.options.map((opt: any) => opt.label || opt).join(',')
@@ -905,8 +917,17 @@ export class CRUD {
       ...row,
       fieldGroup: row.fieldGroup?.map(field => {
         const i = counter++;
+        const oldKey = field.key;
+        const newKey = this.globalFieldsModel[`key_${i}`] ?? field.key;
+        if (oldKey && newKey && oldKey !== newKey) {
+          field.props = {
+            ...field.props,
+            oldKey
+          };
+        }
         const updatedProps: any = {
           ...field.props,
+          oldKey: field.props?.['oldKey'] ?? (oldKey !== newKey ? oldKey : undefined),
           label: this.globalFieldsModel[`label_${i}`] ?? field.props?.label,
           class: this.globalFieldsModel[`class_${i}`] ?? field.props?.['class'],
           required: !!this.globalFieldsModel[`required_${i}`]
@@ -921,7 +942,7 @@ export class CRUD {
         }
         return {
           ...field,
-          key: this.globalFieldsModel[`key_${i}`] ?? field.key,
+          key: newKey,
           className: this.globalFieldsModel[`className_${i}`] ?? field.className,
           props: updatedProps
         };
