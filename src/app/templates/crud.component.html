@@ -274,8 +274,9 @@
         <ul class="list-group">
           <li *ngFor="let formName of savedFormNames"
             class="list-group-item d-flex justify-content-between align-items-center" style="cursor: pointer;"
-            (click)="loadSavedForm(formName)" (contextmenu)="showContextMenu($event, formName)" #inputField>
-            <div data-bs-dismiss="modal" style="width: 80%;">
+            (click)="loadSavedForm(formName)" (contextmenu)="showContextMenu($event, formName)" #inputField
+            data-bs-dismiss="modal">
+            <div>
               {{ formName }}
             </div>
             <div>
@@ -283,12 +284,6 @@
                 (click)="openEditFormNameModal(formName); $event.stopPropagation()" nz-tooltip
                 nzTooltipTitle="Edit form" nzTooltipPlacement="top">
                 <i nz-icon nzType="edit"></i>
-              </button>
-              <button type="button" class="btn border-0" nz-popconfirm
-                nzPopconfirmTitle='Are you sure you want to delete this form?'
-                (nzOnConfirm)="deleteFormName(formName)" (click)="$event.stopPropagation()" nz-tooltip
-                nzTooltipTitle="Delete form" nzTooltipPlacement="top">
-                <i nz-icon nzType="delete"></i>
               </button>
             </div>
           </li>

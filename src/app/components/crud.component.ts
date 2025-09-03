@@ -263,20 +263,33 @@ export class CRUD {
     if (!this.formHeading) return;
     this.formService.getEntries(this.formHeading).subscribe({
       next: (formEntries: any[]) => {
-        this.users = formEntries.map(e => ({ id: e.id, ...e.data }));
+        this.users = formEntries.map(e => ({ ...e }));
         this.applyFilter();
+
         if (this.users.length > 0) {
-          const widest = this.users.reduce((max, u) =>
-            Object.keys(u).length > Object.keys(max).length ? u : max, this.users[0]
+          // collect all possible keys
+          const allKeys = new Set<string>();
+          this.users.forEach(u => {
+            Object.keys(u).forEach(k => {
+              if (k !== 'id') allKeys.add(k);
+            });
+          });
+
+          // keep only keys that have at least one non-empty value
+          const filteredKeys = Array.from(allKeys).filter(k =>
+            this.users.some(u => u[k] !== null && u[k] !== undefined && u[k] !== '')
           );
-          const keys = Object.keys(widest).filter(k => k !== 'id');
-          this.displayFields = keys.map(k => ({ key: k, label: k }));
+
+          this.displayFields = filteredKeys.map(k => ({ key: k, label: k }));
+        } else {
+          this.displayFields = [];
         }
+
         this.updatePagination();
         this.onSort('ascend', 'id');
       },
       error: (err) => {
-        this.createNotification('error', "Error fetching entries", err.message);
+        this.createNotification('error', 'Error fetching entries', err.message);
         this.users = [];
         this.displayFields = [];
         this.updatePagination();
@@ -1023,7 +1036,7 @@ export class CRUD {
   editUser(id: number) {
     this.formService.getEntry(this.formHeading, id).subscribe({
       next: (entry) => {
-        this.model = { ...entry.data };
+        this.model = { ...entry };
         this.uid.set(id);
         this.isEdit.set(true);
       },
@@ -1076,6 +1089,8 @@ export class CRUD {
           this.createNotification('error', 'Failed to delete entry!', err.message);
         }
       });
+    this.isEdit.set(false);
+    this.resetForm();
   }
 
   @HostListener('document:click')
