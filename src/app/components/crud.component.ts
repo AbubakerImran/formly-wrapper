@@ -244,6 +244,7 @@ export class CRUD {
             .split('_')
             .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
+
           this.fields = form.fields.map((row: any) => ({
             ...row,
             fieldGroup: row.fieldGroup?.map((field: any) => ({
@@ -256,9 +257,11 @@ export class CRUD {
               }
             }))
           }));
-          this.formHeading = this.showForm
+
+          this.formHeading = this.showForm;
           this.reattachFieldFunctions();
           this.form = new FormGroup({});
+
           this.fields.forEach(row => {
             row.fieldGroup?.forEach(field => {
               const key = field.key as string;
@@ -271,7 +274,27 @@ export class CRUD {
               );
             });
           });
+
+          // ✅ Reorder displayFields according to fields order
+          const orderedKeys: string[] = [];
+          const collectKeys = (arr: any[]) => {
+            arr.forEach(f => {
+              if (f.key) orderedKeys.push(f.key);
+              if (f.fieldGroup) collectKeys(f.fieldGroup);
+            });
+          };
+          collectKeys(this.fields);
+
           this.fetchData();
+
+          // overwrite displayFields in correct order
+          if (orderedKeys.length) {
+            this.displayFields = orderedKeys.map(k => ({
+              key: k,
+              label: k
+            }));
+          }
+
           this.toggle('parent');
         }
       },
@@ -287,11 +310,8 @@ export class CRUD {
     this.formService.getEntries(normalizedFormName).subscribe({
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ ...e }));
-
-        // ✅ Default sort by id ascending
-        this.users.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
-
         this.applyFilter();
+
         if (this.users.length > 0) {
           const allKeys = new Set<string>();
           this.users.forEach(u => {
@@ -305,12 +325,27 @@ export class CRUD {
             this.users.some(u => u[k] !== null && u[k] !== undefined && u[k] !== '')
           );
 
-          this.displayFields = filteredKeys.map(k => ({ key: k, label: k }));
+          // ✅ Reorder keys according to fields order
+          const orderedKeys: string[] = [];
+          const collectKeys = (arr: any[]) => {
+            arr.forEach(f => {
+              if (f.key) orderedKeys.push(f.key);
+              if (f.fieldGroup) collectKeys(f.fieldGroup);
+            });
+          };
+          collectKeys(this.fields);
+
+          // keep only keys that exist in filteredKeys (and preserve order)
+          this.displayFields = orderedKeys
+            .filter(k => filteredKeys.includes(k))
+            .map(k => ({ key: k, label: k }));
+
         } else {
           this.displayFields = [];
         }
 
         this.updatePagination();
+        this.onSort('ascend', 'id'); // default sort by id ascending
       },
       error: (err) => {
         this.createNotification('error', 'Error fetching entries', err.message);
