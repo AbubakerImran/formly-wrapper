@@ -6,9 +6,10 @@ declare var bootstrap: any;
   selector: '[appTooltip]'
 })
 export class TooltipDirective implements AfterViewInit, OnDestroy {
-  private tooltipInstance: any;
 
   constructor(private el: ElementRef) {}
+
+  private tooltipInstance: any;
 
   ngAfterViewInit() {
     this.tooltipInstance = new bootstrap.Tooltip(this.el.nativeElement, {

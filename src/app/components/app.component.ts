@@ -13,7 +13,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
   standalone: true,
   imports: [FormlyForm, ReactiveFormsModule, CommonModule, FormlySelectModule, FormsModule, DragDropModule, TooltipDirective, HttpClientModule],
   templateUrl: '../templates/app.component.html',
-  styleUrl: '../styles/app.component.css',
+  styleUrls: ['../styles/app.component.css'],
 })
 export class AppComponent implements OnInit {
 

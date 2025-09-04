@@ -1,31 +1,83 @@
-.custom-menu { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0px 4px 12px rgba(0,0,0,0.15); min-width: 180px; overflow: hidden; }
-.custom-menu ul { margin: 0; padding: 0; list-style: none; }
-.custom-menu li { cursor: pointer; padding: 8px 12px; transition: background 0.2s; }
-.custom-menu li:hover { background: #f1f1f1; }
+.custom-menu {
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    overflow: hidden;
+}
 
-/* Popup Notification */
-.popup-notification { position: fixed; bottom: 30px; right: 30px; background-color: #3e8e41; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); font-size: 16px; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease; z-index: 2000; }
-.popup-notification.show { opacity: 1; transform: translateY(0); }
+.custom-menu ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
-.hidden { display: none; }
-#drag { cursor: grab; }
-#drag:active { cursor: grabbing; }
-i { width: 100%; height: 100%; }
+.custom-menu li {
+    cursor: pointer;
+    padding: 8px 12px;
+    transition: background 0.2s;
+}
 
-/* handle default */
+.custom-menu li:hover {
+    background: #f1f1f1;
+}
+
+.hidden {
+    display: none;
+}
+
+#drag {
+    cursor: grab;
+}
+
+#drag:active {
+    cursor: grabbing;
+}
+
+i {
+    width: 100%;
+    height: 100%;
+}
+
 [cdkDragHandle],
-[cdkDragHandle] * { cursor: grab !important; }
+[cdkDragHandle] * {
+    cursor: grab !important;
+}
 
-/* while holding (active) */
 [cdkDragHandle]:active,
-[cdkDragHandle]:active * { cursor: grabbing !important; }
+[cdkDragHandle]:active * {
+    cursor: grabbing !important;
+}
 
-.tree-list { list-style: none; padding-left: 0.3rem; font-family: monospace; }
-.tree-node { margin: 2px 0; }
-.tree-children { padding-left: 10px; border-left: 1px dashed #ccc; margin-left: 4px; list-style: none; }
-.tag { margin-right: 4px; font-size: 18px; }
-.btn-sm { font-size: 12px; }
+.tree-list {
+    list-style: none;
+    padding-left: 0.3rem;
+    font-family: monospace;
+}
 
-.page-item { cursor: pointer; }
+.tree-node {
+    margin: 2px 0;
+}
 
-.cdk-overlay-container { z-index: 1200 !important; }
+.tree-children {
+    padding-left: 10px;
+    border-left: 1px dashed #ccc;
+    margin-left: 4px;
+    list-style: none;
+}
+
+.tag {
+    margin-right: 4px;
+    font-size: 18px;
+}
+
+.btn-sm {
+    font-size: 12px;
+}
+
+.page-item {
+    cursor: pointer;
+}

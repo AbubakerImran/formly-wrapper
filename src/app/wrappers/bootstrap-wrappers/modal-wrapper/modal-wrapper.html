@@ -1,59 +1,33 @@
-<label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label }}</label>
+<label *ngIf="to.label" [ngClass]="to['labelClass']" [ngStyle]="to['labelStyle']" [attr.for]="to['id']">{{ to.label
+  }}</label>
 <div class="d-flex align-items-center">
-	<ng-container [ngSwitch]="field.type">
-		<input
-				*ngSwitchCase="'text'"
-				type="text"
-				[ngClass]="to['class']"
-				[placeholder]="to.placeholder"
-				[formControl]="formControl"
-				[id]="to['id']"
-				[autocomplete]="to['autocomplete']"
-				[ngStyle]="to['style']"
-		/>
-		<select
-				*ngSwitchCase="'select'"
-				[ngClass]="to['class']"
-				[formControl]="formControl"
-				[id]="to['id']"
-				[ngStyle]="to['style']"
-		>
-			<option *ngIf="to.placeholder" value="">{{ to.placeholder }}</option>
-			<ng-container *ngIf="options$ | async as options">
-					<option *ngFor="let option of options" [value]="option.value">
-					{{ option.label }}
-					</option>
-			</ng-container>
-		</select>
-		<div *ngSwitchCase="'radio'" class="form-check">
-			<ng-container *ngIf="options$ | async as options">
-				<div *ngFor="let option of options" class="form-check me-3">
-					<input
-					type="radio"
-					[ngClass]="to['class']"
-					[name]="to['id']"
-					[id]="to['id'] + '_' + option.value"
-					[value]="option.value"
-					[formControl]="formControl"
-					[ngStyle]="to['style']"
-					/>
-					<label class="form-check-label" [for]="to['id'] + '_' + option.value">
-					{{ option.label }}
-					</label>
-				</div>
-			</ng-container>
-		</div>
-		<input
-				*ngSwitchDefault
-				type="text"
-				[ngClass]="to['class']"
-				[placeholder]="to.placeholder"
-				[formControl]="formControl"
-				[id]="to['id']"
-				[ngStyle]="to['style']"
-		/>
-	</ng-container>
+  <ng-container [ngSwitch]="field.type">
+    <input *ngSwitchCase="'text'" type="text" [ngClass]="to['class']" [placeholder]="to.placeholder"
+      [formControl]="formControl" [id]="to['id']" [autocomplete]="to['autocomplete']" [ngStyle]="to['style']" />
+    <select *ngSwitchCase="'select'" [ngClass]="to['class']" [formControl]="formControl" [id]="to['id']"
+      [ngStyle]="to['style']">
+      <option *ngIf="to.placeholder" value="">{{ to.placeholder }}</option>
+      <ng-container *ngIf="options$ | async as options">
+        <option *ngFor="let option of options" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </ng-container>
+    </select>
+    <div *ngSwitchCase="'radio'" class="form-check">
+      <ng-container *ngIf="options$ | async as options">
+        <div *ngFor="let option of options" class="form-check me-3">
+          <input type="radio" [ngClass]="to['class']" [name]="to['id']" [id]="to['id'] + '_' + option.value"
+            [value]="option.value" [formControl]="formControl" [ngStyle]="to['style']" />
+          <label class="form-check-label" [for]="to['id'] + '_' + option.value">
+            {{ option.label }}
+          </label>
+        </div>
+      </ng-container>
+    </div>
+    <input *ngSwitchDefault type="text" [ngClass]="to['class']" [placeholder]="to.placeholder"
+      [formControl]="formControl" [id]="to['id']" [ngStyle]="to['style']" />
+  </ng-container>
 </div>
 <div *ngIf="showError" class="text-danger mt-1">
-	<formly-validation-message [field]="field"></formly-validation-message>
+  <formly-validation-message [field]="field"></formly-validation-message>
 </div>

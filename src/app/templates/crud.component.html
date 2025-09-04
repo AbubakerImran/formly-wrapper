@@ -145,7 +145,6 @@
             [nzTotal]="filteredUsers.length" (nzPageIndexChange)="setPage($event)"
             [nzPageSizeOptions]="[3, 5, 7, 10, 15]" (nzPageSizeChange)="onPageSizeChange($event)"
             [nzShowTotal]="totalTemplate">
-
             <thead *ngIf="users.length > 0">
               <tr>
                 <th nzColumnKey="id" [nzSortFn]="true" (nzSortOrderChange)="onSort(normalizeOrder($event), 'id')">UID
@@ -157,7 +156,6 @@
                 <th>Actions</th>
               </tr>
             </thead>
-
             <tbody>
               <tr *ngFor="let user of paginatedUsers">
                 <td>{{ user.id }}</td>
@@ -180,82 +178,6 @@
             Showing {{ startIndex }} to {{ endIndex }} of {{ total }} entries
           </ng-template>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="formModalLabel">Choose Field Type</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()"
-          aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row justify-content-center">
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal"
-              (click)="addFixedField('input')">Input</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal"
-              (click)="addFixedField('textarea')">Textarea</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal"
-              (click)="addFixedField('select')">Select</button>
-          </div>
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal"
-              (click)="addFixedField('radio')">Radio</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="formDivModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()"
-          aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row justify-content-center">
-          <div class="col-3">
-            <button type="button" class="btn btn-outline-warning w-100 p-5 mt-3" data-bs-dismiss="modal"
-              (click)="addFixedField('div')">Div</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="editFormNameModal" tabindex="-1" aria-labelledby="editFormNameModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editFormNameModalLabel">Edit Form</h5>
-        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form [formGroup]="editFormModal" class="p-4 container">
-          <formly-form [model]="editFormModel" [fields]="editFormFields" [form]="editFormModal"></formly-form>
-          <div class="d-flex mt-3 gap-2">
-            <button type="button" nz-button nzType="primary" nz-popconfirm
-              nzPopconfirmTitle="Are you sure to update form info? unsaved field changes will be lost!"
-              (nzOnConfirm)="saveFormNameChange()" [nzCondition]="!formChanged" data-bs-dismiss="modal">Save</button>
-            <button type="button" nz-button nzDanger data-bs-dismiss="modal"
-              (click)="deleteFormName(editFormModel.formName)">Delete
-              Form</button>
-          </div>
-        </form>
       </div>
     </div>
   </div>
@@ -300,6 +222,82 @@
   </div>
 </div>
 
+<div class="modal fade" id="editFormNameModal" tabindex="-1" aria-labelledby="editFormNameModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editFormNameModalLabel">Edit Form</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="editFormModal" class="p-4 container">
+          <formly-form [model]="editFormModel" [fields]="editFormFields" [form]="editFormModal"></formly-form>
+          <div class="d-flex mt-3 gap-2">
+            <button type="button" nz-button nzType="primary" nz-popconfirm
+              nzPopconfirmTitle="Are you sure to update form info? unsaved field changes will be lost!"
+              (nzOnConfirm)="saveFormNameChange()" [nzCondition]="!formChanged" data-bs-dismiss="modal">Save</button>
+            <button type="button" nz-button nzDanger data-bs-dismiss="modal"
+              (click)="deleteFormName(editFormModel.formName)">Delete
+              Form</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="formDivModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()"
+          aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row justify-content-center">
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-warning w-100 p-5 mt-3" data-bs-dismiss="modal"
+              (click)="addFixedField('div')">Div</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="formModalLabel">Choose Field Type</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="cancelFieldModal()"
+          aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row justify-content-center">
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-primary w-100 p-5" data-bs-dismiss="modal"
+              (click)="addFixedField('input')">Input</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-secondary w-100 p-5" data-bs-dismiss="modal"
+              (click)="addFixedField('textarea')">Textarea</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-success w-100 p-5" data-bs-dismiss="modal"
+              (click)="addFixedField('select')">Select</button>
+          </div>
+          <div class="col-3">
+            <button type="button" class="btn btn-outline-warning w-100 p-5" data-bs-dismiss="modal"
+              (click)="addFixedField('radio')">Radio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="editFieldModal" tabindex="-1" aria-labelledby="editFieldModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -320,34 +318,6 @@
       </div>
     </div>
   </div>
-</div>
-
-<div *ngIf="formMenuVisible" class="custom-menu"
-  [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
-  <ul class="list-group">
-    <li class="list-group-item" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>
-    <li class="list-group-item" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal"
-      data-bs-target="#editFormNameModal">Edit Form</li>
-    <li class="list-group-item" (click)="closeForm()">Close Form</li>
-  </ul>
-</div>
-
-<div *ngIf="editMenuVisible" class="custom-menu"
-  [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
-  <ul class="list-group">
-    <li class="list-group-item" (click)="onMenuClick('openEditFieldModal')" data-bs-toggle="modal"
-      data-bs-target="#editFieldModal">Edit Field</li>
-    <li class="list-group-item" (click)="onMenuClick('deleteField')">Delete Field</li>
-  </ul>
-</div>
-
-<div *ngIf="menuVisible" tabindex="3" class="custom-menu"
-  [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
-  <ul class="list-group">
-    <li class="list-group-item" (click)="onMenuClick('loadSavedForm')" data-bs-toggle="modal">Open Form</li>
-    <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal"
-      data-bs-target="#editFormNameModal">Edit Form</li>
-  </ul>
 </div>
 
 <div class="modal fade" id="allFieldsModal" tabindex="-1" aria-labelledby="allFieldsModalLabel" aria-hidden="true">
@@ -399,4 +369,32 @@
       </div>
     </div>
   </div>
+</div>
+
+<div *ngIf="menuVisible" tabindex="3" class="custom-menu"
+  [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('loadSavedForm')" data-bs-toggle="modal">Open Form</li>
+    <li class="list-group-item" (click)="onMenuClick('openEditFormNameModal')" data-bs-toggle="modal"
+      data-bs-target="#editFormNameModal">Edit Form</li>
+  </ul>
+</div>
+
+<div *ngIf="formMenuVisible" class="custom-menu"
+  [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" data-bs-toggle="modal" data-bs-target="#formModal">Add Field</li>
+    <li class="list-group-item" (click)="openEditFormNameModal(formHeading)" data-bs-toggle="modal"
+      data-bs-target="#editFormNameModal">Edit Form</li>
+    <li class="list-group-item" (click)="closeForm()">Close Form</li>
+  </ul>
+</div>
+
+<div *ngIf="editMenuVisible" class="custom-menu"
+  [ngStyle]="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }">
+  <ul class="list-group">
+    <li class="list-group-item" (click)="onMenuClick('openEditFieldModal')" data-bs-toggle="modal"
+      data-bs-target="#editFieldModal">Edit Field</li>
+    <li class="list-group-item" (click)="onMenuClick('deleteField')">Delete Field</li>
+  </ul>
 </div>

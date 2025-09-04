@@ -8,11 +8,12 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'formly-horizontal-wrapper',
   templateUrl: 'vertical-wrapper.html',
-  styleUrl: '../../../styles/app.component.css', // Ensure the correct path
+  styleUrl: '../../../styles/app.component.css',
   standalone: true,
   imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule],
 })
 export class BootstrapVerticalWrapper extends FieldWrapper {
+
   menuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
@@ -51,10 +52,7 @@ export class BootstrapVerticalWrapper extends FieldWrapper {
   }
 
   onDragStart() {
-    // set body cursor immediately (beats CSS scope issues)
     document.body.style.cursor = 'grabbing';
-
-    // sometimes the preview element appears a tick later — set it too
     setTimeout(() => {
       const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
       if (preview) preview.style.cursor = 'grabbing';
@@ -64,7 +62,6 @@ export class BootstrapVerticalWrapper extends FieldWrapper {
   }
 
   onDragEnd() {
-    // reset
     document.body.style.cursor = '';
     const preview = document.querySelector('.cdk-drag-preview') as HTMLElement | null;
     if (preview) preview.style.cursor = '';

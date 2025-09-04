@@ -65,12 +65,7 @@ export class CRUD {
 
   form = new FormGroup({});
   model: any = {};
-  options: FormlyFormOptions = {
-    formState: { submitted: false },
-    showError: (field) =>
-      field.formControl?.invalid &&
-      (field.formControl?.touched || this.options.formState?.submitted),
-  };
+  options: FormlyFormOptions = { formState: { submitted: false }, showError: (field) => field.formControl?.invalid && (field.formControl?.touched || this.options.formState?.submitted) };
   fields: FormlyFieldConfig[] = [];
 
   modalForm = new FormGroup({});
@@ -90,8 +85,7 @@ export class CRUD {
   editFormModel: any = {};
   editFormFields: FormlyFieldConfig[] = [
     {
-      key: "formName",
-      type: "input",
+      key: "formName", type: "input",
       wrappers: ["ngform-field-modal"],
       props: {
         uid: '1',
@@ -189,27 +183,22 @@ export class CRUD {
 
   createNewForm() {
     let counter = 1;
-    let baseName = "form"; // always lowercase base
+    let baseName = "form";
     let newFormName = `${baseName}${counter}`;
 
     this.http.get<any[]>(`http://localhost:3000/forms`).subscribe({
       next: (forms) => {
-        // normalize all existing names
         const existingNames = forms.map(f => f.name.toLowerCase());
-
-        // keep incrementing until unique
         while (existingNames.includes(newFormName)) {
           counter++;
           newFormName = `${baseName}${counter}`;
         }
-
         this.http.post<any>(`http://localhost:3000/forms`, {
           name: newFormName,
           template: 'ngzorro',
           fields: []
         }).subscribe({
           next: (createdForm) => {
-            // pretty display name (Form 1, Form 2, ...)
             this.formHeading = createdForm.name
               .split('_')
               .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -244,7 +233,6 @@ export class CRUD {
             .split('_')
             .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
-
           this.fields = form.fields.map((row: any) => ({
             ...row,
             fieldGroup: row.fieldGroup?.map((field: any) => ({
@@ -257,11 +245,9 @@ export class CRUD {
               }
             }))
           }));
-
           this.formHeading = this.showForm;
           this.reattachFieldFunctions();
           this.form = new FormGroup({});
-
           this.fields.forEach(row => {
             row.fieldGroup?.forEach(field => {
               const key = field.key as string;
@@ -274,8 +260,6 @@ export class CRUD {
               );
             });
           });
-
-          // ✅ Reorder displayFields according to fields order
           const orderedKeys: string[] = [];
           const collectKeys = (arr: any[]) => {
             arr.forEach(f => {
@@ -284,17 +268,13 @@ export class CRUD {
             });
           };
           collectKeys(this.fields);
-
           this.fetchData();
-
-          // overwrite displayFields in correct order
           if (orderedKeys.length) {
             this.displayFields = orderedKeys.map(k => ({
               key: k,
               label: k
             }));
           }
-
           this.toggle('parent');
         }
       },
@@ -311,7 +291,6 @@ export class CRUD {
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ ...e }));
         this.applyFilter();
-
         if (this.users.length > 0) {
           const allKeys = new Set<string>();
           this.users.forEach(u => {
@@ -319,13 +298,9 @@ export class CRUD {
               if (k !== 'id') allKeys.add(k);
             });
           });
-
-          // keep only keys that have at least one non-empty value
           const filteredKeys = Array.from(allKeys).filter(k =>
             this.users.some(u => u[k] !== null && u[k] !== undefined && u[k] !== '')
           );
-
-          // ✅ Reorder keys according to fields order
           const orderedKeys: string[] = [];
           const collectKeys = (arr: any[]) => {
             arr.forEach(f => {
@@ -334,18 +309,14 @@ export class CRUD {
             });
           };
           collectKeys(this.fields);
-
-          // keep only keys that exist in filteredKeys (and preserve order)
           this.displayFields = orderedKeys
             .filter(k => filteredKeys.includes(k))
             .map(k => ({ key: k, label: k }));
-
         } else {
           this.displayFields = [];
         }
-
         this.updatePagination();
-        this.onSort('ascend', 'id'); // default sort by id ascending
+        this.onSort('ascend', 'id');
       },
       error: (err) => {
         this.createNotification('error', 'Error fetching entries', err.message);
@@ -390,24 +361,19 @@ export class CRUD {
       this.updatePagination();
       return;
     }
-
     this.filteredUsers = [...this.users].sort((a, b) => {
       const valA = a[column];
       const valB = b[column];
-
       if (valA == null && valB == null) return 0;
       if (valA == null) return order === 'ascend' ? -1 : 1;
       if (valB == null) return order === 'ascend' ? 1 : -1;
-
       if (!isNaN(valA) && !isNaN(valB)) {
         return order === 'ascend' ? valA - valB : valB - valA;
       }
-
       return order === 'ascend'
         ? String(valA).localeCompare(String(valB))
         : String(valB).localeCompare(String(valA));
     });
-
     this.updatePagination();
   }
 
@@ -455,19 +421,16 @@ export class CRUD {
       alert("Form name is empty!");
       return;
     }
-
     const oldName = (this.editFormNameBefore || '').toLowerCase().replace(/\s+/g, '_');
     const rawNewName = this.editFormModel.formName.trim();
     const newName = rawNewName.toLowerCase().replace(/\s+/g, '_');
     const newWrapper = this.editFormModel.wrapper || 'ngform-field-horizontal';
-
     if (this.savedFormNames.includes(newName) && newName !== oldName) {
       alert("A form with this name already exists!");
       return;
     }
-
     this.http.put(`http://localhost:3000/forms/rename/${oldName}`, {
-      newName,          // ✅ correct key
+      newName,
       wrapper: newWrapper
     }).subscribe({
       next: () => {
@@ -475,13 +438,11 @@ export class CRUD {
           .split('_')
           .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
-
         this.formHeading = displayName;
         this.showForm = displayName;
-
         this.loadSavedFormNames();
         this.createNotification('success', '', "Successfully updated form info!");
-        this.loadSavedForm(newName); // ✅ use normalized name for backend calls
+        this.loadSavedForm(newName);
       },
       error: (err) => {
         this.createNotification('error', "Error updating form info!", err.message);
@@ -776,7 +737,6 @@ export class CRUD {
       }, {});
   }
 
-
   saveFieldEdit() {
     if (this.editingFieldIndex === null) return;
     if (this.modalForm.invalid) {
@@ -941,7 +901,7 @@ export class CRUD {
       const newKey = this.sanitizeKey(this.allFieldsModel[`key_${i}`] ?? field.key);
       if (this.isDuplicateKey(newKey, oldKey !== undefined ? String(oldKey) : undefined)) {
         this.createNotification('error', 'Duplicate Key', `Field key "${newKey}" already exists. Please use a unique key.`);
-        return field; // skip updating this field
+        return field;
       }
       if (oldKey && newKey && oldKey !== newKey) {
         field.props = {

@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component } from '@angular/core';
 import { FieldWrapper } from '@ngx-formly/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormlyValidationMessage } from '@ngx-formly/core';
@@ -9,9 +9,10 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   selector: 'formly-horizontal-wrapper',
   templateUrl: 'modal-wrapper.html',
   standalone: true,
-  imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule, ],
+  imports: [NgIf, FormlyValidationMessage, CommonModule, ReactiveFormsModule,],
 })
 export class FormlyModalWrapper extends FieldWrapper {
+  
   menuVisible = false;
   menuPosition = { x: 0, y: 0 };
 

@@ -18,6 +18,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
   imports: [NgIf, FormlyValidationMessage, CommonModule, FormsModule, ReactiveFormsModule, NzInputModule, NzSelectModule, NzOptionComponent, NzRadioModule, NzFormItemComponent, NzColDirective, NzFormModule, NzCheckboxModule],
 })
 export class NgFormlyModalWrapper extends FieldWrapper {
+
   menuVisible = false;
   menuPosition = { x: 0, y: 0 };
 
