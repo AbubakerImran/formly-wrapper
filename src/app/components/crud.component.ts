@@ -655,6 +655,10 @@ export class CRUD {
     return user[key] ?? '';
   }
 
+  sanitizeKey(key: string): string {
+    return key.trim().toLowerCase().replace(/\s+/g, '');
+  }
+
   openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
     const field = this.fields[rowIndex].fieldGroup![fieldIndex];
     this.editingFieldIndex = field.props?.['index'] ?? null;
@@ -747,7 +751,7 @@ export class CRUD {
     const row = this.fields[targetRowIndex];
     const field = row.fieldGroup![targetFieldIndex];
     const oldKey = field.key as string;
-    const newKey = this.modalModel.key;
+    const newKey = this.sanitizeKey(this.modalModel.key);
     if (oldKey && newKey && oldKey !== newKey) {
       field.props = {
         ...field.props,
@@ -880,7 +884,7 @@ export class CRUD {
     const updatedGroup = this.fields[this.selectedGroupIndex].fieldGroup?.map(field => {
       const i = counter++;
       const oldKey = field.key;
-      const newKey = this.allFieldsModel[`key_${i}`] ?? field.key;
+      const newKey = this.sanitizeKey(this.allFieldsModel[`key_${i}`] ?? field.key);
       if (oldKey && newKey && oldKey !== newKey) {
         field.props = {
           ...field.props,
@@ -967,7 +971,7 @@ export class CRUD {
       fieldGroup: row.fieldGroup?.map(field => {
         const i = counter++;
         const oldKey = field.key;
-        const newKey = this.globalFieldsModel[`key_${i}`] ?? field.key;
+        const newKey = this.sanitizeKey(this.globalFieldsModel[`key_${i}`] ?? field.key);
         if (oldKey && newKey && oldKey !== newKey) {
           field.props = {
             ...field.props,
