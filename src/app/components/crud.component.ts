@@ -283,9 +283,14 @@ export class CRUD {
 
   fetchData() {
     if (!this.formHeading) return;
-    this.formService.getEntries(this.formHeading).subscribe({
+    const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
+    this.formService.getEntries(normalizedFormName).subscribe({
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ ...e }));
+
+        // ✅ Default sort by id ascending
+        this.users.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+
         this.applyFilter();
         if (this.users.length > 0) {
           const allKeys = new Set<string>();
@@ -306,7 +311,6 @@ export class CRUD {
         }
 
         this.updatePagination();
-        this.onSort('ascend', 'id');
       },
       error: (err) => {
         this.createNotification('error', 'Error fetching entries', err.message);
@@ -1086,7 +1090,8 @@ export class CRUD {
       const newEntry = {
         ...model
       };
-      this.formService.createEntry(this.formHeading, newEntry).subscribe(() => {
+      const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
+      this.formService.createEntry(normalizedFormName, newEntry).subscribe(() => {
         this.resetForm();
         this.fetchData();
         this.isEdit.set(false);
@@ -1097,7 +1102,8 @@ export class CRUD {
   }
 
   editUser(id: number) {
-    this.formService.getEntry(this.formHeading, id).subscribe({
+    const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
+    this.formService.getEntry(normalizedFormName, id).subscribe({
       next: (entry) => {
         this.model = { ...entry };
         this.uid.set(id);
@@ -1120,7 +1126,8 @@ export class CRUD {
     if (this.formChanged) {
       alert("Please save the form before submitting data!");
     } else {
-      this.formService.updateEntry(this.formHeading, this.uid(), model).subscribe({
+      const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
+      this.formService.updateEntry(normalizedFormName, this.uid(), model).subscribe({
         next: () => {
           this.model = {};
           this.fetchData();
@@ -1142,7 +1149,8 @@ export class CRUD {
   }
 
   deleteUser(id: number) {
-    this.http.delete(`http://localhost:3000/forms/${this.formHeading}/entries/${id}`)
+    const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
+    this.http.delete(`http://localhost:3000/forms/${normalizedFormName}/entries/${id}`)
       .subscribe({
         next: () => {
           this.fetchData();
