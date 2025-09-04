@@ -164,7 +164,7 @@ export class CRUD {
   }
 
   createNotification(type: string, title: string, message: string) {
-    this.notification.create(type, title, message, { nzDuration: 1000 });
+    this.notification.create(type, title, message, { nzDuration: 2000 });
   }
 
   loadSavedFormNames() {
@@ -659,6 +659,17 @@ export class CRUD {
     return key.trim().toLowerCase().replace(/\s+/g, '');
   }
 
+  isDuplicateKey(newKey: string, excludeKey?: string): boolean {
+    for (const row of this.fields) {
+      for (const f of row.fieldGroup || []) {
+        if (f.key === newKey && f.key !== excludeKey) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   openRowEditFieldModal(rowIndex: number, fieldIndex: number) {
     const field = this.fields[rowIndex].fieldGroup![fieldIndex];
     this.editingFieldIndex = field.props?.['index'] ?? null;
@@ -752,6 +763,10 @@ export class CRUD {
     const field = row.fieldGroup![targetFieldIndex];
     const oldKey = field.key as string;
     const newKey = this.sanitizeKey(this.modalModel.key);
+    if (this.isDuplicateKey(String(newKey), oldKey !== undefined ? String(oldKey) : undefined)) {
+      this.createNotification('error', 'Duplicate Key', `Field key "${newKey}" already exists. Please use a unique key.`);
+      return;
+    }
     if (oldKey && newKey && oldKey !== newKey) {
       field.props = {
         ...field.props,
@@ -885,6 +900,10 @@ export class CRUD {
       const i = counter++;
       const oldKey = field.key;
       const newKey = this.sanitizeKey(this.allFieldsModel[`key_${i}`] ?? field.key);
+      if (this.isDuplicateKey(newKey, oldKey !== undefined ? String(oldKey) : undefined)) {
+        this.createNotification('error', 'Duplicate Key', `Field key "${newKey}" already exists. Please use a unique key.`);
+        return field; // skip updating this field
+      }
       if (oldKey && newKey && oldKey !== newKey) {
         field.props = {
           ...field.props,
@@ -972,6 +991,10 @@ export class CRUD {
         const i = counter++;
         const oldKey = field.key;
         const newKey = this.sanitizeKey(this.globalFieldsModel[`key_${i}`] ?? field.key);
+        if (this.isDuplicateKey(newKey, oldKey !== undefined ? String(oldKey) : undefined)) {
+          this.createNotification('error', 'Duplicate Key', `Field key "${newKey}" already exists. Please use a unique key.`);
+          return field;
+        }
         if (oldKey && newKey && oldKey !== newKey) {
           field.props = {
             ...field.props,
