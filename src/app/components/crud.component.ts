@@ -173,10 +173,15 @@ export class CRUD {
         next: (forms) => {
           this.savedFormNames = forms
             .filter(f => f.template === 'ngzorro')
-            .map(f => f.name);
+            .map(f => {
+              return f.name
+                .split('_')
+                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+            });
         },
         error: (err) => {
-          this.createNotification('error', 'Failed to load forms!', err.message)
+          this.createNotification('error', 'Failed to load forms!', err.message);
           this.savedFormNames = [];
         }
       });
@@ -184,31 +189,44 @@ export class CRUD {
 
   createNewForm() {
     let counter = 1;
-    let newFormName = `Form${counter}`;
+    let baseName = "form"; // always lowercase base
+    let newFormName = `${baseName}${counter}`;
+
     this.http.get<any[]>(`http://localhost:3000/forms`).subscribe({
       next: (forms) => {
-        const existingNames = forms.map(f => f.name);
+        // normalize all existing names
+        const existingNames = forms.map(f => f.name.toLowerCase());
+
+        // keep incrementing until unique
         while (existingNames.includes(newFormName)) {
           counter++;
-          newFormName = `Form${counter}`;
+          newFormName = `${baseName}${counter}`;
         }
-        this.http.post<any>(`http://localhost:3000/forms`, { name: newFormName, template: 'ngzorro', fields: [] })
-          .subscribe({
-            next: (createdForm) => {
-              this.formHeading = createdForm.name;
-              this.showForm = createdForm.name;
-              this.fields = [];
-              this.users = [];
-              this.form = new FormGroup({});
-              this.model = {};
-              this.loadSavedFormNames();
-              this.fetchData();
-              this.createNotification('success', '', "Form created successfully!");
-            },
-            error: (err) => {
-              this.createNotification('error', "Failed to create form", err.message);
-            }
-          });
+
+        this.http.post<any>(`http://localhost:3000/forms`, {
+          name: newFormName,
+          template: 'ngzorro',
+          fields: []
+        }).subscribe({
+          next: (createdForm) => {
+            // pretty display name (Form 1, Form 2, ...)
+            this.formHeading = createdForm.name
+              .split('_')
+              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            this.showForm = this.formHeading;
+            this.fields = [];
+            this.users = [];
+            this.form = new FormGroup({});
+            this.model = {};
+            this.loadSavedFormNames();
+            this.fetchData();
+            this.createNotification('success', '', "Form created successfully!");
+          },
+          error: (err) => {
+            this.createNotification('error', "Failed to create form", err.message);
+          }
+        });
       },
       error: (err) => {
         this.createNotification('error', "Failed to load forms", err.message);
@@ -217,11 +235,15 @@ export class CRUD {
   }
 
   loadSavedForm(formName: string) {
+    const normalizedFormName = formName.toLowerCase().replace(/\s+/g, '_');
     this.formChanged = false;
-    this.http.get<any>(`http://localhost:3000/forms/${formName}`).subscribe({
+    this.http.get<any>(`http://localhost:3000/forms/${normalizedFormName}`).subscribe({
       next: (form) => {
         if (form) {
-          this.showForm = formName;
+          this.showForm = formName
+            .split('_')
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
           this.fields = form.fields.map((row: any) => ({
             ...row,
             fieldGroup: row.fieldGroup?.map((field: any) => ({
@@ -234,7 +256,7 @@ export class CRUD {
               }
             }))
           }));
-          this.formHeading = formName;
+          this.formHeading = this.showForm
           this.reattachFieldFunctions();
           this.form = new FormGroup({});
           this.fields.forEach(row => {
@@ -265,9 +287,7 @@ export class CRUD {
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ ...e }));
         this.applyFilter();
-
         if (this.users.length > 0) {
-          // collect all possible keys
           const allKeys = new Set<string>();
           this.users.forEach(u => {
             Object.keys(u).forEach(k => {
@@ -365,7 +385,8 @@ export class CRUD {
   }
 
   openEditFormNameModal(name: string) {
-    this.http.get<any>(`http://localhost:3000/forms/${name}`).subscribe({
+    const normalizedFormName = name.toLowerCase().replace(/\s+/g, '_');
+    this.http.get<any>(`http://localhost:3000/forms/${normalizedFormName}`).subscribe({
       next: (form) => {
         if (!form) return;
         const savedWrapper = form.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'ngform-field-horizontal';
@@ -395,23 +416,33 @@ export class CRUD {
       alert("Form name is empty!");
       return;
     }
-    const oldName = this.editFormNameBefore || '';
-    const newName = this.editFormModel.formName.trim();
+
+    const oldName = (this.editFormNameBefore || '').toLowerCase().replace(/\s+/g, '_');
+    const rawNewName = this.editFormModel.formName.trim();
+    const newName = rawNewName.toLowerCase().replace(/\s+/g, '_');
     const newWrapper = this.editFormModel.wrapper || 'ngform-field-horizontal';
+
     if (this.savedFormNames.includes(newName) && newName !== oldName) {
       alert("A form with this name already exists!");
       return;
     }
+
     this.http.put(`http://localhost:3000/forms/rename/${oldName}`, {
-      newName,
+      newName,          // ✅ correct key
       wrapper: newWrapper
     }).subscribe({
       next: () => {
-        this.formHeading = newName;
-        this.showForm = newName;
+        const displayName = newName
+          .split('_')
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+
+        this.formHeading = displayName;
+        this.showForm = displayName;
+
         this.loadSavedFormNames();
         this.createNotification('success', '', "Successfully updated form info!");
-        this.loadSavedForm(newName);
+        this.loadSavedForm(newName); // ✅ use normalized name for backend calls
       },
       error: (err) => {
         this.createNotification('error', "Error updating form info!", err.message);
@@ -420,18 +451,22 @@ export class CRUD {
   }
 
   deleteFormName(formName: string) {
-    formName = formName;
+    const normalizedFormName = formName.toLowerCase().replace(/\s+/g, '_');
     if (!formName) { alert("Form name is missing!"); return; }
-    this.http.delete(`http://localhost:3000/forms/${formName}`)
+    this.http.delete(`http://localhost:3000/forms/${normalizedFormName}`)
       .subscribe({
         next: () => {
-          if (this.formHeading === formName) {
+          const displayName = formName
+            .split('_')
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          if (this.formHeading === displayName) {
             this.formHeading = '';
             this.fields = [];
             this.users = [];
             this.model = {};
           }
-          if (formName === this.showForm) {
+          if (this.showForm === displayName) {
             this.showForm = '';
           }
           this.loadSavedFormNames();
@@ -596,8 +631,9 @@ export class CRUD {
   }
 
   saveForm() {
+    const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
     const formPayload = {
-      name: this.formHeading,
+      name: normalizedFormName,
       fields: this.fields,
     };
     this.http.post('http://localhost:3000/forms', formPayload).subscribe({
