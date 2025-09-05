@@ -9,8 +9,8 @@
     <button type="button" class="btn border-0" *ngIf="savedFormNames.length > 0" data-bs-toggle="modal"
       data-bs-target="#savedFormsModal" nzTooltipTitle="Open saved form" nzTooltipPlacement="bottom" nz-tooltip><i
         nz-icon nzType="file"></i></button>
-    <button type="button" class="btn border-0" (click)="createNewForm()" nzTooltipTitle="Create form"
-      nzTooltipPlacement="bottom" nz-tooltip><i nz-icon nzType="file-add"></i></button>
+    <button type="button" class="btn border-0" data-bs-toggle="modal" data-bs-target="#createFormModal"
+      nzTooltipTitle="Create form" nzTooltipPlacement="bottom" nz-tooltip><i nz-icon nzType="file-add"></i></button>
   </div>
 </div>
 
@@ -107,12 +107,12 @@
           <button type="button" class="btn border-0" *ngIf="formChanged" (click)="saveForm()" appTooltip
             title="Save form" style="font-size: 26px;"><i class="fa-solid fa-floppy-disk"></i></button>
         </div>
-        <form nz-form [formGroup]="form" (ngSubmit)="onSubmit(model)" class="mt-3">
+        <form nz-form [formGroup]="form" class="mt-3">
           <formly-form [model]="model" [fields]="this.fields" [form]="this.form" cdkDropList [options]="this.options"
             [cdkDropListData]="fields" (cdkDropListDropped)="drop($event, fields)"></formly-form>
           <div class="d-flex justify-content-center" *ngIf="!isEdit()" (contextmenu)="showFormContextMenu($event)"
             #inputField>
-            <button type="submit" nz-button nzType="primary" class="mt-3" *ngIf="fields.length > 0"
+            <button type="button" (click)="onSubmit(model)" nz-button nzType="primary" class="mt-3" *ngIf="fields.length > 0"
               [disabled]="this.isLoading">Submit</button>
             <button type="button" nz-button nzType="default" class="mt-3 ms-3"
               *ngIf="fields.length != 0 && hasModel || this.form.touched || fields.length > 1"
@@ -138,7 +138,7 @@
             <button class="bg-warning ms-2" nz-button type="button" (click)="resetSearch()">Reset</button>
           </div>
         </div>
-        <div class="table-responsive mt-3" *ngIf="fields.length > 0" (contextmenu)="showFormContextMenu($event)"
+        <div class="table-responsive mt-3" *ngIf="users.length > 0" (contextmenu)="showFormContextMenu($event)"
           #inputField>
           <nz-table #basicTable [nzBordered]="true" [nzData]="filteredUsers" [nzLoading]="isLoading"
             [nzFrontPagination]="false" [nzPageIndex]="currentPage" [nzPageSize]="pageSize" [nzShowSizeChanger]="true"
@@ -183,6 +183,27 @@
   </div>
 </div>
 
+<div class="modal fade" id="createFormModal" tabindex="-1" aria-labelledby="createFormModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createFormModalLabel">Create New Form</h5>
+        <button type="button" class="btn-close border-0" data-bs-dismiss="modal" aria-label="Close" (click)="resetCreateForm()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="createFormModal" class="p-4 container">
+          <formly-form [model]="createFormModel" [fields]="createFormFields" [form]="createFormModal"></formly-form>
+          <div class="d-flex mt-3 gap-2">
+            <button type="button" nz-button nzType="primary"
+              (click)="createNewForm(createFormModel.formName, createFormModel.table, createFormModel.tableName)">Create</button>
+            <button type="button" nz-button nzType="default" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="savedFormsModal" tabindex="-1" aria-labelledby="savedFormsModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -213,8 +234,8 @@
           </li>
         </ul>
         <div class="d-flex justify-content-center">
-          <button type="button" nz-button nzType="primary" class="mt-3" data-bs-dismiss="modal"
-            (click)="createNewForm()">Create
+          <button type="button" nz-button nzType="primary" class="mt-3" data-bs-toggle="modal"
+            data-bs-target="#createFormModal">Create
             New Form</button>
         </div>
       </div>
