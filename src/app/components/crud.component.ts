@@ -112,7 +112,7 @@ export class CRUD {
       hideExpression: (model: any) => !model.table,
       expressionProperties: {
         'props.disabled': (model: any) => !model.table,
-        'props.required': (model: any) => !!model.table   // required only if table=true
+        'props.required': (model: any) => !!model.table
       },
       validation: {
         messages: {
@@ -215,7 +215,7 @@ export class CRUD {
       hideExpression: (model: any) => !model.table,
       expressionProperties: {
         'props.disabled': (model: any) => !model.table,
-        'props.required': (model: any) => !!model.table   // required only if table=true
+        'props.required': (model: any) => !!model.table
       },
       validation: {
         messages: {
@@ -286,7 +286,7 @@ export class CRUD {
       name: newFormName,
       template: 'ngzorro',
       table: table,
-      tableName: table ? tableName : null,   // send only if true
+      tableName: table ? tableName : null,
       fields: []
     }).subscribe({
       next: (createdForm) => {
@@ -304,12 +304,12 @@ export class CRUD {
         this.createNotification('success', '', "Form created successfully!");
       },
       error: (err) => {
-        if (err.error?.message?.includes("already exists")) {
+        if (err.error.message?.includes("already exists")) {
           this.createNotification('warning', "Duplicate", err.error.message);
-        } else if (err.error?.message?.includes("already used")) {
+        } else if (err.error.message?.includes("already used")) {
           this.createNotification('warning', "Duplicate Table", err.error.message);
         } else {
-          this.createNotification('error', "Failed to create form", err.message);
+          this.createNotification('error', "Failed to create form", err.error.message);
         }
       }
     });
@@ -386,27 +386,20 @@ export class CRUD {
   fetchData() {
     if (!this.formHeading) return;
     const normalizedFormName = this.formHeading.toLowerCase().replace(/\s+/g, '_');
-
     this.formService.getEntries(normalizedFormName).subscribe({
       next: (formEntries: any[]) => {
         this.users = formEntries.map(e => ({ ...e }));
         this.applyFilter();
-
         if (this.users.length > 0) {
-          // 🔹 collect all columns from rows
           const allKeys = new Set<string>();
           this.users.forEach(u => {
             Object.keys(u).forEach(k => {
               if (k !== 'id') allKeys.add(k);
             });
           });
-
-          // 🔹 filter out columns that are ALL null/empty
           const filteredKeys = Array.from(allKeys).filter(k =>
             this.users.some(u => u[k] !== null && u[k] !== undefined && u[k] !== '')
           );
-
-          // 🔹 collect field order
           const orderedKeys: string[] = [];
           const collectKeys = (arr: any[]) => {
             arr.forEach(f => {
@@ -415,20 +408,15 @@ export class CRUD {
             });
           };
           collectKeys(this.fields);
-
           let finalKeys: string[];
           if (orderedKeys.length > 0) {
-            // fields exist → order by field sequence + remaining db cols
             finalKeys = [
               ...orderedKeys.filter(k => filteredKeys.includes(k)),
               ...filteredKeys.filter(k => !orderedKeys.includes(k)),
             ];
           } else {
-            // no fields → fallback to DB sequence
             finalKeys = filteredKeys;
           }
-
-          // 🔹 build display fields
           this.displayFields = finalKeys.map(k => ({
             key: k,
             label: k
@@ -436,7 +424,6 @@ export class CRUD {
         } else {
           this.displayFields = [];
         }
-
         this.updatePagination();
         this.onSort('ascend', 'id');
       },
@@ -516,17 +503,14 @@ export class CRUD {
     this.http.get<any>(`http://localhost:3000/forms/${normalizedFormName}`).subscribe({
       next: (form) => {
         if (!form) return;
-
         const savedWrapper = form.fields?.[0]?.fieldGroup?.[0]?.wrappers?.[0] ?? 'ngform-field-horizontal';
         const hasTable = !!form.tableName;
-
         this.editFormModel = {
           formName: name,
           wrapper: savedWrapper,
           table: hasTable,
           tableName: hasTable ? form.tableName : ''
         };
-
         this.editFormFields = this.editFormFields.map(f => {
           if (f.key === 'wrapper') {
             return { ...f, defaultValue: savedWrapper };
@@ -539,7 +523,6 @@ export class CRUD {
           }
           return f;
         });
-
         this.editFormNameBefore = name;
       },
       error: (err) => {
@@ -553,20 +536,16 @@ export class CRUD {
       alert("Form name is empty!");
       return;
     }
-
     const oldName = (this.editFormNameBefore || '').toLowerCase().replace(/\s+/g, '_');
     const rawNewName = this.editFormModel.formName.trim();
     const newName = rawNewName.toLowerCase().replace(/\s+/g, '_');
     const newWrapper = this.editFormModel.wrapper || 'ngform-field-horizontal';
-
     const saveAsTable = !!this.editFormModel.table;
     const tableName = saveAsTable ? this.editFormModel.tableName?.trim() || newName : null;
-
     if (this.savedFormNames.includes(newName) && newName !== oldName) {
       alert("A form with this name already exists!");
       return;
     }
-
     this.http.put(`http://localhost:3000/forms/rename/${oldName}`, {
       newName,
       wrapper: newWrapper,
